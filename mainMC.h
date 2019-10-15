@@ -219,6 +219,7 @@ public :
    static Int_t     order;
    static Double_t  Background(Double_t *x, Double_t *par, Int_t order);
    static Double_t  Fit(Double_t *x, Double_t *par);
+   Bool_t           MC{true};
 };
 
 #endif
