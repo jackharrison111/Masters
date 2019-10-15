@@ -213,12 +213,14 @@ void mini::Run(){
 	myFit->SetParLimits(2,0,1e16);
 	invMassTot->Fit("myFit","R+");
 	
-
+	string outputName;
 	if(MC){
-		TFile output("mc_output.root","RECREATE");
+		outputName="mc_";
 	}else{
-		TFile output("re_output.root","RECREATE");
+		outputName="re_";
 	}
+	TFile output((outputName+"output.root").c_str(),"RECREATE");
+	
 	invMassE->SetTitle("Z->ee;M_inv/MeV;counts");
 	invMassE->Write();
 	invMassMu->SetTitle("Z->#mu#mu;M_inv/MeV;counts");
