@@ -1,19 +1,21 @@
 #define main_cxx
-#include "main.h"
+#include "mainMC.h" //change this for mc or real data
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <math.h>
 
 //1D *uncutInvMass = new TH1D("uncut","Z->ll",500,0,3e5);
-TH1D *invMassE = new TH1D("AB & JH's RES!!1","Z->ll",500,0,3e5);
-TH1D *invMassMu = new TH1D("AB & JH's RES!!2","Z->ll",500,0,3e5);
-TH1D *invMassTot = new TH1D("AB & JH's RES!!tot","Z->ll",500,0,3e5);
-TH1D *invMass4l = new TH1D("test","test",500,0,3e5);
+TH1D *invMassE = new TH1D("invMassE","Z->ee",500,0,3e5);
+TH1D *invMassMu = new TH1D("invMassMu","Z->#mu#mu",500,0,3e5);
+TH1D *invMassTot = new TH1D("invMassTot","Z->ee||#mu#mu",500,0,3e5);
+TH1D *invMass4l = new TH1D("invMass4l","Z->llll",500,0,3e5);
 //TH1D *pt = new TH1D("pt","Z->ll",1e4,0,1e6);
 //TH1D *etCone = new TH1D("etCone20","Z->ll",1e4,0,1e5);
 //TH1D *ptCone = new TH1D("ptCone30","Z->ll",1e4,0,1e5);
-TH2D *invMass2D = new TH2D("AB & JH's 2D RES!!","ZZ->llll",100,0,3e5,100,0,3e5);
+TH2D *invMass2D_EMu = new TH2D("invMass2D_EMu","ZZ->ee&&#mu#mu",100,0,3e5,100,0,3e5);
+TH2D *invMass2D_EE = new TH2D("invMass2D_EE","ZZ->ee&&ee",100,0,3e5,100,0,3e5);
+TH2D *invMass2D_MuMu = new TH2D("invMass2D_MuMu","ZZ->#mu#mu&&#mu#mu",100,0,3e5,100,0,3e5);
 
 
 const Double_t pi = M_PI;
@@ -84,6 +86,13 @@ Double_t mini::Fit(Double_t *x, Double_t *par){
 }
 
 
+
+
+
+
+
+
+
 void mini::Run(){
 	if (fChain == 0) return;
 
@@ -91,17 +100,14 @@ void mini::Run(){
 	Long64_t nbytes = 0, nb = 0;
 
 	Int_t counterboi{0};
-
-	for (Long64_t jentry=0; jentry<nentries; jentry++) {
+	Long64_t percents{1};
+	
+	clock_t startTime = clock();
+	
+	for (Long64_t jentry=0; jentry<nentries; jentry++){
 		Long64_t ientry = LoadTree(jentry);
-		if (ientry < 0) break;
+		if(ientry < 0) break;
 		nb = fChain->GetEntry(jentry);   nbytes += nb;
-
-
-
-
-
-
 
 
 		/*pt->Fill((*lep_pt)[0]);
@@ -137,7 +143,7 @@ void mini::Run(){
 			
 			invMassE->Fill(invMsqrtE);
 			invMassMu->Fill(invMsqrtMu);
-			invMass2D->Fill(invMsqrtE,invMsqrtMu);
+			invMass2D_EMu->Fill(invMsqrtE,invMsqrtMu);
 		}else if(Cut(4,0)||Cut(0,4)){
 			pair <Int_t,Int_t> pair1, pair2;
 			Bool_t firstOneSet=false;
@@ -164,9 +170,11 @@ void mini::Run(){
 			if((*lep_type)[0]==11){
 				invMassE->Fill(invMsqrtE);
 				invMassE->Fill(invMsqrtMu);
+				invMass2D_EE->Fill(invMsqrtE,invMsqrtMu);
 			}else{
 				invMassMu->Fill(invMsqrtE);
 				invMassMu->Fill(invMsqrtMu);
+				invMass2D_MuMu->Fill(invMsqrtE,invMsqrtMu);
 			}
 			
 		}
@@ -181,6 +189,10 @@ void mini::Run(){
 		}
 		/////////////////////
 	}
+
+	clock_t endTime = clock();
+
+	std::cout<<"Run time: "<<(endTime-startTime)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
 	
 
 	/*
@@ -202,16 +214,20 @@ void mini::Run(){
 	invMassTot->Fit("myFit","R+");
 
 	TFile output("output.root","RECREATE");
-	invMassTot->SetTitle("Resonance;M_inv/MeV;counts");
-	invMassTot->Write();
-	invMassE->SetTitle("particle e;M_inv/MeV;counts");
+	invMassE->SetTitle("Z->ee;M_inv/MeV;counts");
 	invMassE->Write();
-	invMassMu->SetTitle("particle #mu;M_inv/MeV;counts");
+	invMassMu->SetTitle("Z->#mu#mu;M_inv/MeV;counts");
 	invMassMu->Write();
-	invMass2D->SetTitle("2D;M_inv_ee/MeV;M_inv_#mu#mu/MeV");
-	invMass2D->Write();
-	invMass4l->SetTitle("4l system invariant mass;M_inv/MeV;counts");
+	invMassTot->SetTitle("Z->ee||#mu#mu;M_inv/MeV;counts");
+	invMassTot->Write();
+	invMass4l->SetTitle("Z->llll;M_inv/MeV;counts");
 	invMass4l->Write();
+	invMass2D_EMu->SetTitle("ZZ->ee&&#mu#mu;M_inv_ee/MeV;M_inv_#mu#mu/MeV");
+	invMass2D_EMu->Write();
+	invMass2D_EE->SetTitle("ZZ->ee&&ee;M_inv_ee1/MeV;M_inv_ee2/MeV");
+	invMass2D_EE->Write();
+	invMass2D_MuMu->SetTitle("ZZ->#mu#mu&#mu#mu;M_inv_#mu#mu1/MeV;M_inv_#mu#mu2/MeV");
+	invMass2D_MuMu->Write();
 	/*uncutInvMass->SetTitle("Uncut Resonance;M_inv/MeV;counts");
 	uncutInvMass->Write();
 	pt->SetTitle("pt;pt / MeV;counts");
