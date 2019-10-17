@@ -5,6 +5,8 @@
 #include <TCanvas.h>
 #include <math.h>
 
+
+//Make histograms:
 //1D *uncutInvMass = new TH1D("uncut","Z->ll",500,0,3e5);
 TH1D *invMassE = new TH1D("invMassE","Z->ee",500,0,3e5);
 TH1D *invMassMu = new TH1D("invMassMu","Z->#mu#mu",500,0,3e5);
@@ -104,13 +106,15 @@ void mini::Run(){
 	
 	clock_t startTime = clock();
 	
+	//Loop over all events
 	for (Long64_t jentry=0; jentry<nentries; jentry++){
 		Long64_t ientry = LoadTree(jentry);
 		if(ientry < 0) break;
 		nb = fChain->GetEntry(jentry);   nbytes += nb;
 
 
-		/*pt->Fill((*lep_pt)[0]);
+		/*Fill histograms to show lepton momentum and pt/etcone
+		pt->Fill((*lep_pt)[0]);
 		pt->Fill((*lep_pt)[1]);
 		ptCone->Fill((*lep_ptcone30)[0]);
 		etCone->Fill((*lep_etcone20)[0]);
@@ -118,8 +122,13 @@ void mini::Run(){
 		
 
 		////4 LEPTON EVENTS////
+		
+		///////////////////////
+
 		Double_t invMsqrtE, invMsqrtMu;
+		//Check for 2e 2mu events
 		if(Cut(2,2)){
+			//pair up the same type leptons
 			counterboi++;
 			Int_t j{0};
 			Int_t which;
@@ -133,6 +142,7 @@ void mini::Run(){
 				}
 			}
 
+			//Find the electron/muon invariant mass from the correct pairings
 			if((*lep_type)[0]==11){
 				invMsqrtE = sqrt(2*(*lep_pt)[0]*(*lep_pt)[which]*(cosh((*lep_eta)[0]-(*lep_eta)[which])-cos((*lep_phi)[0]-(*lep_phi)[which])));
 				invMsqrtMu = sqrt(2*(*lep_pt)[others[0]]*(*lep_pt)[others[1]]*(cosh((*lep_eta)[others[0]]-(*lep_eta)[others[1]])-cos((*lep_phi)[others[0]]-(*lep_phi)[others[1]])));
@@ -140,33 +150,42 @@ void mini::Run(){
 				invMsqrtMu = sqrt(2*(*lep_pt)[0]*(*lep_pt)[which]*(cosh((*lep_eta)[0]-(*lep_eta)[which])-cos((*lep_phi)[0]-(*lep_phi)[which])));
 				invMsqrtE = sqrt(2*(*lep_pt)[others[0]]*(*lep_pt)[others[1]]*(cosh((*lep_eta)[others[0]]-(*lep_eta)[others[1]])-cos((*lep_phi)[others[0]]-(*lep_phi)[others[1]])));
 			}
-			
+
+			//Fill histograms based off the 2,2 events
 			invMassE->Fill(invMsqrtE);
 			invMassMu->Fill(invMsqrtMu);
 			invMass2D_EMu->Fill(invMsqrtE,invMsqrtMu);
-		}else if(Cut(4,0)||Cut(0,4)){
-			pair <Int_t,Int_t> pair1, pair2;
+
+		}else if(Cut(4,0)||Cut(0,4)){    //Include 4 lepton events of all the same type
+			
+			pair <Int_t,Int_t> pair1, pair2;   //Pairs of ints to store the correct pairing indices
 			Bool_t firstOneSet=false;
 			Bool_t set=false;
+
 			for(Int_t i=1; i<4; i++){
 				if((*lep_charge)[i]!=(*lep_charge)[0] && set==false){
-					pair1.first=0;
+					pair1.first=0;		//Set the first and second pairs 
 					pair1.second=i;
 					set=true;
-				}else if(firstOneSet==false){
+				}else if(firstOneSet==false){   //If you haven't already set the first same charged lepton
 					pair2.first=i;
 					firstOneSet=true;
 				}else{
-					pair2.second=i;
+					pair2.second=i;         //Otherwise set the last lepton in pair2
 				}
 			}
-			/*//check that pairs are correct
+			/*Uncomment to check that pairs are correct
 			std::cout<<"("<<pair1.first<<","<<pair1.second<<") , ("<<pair2.first<<","<<pair2.second<<")"<<std::endl;
 			std::cout<<(*lep_charge)[0]<<","<<(*lep_charge)[1]<<","<<(*lep_charge)[2]<<","<<(*lep_charge)[3]<<std::endl;
 			*/
 			
-			invMsqrtE = sqrt(2*(*lep_pt)[pair1.first]*(*lep_pt)[pair1.second]*(cosh((*lep_eta)[pair1.first]-(*lep_eta)[pair1.second])-cos((*lep_phi)[pair1.first]-(*lep_phi)[pair1.second]))); //this is for pair 1...
-			invMsqrtMu = sqrt(2*(*lep_pt)[pair2.first]*(*lep_pt)[pair2.second]*(cosh((*lep_eta)[pair2.first]-(*lep_eta)[pair2.second])-cos((*lep_phi)[pair2.first]-(*lep_phi)[pair2.second]))); //..this is for pair 2, just using these variables as theyre already defined, ignore the E/Mu label
+			//Find InvMass for pair 1
+			invMsqrtE = sqrt(2*(*lep_pt)[pair1.first]*(*lep_pt)[pair1.second]*(cosh((*lep_eta)[pair1.first]-(*lep_eta)[pair1.second])-cos((*lep_phi)[pair1.first]-(*lep_phi)[pair1.second])));
+			
+			//Find InvMass for pair 2 (ignore Mu label as just re-using previous variable)
+			invMsqrtMu = sqrt(2*(*lep_pt)[pair2.first]*(*lep_pt)[pair2.second]*(cosh((*lep_eta)[pair2.first]-(*lep_eta)[pair2.second])-cos((*lep_phi)[pair2.first]-(*lep_phi)[pair2.second])));
+
+			//Fill the histograms the correct way round
 			if((*lep_type)[0]==11){
 				invMassE->Fill(invMsqrtE);
 				invMassE->Fill(invMsqrtMu);
@@ -179,23 +198,24 @@ void mini::Run(){
 			
 		}
 
+		//Finding invariant mass of whole 4 lepton event using Equation [3] in lab book
 		if(lep_n==4){
 			invMass4l->Fill(sqrt(pow((*lep_pt)[0]*cosh((*lep_eta)[0])+(*lep_pt)[1]*cosh((*lep_eta)[1])+(*lep_pt)[2]*cosh((*lep_eta)[2])+(*lep_pt)[3]*cosh((*lep_eta)[3]),2)-pow((*lep_pt)[0]*cos((*lep_phi)[0])+(*lep_pt)[1]*cos((*lep_phi)[1])+(*lep_pt)[2]*cos((*lep_phi)[2])+(*lep_pt)[3]*cos((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sin((*lep_phi)[0])+(*lep_pt)[1]*sin((*lep_phi)[1])+(*lep_pt)[2]*sin((*lep_phi)[2])+(*lep_pt)[3]*sin((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sinh((*lep_eta)[0])+(*lep_pt)[1]*sinh((*lep_eta)[1])+(*lep_pt)[2]*sinh((*lep_eta)[2])+(*lep_pt)[3]*sinh((*lep_eta)[3]),2)));
 		}
 			
-
+		//Fill an invariant mass histogram of both e and mu 2 events
 		for(Int_t i=1; i<=invMassE->GetNbinsX(); i++){
 			invMassTot->SetBinContent(i,invMassE->GetBinContent(i)+invMassMu->GetBinContent(i));
 		}
 		/////////////////////
 	}
 
+	//Print the time taken to run the loop (relies on startTime at beginning of loop)
 	clock_t endTime = clock();
-
 	std::cout<<"Run time: "<<(endTime-startTime)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
 	
 
-	/*
+	/* Used for fitting a gaussian 
 	TF1 *myGaussian = new TF1("myGaus",Gaussian,70e3,120e3,3);
 	myGaussian->SetParNames("#mu","#sigma", "A");
 	myGaussian->SetParameters(9e4,3e3,400);
@@ -205,6 +225,7 @@ void mini::Run(){
 	histogram->Fit("myGaus","R+");
 	*/
 	
+	//Fitting a composite Lorentz and Background to the histogram
 	TF1 *myFit = new TF1("myFit",Fit,75e3,110e3,order+4);
 	myFit->SetParNames("#mu","#Gamma","A");
 	myFit->SetParameters(9.1e4,3.9e3,4.5e5);
@@ -213,6 +234,7 @@ void mini::Run(){
 	myFit->SetParLimits(2,0,1e16);
 	invMassTot->Fit("myFit","R+");
 	
+	//Save the output file to the correct place based on data type
 	string outputName;
 	if(MC){
 		outputName="mc_";
@@ -221,6 +243,7 @@ void mini::Run(){
 	}
 	TFile output((outputName+"output.root").c_str(),"RECREATE");
 	
+	//Write the histograms - EVERY HISTOGRAM NEEDS TO BE WRITTEN HERE
 	invMassE->SetTitle("Z->ee;M_inv/MeV;counts");
 	invMassE->Write();
 	invMassMu->SetTitle("Z->#mu#mu;M_inv/MeV;counts");
@@ -244,5 +267,5 @@ void mini::Run(){
 	etCone->SetTitle("etCone;sum et;counts");
 	etCone->Write();
 	*/
-	output.Close();
+	output.Close();		//Close the output file
 }
