@@ -45,16 +45,18 @@ for(Json::Value::const_iterator outer = help.begin(); outer != help.end(); outer
 	infos.insert(pair<string, map<string, double>>(outerName, data));
 }
 
-for(map<string, map<string, double>>::iterator it = infos.begin(); it!= infos.end(); it++){
+/*for(map<string, map<string, double>>::iterator it = infos.begin(); it!= infos.end(); it++){
 	std::cout << it->first << std::endl;
 	for(map<string, double>::iterator at = (it->second).begin(); at!=(it->second).end(); at++){
 		std::cout<<"   "<<at->first<<" : "<<at->second<<std::endl;
 	}
 }
-
-//std::cout<<(infos["Graviton1500"])["sumw"]<<std::endl;
-
-
+*/
+std::cout<<(infos.find("ttbar_lep"))["sumw"]<<std::endl;
+//std::cout << ((infos["ttbar_lep"])["sumw"]) << std::endl;
+/*for(map<string, double>::iterator at = (infos["ttbar_lep"]).begin(); at!=(infos["ttbar_lep"]).end(); at++){
+		std::cout<<"   "<<at->first<<" : "<<at->second<<std::endl;
+	}*/
 return 0;
 }
 
