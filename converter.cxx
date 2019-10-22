@@ -26,40 +26,21 @@ if (!parseSuccess){
 }
 
 for(Json::Value::const_iterator outer = help.begin(); outer != help.end(); outer++){
-	//std::cout<<outer.key()<<std::endl;
 	map<string, double> data;
 	for(Json::Value::const_iterator inner = (*outer).begin() ; inner != (*outer).end(); inner++){
-		//std::cout << "  " << inner.key() << " : " << *inner << std::endl;
 		string parName = Json::writeString(wbuilder,inner.key());
+		parName = parName.erase(0,1);
+		parName = parName.erase(parName.length()-1,1);
 		double parValue = stod(Json::writeString(wbuilder,*inner));
-
 		data.insert(pair<string, double>(parName, parValue));
 	}
 
-		
-
-
-
-
 	string outerName = Json::writeString(wbuilder, outer.key());
+	outerName = outerName.erase(0,1);
+	outerName = outerName.erase(outerName.length()-1,1);
 	infos.insert(pair<string, map<string, double>>(outerName, data));
 }
 
-/*for(map<string, map<string, double>>::iterator it = infos.begin(); it!= infos.end(); it++){
-	std::cout << it->first << std::endl;
-	for(map<string, double>::iterator at = (it->second).begin(); at!=(it->second).end(); at++){
-		std::cout<<"   "<<at->first<<" : "<<at->second<<std::endl;
-	}
-}
-*/
-//std::cout<<(infos.find("ttbar_lep"))["sumw"]<<std::endl;
-map<string, map<string,double>>::iterator it = infos.find("ttbar_lep");
-//cout << (it->second).find("sumw") << endl;
-
-//std::cout << ((infos["ttbar_lep"])["sumw"]) << std::endl;
-/*for(map<string, double>::iterator at = (infos["ttbar_lep"]).begin(); at!=(infos["ttbar_lep"]).end(); at++){
-		std::cout<<"   "<<at->first<<" : "<<at->second<<std::endl;
-	}*/
+std::cout<<infos["ttbar_lep"]["sumw"] << std::endl;
 return 0;
 }
-
