@@ -1,6 +1,6 @@
-#include "json/jsoncpp/src/lib_json/json_reader.cpp"
-#include "json/jsoncpp/src/lib_json/json_writer.cpp"
-#include "json/jsoncpp/src/lib_json/json_value.cpp"
+#include "jsoncpp/src/lib_json/json_reader.cpp"
+#include "jsoncpp/src/lib_json/json_writer.cpp"
+#include "jsoncpp/src/lib_json/json_value.cpp"
 int converter(){
 string jsonString;
 std::ifstream test_file("test.json");
