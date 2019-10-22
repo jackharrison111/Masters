@@ -52,7 +52,11 @@ for(Json::Value::const_iterator outer = help.begin(); outer != help.end(); outer
 	}
 }
 */
-std::cout<<(infos.find("ttbar_lep"))["sumw"]<<std::endl;
+//std::cout<<(infos.find("ttbar_lep"))["sumw"]<<std::endl;
+map<string, map<string,double>>::iterator it ;
+it = infos.find("ttbar_lep");
+//cout << (it->second).find("sumw") << endl;
+
 //std::cout << ((infos["ttbar_lep"])["sumw"]) << std::endl;
 /*for(map<string, double>::iterator at = (infos["ttbar_lep"]).begin(); at!=(infos["ttbar_lep"]).end(); at++){
 		std::cout<<"   "<<at->first<<" : "<<at->second<<std::endl;
