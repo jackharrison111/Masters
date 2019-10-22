@@ -3,7 +3,7 @@
 #include "jsoncpp/src/lib_json/json_value.cpp"
 int converter(){
 string jsonString;
-std::ifstream test_file("test.json");
+std::ifstream test_file("infofile.json");
 getline(test_file, jsonString); 
 
 
@@ -18,7 +18,7 @@ delete reader;
 if (!parseSuccess){
 	std::cout<<"Error in parsing json file" << std::endl;
 }
-std::cout<<help["Graviton1500"]["xsec"];
+std::cout<<help["Graviton1500"];
 
 
 
