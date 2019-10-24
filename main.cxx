@@ -1,5 +1,6 @@
 #define main_cxx
 #include "mainMC.h" //change this for mc or real data
+#include "converter.h" //for usage of infofile.py here
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
