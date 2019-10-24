@@ -8,14 +8,10 @@
 
 
 //Make histograms:
-//1D *uncutInvMass = new TH1D("uncut","Z->ll",500,0,3e5);
 TH1D *invMassE = new TH1D("invMassE","Z->ee",500,0,3e5);
 TH1D *invMassMu = new TH1D("invMassMu","Z->#mu#mu",500,0,3e5);
 TH1D *invMassTot = new TH1D("invMassTot","Z->ee||#mu#mu",500,0,3e5);
 TH1D *invMass4l = new TH1D("invMass4l","Z->llll",500,0,3e5);
-//TH1D *pt = new TH1D("pt","Z->ll",1e4,0,1e6);
-//TH1D *etCone = new TH1D("etCone20","Z->ll",1e4,0,1e5);
-//TH1D *ptCone = new TH1D("ptCone30","Z->ll",1e4,0,1e5);
 TH2D *invMass2D_EMu = new TH2D("invMass2D_EMu","ZZ->ee&&#mu#mu",100,0,3e5,100,0,3e5);
 TH2D *invMass2D_EE = new TH2D("invMass2D_EE","ZZ->ee&&ee",100,0,3e5,100,0,3e5);
 TH2D *invMass2D_MuMu = new TH2D("invMass2D_MuMu","ZZ->#mu#mu&&#mu#mu",100,0,3e5,100,0,3e5);
@@ -105,7 +101,7 @@ void mini::Run(){
 
 	convert i;
 	i.makeMap();
-	Double_t lumFactor = 1000 * totRealLum * i.infos[this->filename]["xsec"]/(i.infos[this->filename]["sumw"]*i.infos[this->filename]["red_eff"]);
+	Double_t lumFactor = 1000 * totRealLum * i.infos[/filename]["xsec"]/(i.infos[filename]["sumw"]*i.infos[filename]["red_eff"]);
 	
 	Int_t counter{0};
 	clock_t startTime = clock();
@@ -117,9 +113,10 @@ void mini::Run(){
 		nb = fChain->GetEntry(jentry);   nbytes += nb;
 
 		Double_t eventWeight = 1;
-		if(this->MC){
+		if(MC){
 			eventWeight = mcWeight*scaleFactor_PILEUP*scaleFactor_ELE*scaleFactor_MUON*scaleFactor_PHOTON*scaleFactor_TAU*scaleFactor_BTAG*scaleFactor_LepTRIGGER*scaleFactor_PhotonTRIGGER*scaleFactor_TauTRIGGER*scaleFactor_DiTauTRIGGER*lumFactor;
 		}
+
 		////4 LEPTON EVENTS////
 		
 		///////////////////////
@@ -257,14 +254,6 @@ void mini::Run(){
 	invMass2D_EE->Write();
 	invMass2D_MuMu->SetTitle("ZZ->#mu#mu&#mu#mu;M_inv_#mu#mu1/MeV;M_inv_#mu#mu2/MeV");
 	invMass2D_MuMu->Write();
-	/*uncutInvMass->SetTitle("Uncut Resonance;M_inv/MeV;counts");
-	uncutInvMass->Write();
-	pt->SetTitle("pt;pt / MeV;counts");
-	pt->Write();
-	ptCone->SetTitle("ptCone;sum pt;counts");
-	ptCone->Write();
-	etCone->SetTitle("etCone;sum et;counts");
-	etCone->Write();
-	*/
+
 	output.Close();		//Close the output file
 }
