@@ -105,6 +105,9 @@ void mini::Run(){
 	Int_t counterboi{0};
 	Long64_t percents{1};
 	
+	convert i;
+	i.makeMap();
+
 	clock_t startTime = clock();
 	
 	//Loop over all events
