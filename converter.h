@@ -1,3 +1,5 @@
+//TODO: make variables private and a function to access them
+
 #include "jsoncpp/src/lib_json/json_reader.cpp"
 #include "jsoncpp/src/lib_json/json_writer.cpp"
 #include "jsoncpp/src/lib_json/json_value.cpp"
