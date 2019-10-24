@@ -6,8 +6,9 @@
 
 class convert{
 	public:
-		map<string, map<string, double>> infos;
-		map<string, double> data;
+		std::map<string, std::map<string, double>> infos;
+		std::map<string, double> data;
+		std::map<string, string> dataSets;
 
 		convert(){}
 		void makeMap();
@@ -15,39 +16,72 @@ class convert{
 };
 
 void convert::makeMap(){
-	string jsonString;
-	std::ifstream test_file("infofile.json");
-	getline(test_file, jsonString); 
-
-	Json::Value help;
+	//// read the .json files into strings ////
 	Json::CharReaderBuilder rbuilder;
 	Json::StreamWriterBuilder wbuilder;
 	Json::CharReader *reader = rbuilder.newCharReader();
-	string errors;
-	Bool_t parseSuccess = reader->parse(jsonString.c_str(),jsonString.c_str() + jsonString.size(), &help, &errors);
 
+
+	string dataSetsString;
+	std::ifstream dataJson("dataSets.json");
+	getline(dataJson, dataSetsString); 
+	Json::Value dataSetsParsed;
+	string dataSetsErrors;
+	
+	Bool_t dParseSuccess = reader->parse(dataSetsString.c_str(),dataSetsString.c_str() + dataSetsString.size(), &dataSetsParsed, &dataSetsErrors);
+
+
+	string infofileString;
+	std::ifstream infoJson("infofile.json");
+	getline(infoJson, infofileString); 
+	Json::Value infofileParsed;
+	string infofileErrors;
+	
+	Bool_t iParseSuccess = reader->parse(infofileString.c_str(),infofileString.c_str() + infofileString.size(), &infofileParsed, &infofileErrors);
+	///////////////////////////////////////////
+	
 	delete reader;
 
-	if (!parseSuccess){
-		std::cout<<"Error in parsing json file" << std::endl;
-	}
 
-	for(Json::Value::const_iterator outer = help.begin(); outer != help.end(); outer++){
-		for(Json::Value::const_iterator inner = (*outer).begin() ; inner != (*outer).end(); inner++){
-			string parName = Json::writeString(wbuilder,inner.key());
-			parName = parName.erase(0,1);
-			parName = parName.erase(parName.length()-1,1);
-			double parValue = stod(Json::writeString(wbuilder,*inner));
-			this->data.insert(pair<string, double>(parName, parValue));
+	if(!dParseSuccess){
+		std::cout<<"Error in parsing dataSets.json" << std::endl;
+	}else{
+		for(Json::Value::const_iterator it = dataSetsParsed.begin(); it != dataSetsParsed.end(); it++){
+			string process = Json::writeString(wbuilder, it.key());
+			process = process.erase(0,1);
+			process = process.erase(process.length()-1,1);
+			string mcFileName = Json::writeString(wbuilder,*it);
+			mcFileName = mcFileName.erase(0,1);
+			mcFileName = mcFileName.erase(mcFileName.length()-1,1);
+			this->dataSets.insert(pair<string, string>(process,mcFileName));
 		}
-
-		string outerName = Json::writeString(wbuilder, outer.key());
-		outerName = outerName.erase(0,1);
-		outerName = outerName.erase(outerName.length()-1,1);
-		infos.insert(pair<string, map<string, double>>(outerName, this->data));
-		this->data.clear();
 	}
 
-	std::cout<<this->infos["ttbar_lep"]["sumw"] << std::endl;
+	if (!iParseSuccess){
+		std::cout<<"Error in parsing infofile.json" << std::endl;
+	}else{
+		for(Json::Value::const_iterator outer = infofileParsed.begin(); outer != infofileParsed.end(); outer++){
+			for(Json::Value::const_iterator inner = (*outer).begin() ; inner != (*outer).end(); inner++){
+				string parName = Json::writeString(wbuilder,inner.key());
+				parName = parName.erase(0,1);
+				parName = parName.erase(parName.length()-1,1);
+				double parValue = stod(Json::writeString(wbuilder,*inner));
+				this->data.insert(pair<string, double>(parName, parValue));
+			}
+
+			string outerName = Json::writeString(wbuilder, outer.key());
+			outerName = outerName.erase(0,1);
+			outerName = outerName.erase(outerName.length()-1,1);
+
+			//infofile.py contains more than dataSets.py
+			//if the which iterator 
+			std::map<string, string>::iterator which;
+			if(dataSets.count(outerName)>0){
+				which = dataSets.find(outerName);
+				infos.insert(pair<string, std::map<string, double>>(which->second, this->data));
+			}
+			this->data.clear();
+		}
+	}
 }
 
