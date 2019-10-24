@@ -27,6 +27,7 @@ Double_t eMass = 0.511;
 Double_t pMass = 938.28;
 Double_t sqrtS = 13e6;
 Double_t c = 299792458;
+Double_t totRealLum = 10.064;
 
 //function to return number of chosen lepton type in an event
 Int_t mini::numberOfType(Int_t type){
@@ -102,12 +103,11 @@ void mini::Run(){
 	Long64_t nentries = fChain->GetEntriesFast();
 	Long64_t nbytes = 0, nb = 0;
 
-	Int_t counterboi{0};
-	Long64_t percents{1};
-	
 	convert i;
 	i.makeMap();
-
+	Double_t lumFactor = 1000 * totRealLum * i.infos[this->filename]["xsec"]/(i.infos[this->filename]["sumw"]*i.infos[this->filename]["red_eff"]);
+	
+	Int_t counter{0};
 	clock_t startTime = clock();
 	
 	//Loop over all events
@@ -116,15 +116,10 @@ void mini::Run(){
 		if(ientry < 0) break;
 		nb = fChain->GetEntry(jentry);   nbytes += nb;
 
-
-		/*Fill histograms to show lepton momentum and pt/etcone
-		pt->Fill((*lep_pt)[0]);
-		pt->Fill((*lep_pt)[1]);
-		ptCone->Fill((*lep_ptcone30)[0]);
-		etCone->Fill((*lep_etcone20)[0]);
-		*/
-		
-
+		Double_t eventWeight = 1;
+		if(this->MC){
+			eventWeight = mcWeight*scaleFactor_PILEUP*scaleFactor_ELE*scaleFactor_MUON*scaleFactor_PHOTON*scaleFactor_TAU*scaleFactor_BTAG*scaleFactor_LepTRIGGER*scaleFactor_PhotonTRIGGER*scaleFactor_TauTRIGGER*scaleFactor_DiTauTRIGGER*lumFactor;
+		}
 		////4 LEPTON EVENTS////
 		
 		///////////////////////
@@ -133,7 +128,7 @@ void mini::Run(){
 		//Check for 2e 2mu events
 		if(Cut(2,2)){
 			//pair up the same type leptons
-			counterboi++;
+			counter++;
 			Int_t j{0};
 			Int_t which;
 			Int_t others[2];

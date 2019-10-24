@@ -220,6 +220,7 @@ public :
    static Double_t  Background(Double_t *x, Double_t *par, Int_t order);
    static Double_t  Fit(Double_t *x, Double_t *par);
    Bool_t           MC{true};
+   string	    filename{"mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.1lep1tau_raw.root"};
 };
 
 #endif
@@ -230,9 +231,9 @@ mini::mini(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.1lep1tau_raw.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(filename.c_str());
       if (!f || !f->IsOpen()) {
-         f = new TFile("mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.1lep1tau_raw.root");
+         f = new TFile(filename.c_str());
       }
       f->GetObject("mini",tree);
    }
