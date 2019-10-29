@@ -267,4 +267,18 @@ void mini::Run(){
 	invMass2D_MuMu->Write();
 
 	output.Close();		//Close the output file
+} 
+
+
+
+
+int main(){
+
+	mini a;
+	a.Run();
+
+
+	return 0;
+
 }
+
