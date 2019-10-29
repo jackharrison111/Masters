@@ -220,7 +220,7 @@ public :
    static Double_t  Background(Double_t *x, Double_t *par, Int_t order);
    static Double_t  Fit(Double_t *x, Double_t *par);
    Bool_t           MC{true};
-   string	    filename{"mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.1lep1tau_raw.root"};
+   string           filename{"mc15_13TeV.361603.PwPy8EG_CT10nloME_AZNLOCTEQ6L1_ZZllll_mll4.2lep_raw.root"};
 };
 
 #endif
@@ -233,7 +233,7 @@ mini::mini(TTree *tree) : fChain(0)
    if (tree == 0) {
       TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(filename.c_str());
       if (!f || !f->IsOpen()) {
-         f = new TFile(filename.c_str());
+         f = new TFile(("/data/ATLAS/2lep/MC/"+filename).c_str());
       }
       f->GetObject("mini",tree);
    }
