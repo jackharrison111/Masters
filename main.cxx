@@ -101,7 +101,7 @@ void mini::Run(){
 
 	convert i;
 	i.makeMap();
-	Double_t lumFactor = 1000 * totRealLum * i.infos[/filename]["xsec"]/(i.infos[filename]["sumw"]*i.infos[filename]["red_eff"]);
+	Double_t lumFactor = 1000 * totRealLum * i.infos[filename]["xsec"]/(i.infos[filename]["sumw"]*i.infos[filename]["red_eff"]);
 	
 	Int_t counter{0};
 	clock_t startTime = clock();
@@ -116,6 +116,12 @@ void mini::Run(){
 		if(MC){
 			eventWeight = mcWeight*scaleFactor_PILEUP*scaleFactor_ELE*scaleFactor_MUON*scaleFactor_PHOTON*scaleFactor_TAU*scaleFactor_BTAG*scaleFactor_LepTRIGGER*scaleFactor_PhotonTRIGGER*scaleFactor_TauTRIGGER*scaleFactor_DiTauTRIGGER*lumFactor;
 		}
+
+
+
+
+
+
 
 		////4 LEPTON EVENTS////
 		
@@ -204,6 +210,11 @@ void mini::Run(){
 			invMassTot->SetBinContent(i,invMassE->GetBinContent(i)+invMassMu->GetBinContent(i));
 		}
 		/////////////////////
+		
+
+
+
+
 	}
 
 	//Print the time taken to run the loop (relies on startTime at beginning of loop)
