@@ -2,9 +2,17 @@
 #include "mainMC.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
 #include <TH2.h>
+//#include <TROOT.h>
+//#include <TRint.h>
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <math.h>
+
+//TStyle *st1 = new TStyle("st1","my style");
+//st1->SetHistLineStyle(0);
+//st1->cd();
+//TStyle *gStyle;
+
 
 
 //Make histograms:
@@ -94,6 +102,9 @@ Double_t mini::Fit(Double_t *x, Double_t *par){
 
 
 void mini::Run(){
+
+//gROOT->SetStyle("ATLAS");
+
 	if (fChain == 0) return;
 
 	Long64_t nentries = fChain->GetEntriesFast();
@@ -154,9 +165,9 @@ void mini::Run(){
 			}
 
 			//Fill histograms based off the 2,2 events
-			invMassE->Fill(invMsqrtE);
-			invMassMu->Fill(invMsqrtMu);
-			invMass2D_EMu->Fill(invMsqrtE,invMsqrtMu);
+			invMassE->Fill(invMsqrtE,eventWeight);
+			invMassMu->Fill(invMsqrtMu,eventWeight);
+			invMass2D_EMu->Fill(invMsqrtE,invMsqrtMu,eventWeight);
 
 		}else if(Cut(4,0)||Cut(0,4)){    //Include 4 lepton events of all the same type
 			
@@ -189,20 +200,20 @@ void mini::Run(){
 
 			//Fill the histograms the correct way round
 			if((*lep_type)[0]==11){
-				invMassE->Fill(invMsqrtE);
-				invMassE->Fill(invMsqrtMu);
-				invMass2D_EE->Fill(invMsqrtE,invMsqrtMu);
+				invMassE->Fill(invMsqrtE,eventWeight);
+				invMassE->Fill(invMsqrtMu,eventWeight);
+				invMass2D_EE->Fill(invMsqrtE,invMsqrtMu,eventWeight);
 			}else{
-				invMassMu->Fill(invMsqrtE);
-				invMassMu->Fill(invMsqrtMu);
-				invMass2D_MuMu->Fill(invMsqrtE,invMsqrtMu);
+				invMassMu->Fill(invMsqrtE,eventWeight);
+				invMassMu->Fill(invMsqrtMu,eventWeight);
+				invMass2D_MuMu->Fill(invMsqrtE,invMsqrtMu,eventWeight);
 			}
 			
 		}
 
 		//Finding invariant mass of whole 4 lepton event using Equation [3] in lab book
 		if(lep_n==4){
-			invMass4l->Fill(sqrt(pow((*lep_pt)[0]*cosh((*lep_eta)[0])+(*lep_pt)[1]*cosh((*lep_eta)[1])+(*lep_pt)[2]*cosh((*lep_eta)[2])+(*lep_pt)[3]*cosh((*lep_eta)[3]),2)-pow((*lep_pt)[0]*cos((*lep_phi)[0])+(*lep_pt)[1]*cos((*lep_phi)[1])+(*lep_pt)[2]*cos((*lep_phi)[2])+(*lep_pt)[3]*cos((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sin((*lep_phi)[0])+(*lep_pt)[1]*sin((*lep_phi)[1])+(*lep_pt)[2]*sin((*lep_phi)[2])+(*lep_pt)[3]*sin((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sinh((*lep_eta)[0])+(*lep_pt)[1]*sinh((*lep_eta)[1])+(*lep_pt)[2]*sinh((*lep_eta)[2])+(*lep_pt)[3]*sinh((*lep_eta)[3]),2)));
+			invMass4l->Fill(sqrt(pow((*lep_pt)[0]*cosh((*lep_eta)[0])+(*lep_pt)[1]*cosh((*lep_eta)[1])+(*lep_pt)[2]*cosh((*lep_eta)[2])+(*lep_pt)[3]*cosh((*lep_eta)[3]),2)-pow((*lep_pt)[0]*cos((*lep_phi)[0])+(*lep_pt)[1]*cos((*lep_phi)[1])+(*lep_pt)[2]*cos((*lep_phi)[2])+(*lep_pt)[3]*cos((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sin((*lep_phi)[0])+(*lep_pt)[1]*sin((*lep_phi)[1])+(*lep_pt)[2]*sin((*lep_phi)[2])+(*lep_pt)[3]*sin((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sinh((*lep_eta)[0])+(*lep_pt)[1]*sinh((*lep_eta)[1])+(*lep_pt)[2]*sinh((*lep_eta)[2])+(*lep_pt)[3]*sinh((*lep_eta)[3]),2)),eventWeight);
 		}
 			
 		//Fill an invariant mass histogram of both e and mu 2 events
@@ -250,6 +261,7 @@ void mini::Run(){
 	}
 	TFile output((outputName+"output.root").c_str(),"RECREATE");
 	
+
 	//Write the histograms - EVERY HISTOGRAM NEEDS TO BE WRITTEN HERE
 	invMassE->SetTitle("Z->ee;M_inv/MeV;counts");
 	invMassE->Write();
