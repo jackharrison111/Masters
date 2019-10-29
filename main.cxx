@@ -101,7 +101,7 @@ void mini::Run(){
 
 	convert i;
 	i.makeMap();
-	Double_t lumFactor = 1000 * totRealLum * i.infos[/filename]["xsec"]/(i.infos[filename]["sumw"]*i.infos[filename]["red_eff"]);
+	Double_t lumFactor = 1000 * totRealLum * i.infos[filename]["xsec"]/(i.infos[filename]["sumw"]*i.infos[filename]["red_eff"]);
 	
 	Int_t counter{0};
 	clock_t startTime = clock();
@@ -256,4 +256,18 @@ void mini::Run(){
 	invMass2D_MuMu->Write();
 
 	output.Close();		//Close the output file
+} 
+
+
+
+
+int main(){
+
+	mini a;
+	a.Run();
+
+
+	return 0;
+
 }
+
