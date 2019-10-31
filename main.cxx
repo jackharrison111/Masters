@@ -14,7 +14,6 @@
 //TStyle *gStyle;
 
 
-
 //Make histograms:
 TH1D *invMassE = new TH1D("invMassE","Z->ee",500,0,3e5);
 TH1D *invMassMu = new TH1D("invMassMu","Z->#mu#mu",500,0,3e5);
@@ -26,17 +25,18 @@ TH2D *invMass2D_MuMu = new TH2D("invMass2D_MuMu","ZZ->#mu#mu&&#mu#mu",100,0,3e5,
 
 
 const Double_t pi = M_PI;
+
 //MeV:
 Double_t eMass = 0.511;
 Double_t pMass = 938.28;
 Double_t sqrtS = 13e6;
-Double_t c = 299792458;
-Double_t totRealLum = 10.064;
+
+Double_t totRealLum = 10.064; //inv fb - open data set
 
 //function to return number of chosen lepton type in an event
 Int_t mini::numberOfType(Int_t type){
 	Int_t num=0;
-	for(int i=0; i<lep_n; i++){
+	for(Int_t i=0; i<lep_n; i++){
 		if((*lep_type)[i] == type){
 			num++;
 		}
@@ -45,14 +45,14 @@ Int_t mini::numberOfType(Int_t type){
 }
 
 //add cut decisions to this function
-Bool_t mini::Cut(Int_t e, Int_t mu){
-	if(lep_n==e+mu){
-		if(numberOfType(11)==e && numberOfType(13)==mu){
+Bool_t mini::Cut(Int_t e, Int_t mu){ //electron and muons only so far
+	if(lep_n==e+mu){ //select events with number of leptons equal to function inputs
+		if(numberOfType(11)==e && numberOfType(13)==mu){ //further selection
 			Int_t charge{0};
 			for(Int_t i=0; i<e+mu; i++){
 				charge+=(*lep_charge)[i];
 			}
-			if(charge==0){
+			if(charge==0){ //ie number of leptons equals number of antileptons
 				//if(stuff to do with pt,ptcone etc..
 				//pt>25e3,ptcone30/pt<0.05..
 				return true;
@@ -87,7 +87,7 @@ Double_t mini::Background(Double_t *x, Double_t *par, Int_t order){
 	return B;
 }
 
-Int_t mini::order = 0; //mmm global??
+Int_t mini::order = 0; //global??
 //combine
 Double_t mini::Fit(Double_t *x, Double_t *par){
 	return Lorentz(x, par) + Background(x,&par[3],order);
@@ -103,11 +103,11 @@ Double_t mini::Fit(Double_t *x, Double_t *par){
 
 void mini::Run(){
 
-//gROOT->SetStyle("ATLAS");
+	//gROOT->SetStyle("ATLAS");
 
 	if (fChain == 0) return;
 
-	Long64_t nentries = fChain->GetEntriesFast();
+	Long64_t n = fChain->GetEntriesFast();
 	Long64_t nbytes = 0, nb = 0;
 
 	convert i;
@@ -118,10 +118,10 @@ void mini::Run(){
 	clock_t startTime = clock();
 	
 	//Loop over all events
-	for (Long64_t jentry=0; jentry<nentries; jentry++){
-		Long64_t ientry = LoadTree(jentry);
+	for (Long64_t i=0; i<n; i++){
+		Long64_t ientry = LoadTree(i);
 		if(ientry < 0) break;
-		nb = fChain->GetEntry(jentry);   nbytes += nb;
+		nb = fChain->GetEntry(i);   nbytes += nb;
 
 		Double_t eventWeight = 1;
 		if(MC){
@@ -143,15 +143,15 @@ void mini::Run(){
 		if(Cut(2,2)){
 			//pair up the same type leptons
 			counter++;
-			Int_t j{0};
+			Int_t k{0};
 			Int_t which;
 			Int_t others[2];
-			for(Int_t i=1; i<4; i++){
-				if((*lep_type)[i]==(*lep_type)[0]){
-					which = i;
+			for(Int_t j=1; j<4; j++){
+				if((*lep_type)[j]==(*lep_type)[0]){
+					which = j;
 				}else{
-					others[j]=i;
-					j++;
+					others[k]=j;
+					k++;
 				}
 			}
 
@@ -175,16 +175,16 @@ void mini::Run(){
 			Bool_t firstOneSet=false;
 			Bool_t set=false;
 
-			for(Int_t i=1; i<4; i++){
-				if((*lep_charge)[i]!=(*lep_charge)[0] && set==false){
+			for(Int_t j=1; j<4; j++){
+				if((*lep_charge)[j]!=(*lep_charge)[0] && set==false){
 					pair1.first=0;		//Set the first and second pairs 
-					pair1.second=i;
+					pair1.second=j;
 					set=true;
 				}else if(firstOneSet==false){   //If you haven't already set the first same charged lepton
-					pair2.first=i;
+					pair2.first=j;
 					firstOneSet=true;
 				}else{
-					pair2.second=i;         //Otherwise set the last lepton in pair2
+					pair2.second=j;         //Otherwise set the last lepton in pair2
 				}
 			}
 			/*Uncomment to check that pairs are correct
@@ -217,8 +217,8 @@ void mini::Run(){
 		}
 			
 		//Fill an invariant mass histogram of both e and mu 2 events
-		for(Int_t i=1; i<=invMassE->GetNbinsX(); i++){
-			invMassTot->SetBinContent(i,invMassE->GetBinContent(i)+invMassMu->GetBinContent(i));
+		for(Int_t j=1; j<=invMassE->GetNbinsX(); j++){
+			invMassTot->SetBinContent(j,invMassE->GetBinContent(j)+invMassMu->GetBinContent(j));
 		}
 		/////////////////////
 		
@@ -278,19 +278,15 @@ void mini::Run(){
 	invMass2D_MuMu->SetTitle("ZZ->#mu#mu&#mu#mu;M_inv_#mu#mu1/MeV;M_inv_#mu#mu2/MeV");
 	invMass2D_MuMu->Write();
 
-	output.Close();		//Close the output file
+	output.Close(); //Close the output file
 } 
 
 
 
-
-int main(){
-
+// so we don't need to keep typing it in the terminal
+Int_t main(){
 	mini a;
 	a.Run();
 
-
 	return 0;
-
 }
-
