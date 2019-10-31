@@ -12,6 +12,7 @@
 #include <TChain.h>
 #include <TFile.h>
 #include <math.h>
+#include <TStyle.h>
 
 // Header file for the classes stored in the TTree if any.
 #include "vector"

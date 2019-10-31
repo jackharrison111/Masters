@@ -1,5 +1,5 @@
 #define main_cxx
-#include "mainMC.h" //change this for mc or real data
+#include "main.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
 #include <TH2.h>
 //#include <TROOT.h>
@@ -8,13 +8,8 @@
 #include <TCanvas.h>
 #include <math.h>
 
-//TStyle *st1 = new TStyle("st1","my style");
-//st1->SetHistLineStyle(0);
-//st1->cd();
-//TStyle *gStyle;
-
-
 //Make histograms:
+TH1D *invMassZee = new TH1D("invMassZee","Z->ee",500,0,3e5); //for Cut(2,0) events
 TH1D *invMassE = new TH1D("invMassE","Z->ee",500,0,3e5);
 TH1D *invMassMu = new TH1D("invMassMu","Z->#mu#mu",500,0,3e5);
 TH1D *invMassTot = new TH1D("invMassTot","Z->ee||#mu#mu",500,0,3e5);
@@ -103,16 +98,20 @@ Double_t mini::Fit(Double_t *x, Double_t *par){
 
 void mini::Run(){
 
-	//gROOT->SetStyle("ATLAS");
+	gROOT->SetStyle("ATLAS");
+	gStyle->SetOptStat(0);
 
 	if (fChain == 0) return;
 
 	Long64_t n = fChain->GetEntriesFast();
 	Long64_t nbytes = 0, nb = 0;
-
-	convert i;
-	i.makeMap();
-	Double_t lumFactor = 1000 * totRealLum * i.infos[filename]["xsec"]/(i.infos[filename]["sumw"]*i.infos[filename]["red_eff"]);
+	
+	Double_t lumFactor;
+	if(MC){
+		convert i;
+		i.makeMap();
+		lumFactor = 1000 * totRealLum * i.infos[filename]["xsec"]/(i.infos[filename]["sumw"]*i.infos[filename]["red_eff"]);
+	}
 	
 	Int_t counter{0};
 	clock_t startTime = clock();
@@ -131,13 +130,17 @@ void mini::Run(){
 
 
 
+		////2 ELECTRON EVENTS////
+		Double_t invMee;
+		if(Cut(2,0)){
+			invMee = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])));
+			invMassZee->Fill(invMee,eventWeight);
+		}
+		/////////////////////////
 
 
 
 		////4 LEPTON EVENTS////
-		
-		///////////////////////
-
 		Double_t invMsqrtE, invMsqrtMu;
 		//Check for 2e 2mu events
 		if(Cut(2,2)){
@@ -167,7 +170,7 @@ void mini::Run(){
 			//Fill histograms based off the 2,2 events
 			invMassE->Fill(invMsqrtE,eventWeight);
 			invMassMu->Fill(invMsqrtMu,eventWeight);
-			invMass2D_EMu->Fill(invMsqrtE,invMsqrtMu,eventWeight);
+			invMass2D_EMu->Fill(invMsqrtE,invMsqrtMu/*,eventWeight*/);
 
 		}else if(Cut(4,0)||Cut(0,4)){    //Include 4 lepton events of all the same type
 			
@@ -202,11 +205,11 @@ void mini::Run(){
 			if((*lep_type)[0]==11){
 				invMassE->Fill(invMsqrtE,eventWeight);
 				invMassE->Fill(invMsqrtMu,eventWeight);
-				invMass2D_EE->Fill(invMsqrtE,invMsqrtMu,eventWeight);
+				invMass2D_EE->Fill(invMsqrtE,invMsqrtMu/*,eventWeight*/);
 			}else{
 				invMassMu->Fill(invMsqrtE,eventWeight);
 				invMassMu->Fill(invMsqrtMu,eventWeight);
-				invMass2D_MuMu->Fill(invMsqrtE,invMsqrtMu,eventWeight);
+				invMass2D_MuMu->Fill(invMsqrtE,invMsqrtMu/*,eventWeight*/);
 			}
 			
 		}
@@ -263,6 +266,8 @@ void mini::Run(){
 	
 
 	//Write the histograms - EVERY HISTOGRAM NEEDS TO BE WRITTEN HERE
+	invMassZee->SetTitle("Z->ee;M_inv/MeV;counts");
+	invMassZee->Write();
 	invMassE->SetTitle("Z->ee;M_inv/MeV;counts");
 	invMassE->Write();
 	invMassMu->SetTitle("Z->#mu#mu;M_inv/MeV;counts");

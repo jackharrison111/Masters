@@ -12,6 +12,7 @@
 #include <TChain.h>
 #include <TFile.h>
 #include <math.h>
+#include <TStyle.h>
 
 // Header file for the classes stored in the TTree if any.
 #include "vector"
@@ -220,6 +221,7 @@ public :
    static Double_t  Background(Double_t *x, Double_t *par, Int_t order);
    static Double_t  Fit(Double_t *x, Double_t *par);
    Bool_t           MC{false};
+   string           filename;
 };
 
 #endif
