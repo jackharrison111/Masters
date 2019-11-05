@@ -221,7 +221,6 @@ public :
    static Double_t  Background(Double_t *x, Double_t *par, Int_t order);
    static Double_t  Fit(Double_t *x, Double_t *par);
    Bool_t           MC{true};
-   string           filename{"mc15_13TeV.361603.PwPy8EG_CT10nloME_AZNLOCTEQ6L1_ZZllll_mll4.2lep_raw.root"};
 };
 
 #endif
@@ -232,13 +231,16 @@ mini::mini(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(filename.c_str());
+      /*TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(filename.c_str());
       if (!f || !f->IsOpen()) {
          f = new TFile(("/data/ATLAS/2lep/MC/"+filename).c_str());
       }
-      f->GetObject("mini",tree);
+      f->GetObject("mini",tree);*/
+      chain = new TChain("mini");
+      chain->Add("/data/ATLAS/2lep/MC/*");
    }
-   Init(tree);
+   //Init(tree);
+   Init(chain);
 }
 
 mini::~mini()
