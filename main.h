@@ -221,7 +221,6 @@ public :
    static Double_t  Background(Double_t *x, Double_t *par, Int_t order);
    static Double_t  Fit(Double_t *x, Double_t *par);
    Bool_t           MC{false};
-   string           filename;
 };
 
 #endif
@@ -233,10 +232,7 @@ mini::mini(TTree *tree) : fChain(0)
 // used to generate this class and read the Tree.
    if (tree == 0) {
       chain = new TChain("mini");
-      chain->Add("/data/ATLAS/2lep/Data/dataA_2lep.root");
-      chain->Add("/data/ATLAS/2lep/Data/dataB_2lep.root");
-      chain->Add("/data/ATLAS/2lep/Data/dataC_2lep.root");
-      chain->Add("/data/ATLAS/2lep/Data/dataD_2lep.root");
+      chain->Add("/data/ATLAS/2lep/Data/*");
    }
    Init(chain);
 }
