@@ -17,7 +17,7 @@ void plotter(string chosenHist){
 	gStyle->SetOptStat(1111111);
 
 
-	TFile *f = new TFile("SER_hist_100e_X100_Y250_Z250_1.5GeV.root");
+	TFile *f = new TFile("rootOutput/mc_output.root");
 	//("rootOutput/mc_output.root");
 
 	if(!f->IsOpen()){
@@ -29,35 +29,36 @@ void plotter(string chosenHist){
 	TIter next(f->GetListOfKeys());
 	TKey *myKey;
 
-	std::cout << "HERE" << std::endl;
 
 	while((myKey = (TKey*)next())){
 		
-		std::cout << "HEREE" << std::endl;
 		TObject *obj;
 		obj = myKey->ReadObj();
 		string name = obj->GetName();
-		if(name == "averageWaveforms"){
-			TKey *myNewKey;
+		if(name == "invMassE"){
 			if(obj->IsA()->InheritsFrom("TDirectory")){
-				TDirectory *dir;
+				TDirectory *dir = new TDirectory("dir","dir");
 
-				std::cout << "HEREEE" << std::endl;
-				dir->GetObject("averageWaveforms",obj);
-				TIter newnext(dir->GetListOfKeys());
+				dir->GetObject("invMassE",obj);
+				dir->cd();
+				TIter newnext(f->GetListOfKeys());
+				TKey *myNewKey;
+
 				
-				while((myKey = (TKey*)newnext())){
+				while((myNewKey = (TKey*)newnext())){
 				 	
 					TObject *obj2;
 					obj2 = myNewKey->ReadObj();
-					std::cout << "HEREEEE" << std::endl;
-					if(obj2->IsA()->InheritsFrom("TH1")){
-						std::cout << "HEREEEEE" << std::endl;					
-						TH1D *h;
-						h = (TH1D*)obj2;
+
+					//if(obj2->IsA()->InheritsFrom("TH1")){
+						std::cout << "HERE" << std::endl;					
+						TH1D *h = new TH1D("h","h",500,0,3e5);
+						//h = (TH1D*)obj2;
+						//h->Draw();
+						h->GetObject("
 						std::cout << h->GetName() << std::endl;
 
-					}
+					//}
 				}
 
 			}
@@ -133,11 +134,11 @@ void plotter(string chosenHist){
 	/*for(vector<TH1D>::iterator it = histograms.begin(); it != histograms.end(); ++it){
 		(&it)->Draw();	
 	}*/
-	
+}
 
-
-
-
+Int_t plotter(){
+	plotter("a");
+	return 0;
 }
 
 
