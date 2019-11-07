@@ -1,5 +1,3 @@
-//TODO: make a map of key : value
-//      eg   "invMassZee" : TH1D *invMassZee .......
 #define main_cxx
 #include "mainMC.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
@@ -110,7 +108,7 @@ void mini::Run(){
 	TFile output((outputName+"output.root").c_str(),"RECREATE");
 	TDirectory *TDir1 = output.mkdir("1fatjet1lep");
 	TDirectory *TDir2 = output.mkdir("1lep");
-	TDirectory *TDir3 = output.mkdir("1leptau");
+	TDirectory *TDir3 = output.mkdir("1lep1tau");
 	TDirectory *TDir4 = output.mkdir("1tau");
 	TDirectory *TDir5 = output.mkdir("2lep");
 	TDirectory *TDir6 = output.mkdir("2tau");
@@ -165,11 +163,11 @@ void mini::Run(){
 							(it->second)->Write((products+"_"+it->first+"_"+shortFileName).c_str(),TObject::kWriteDelete);
 						}
 						gDirectory->cd("..");
+						(it->second)->Reset();
 						it++;
 					}
 
 					output.cd();
-					invMassZee->Reset();
 				}
 				oldFileName=fileName;
 				products=oldFileName.substr(12,oldFileName.find('/',12)-12); //12 is the position after "/data/ATLAS/"
@@ -179,24 +177,20 @@ void mini::Run(){
 				lumFactor=1000*totRealLum*i.infos[shortFileName]["xsec"]/(i.infos[shortFileName]["sumw"]*i.infos[shortFileName]["red_eff"]);
 				
 				gDirectory->cd(products.c_str());
-				invMassZee->SetName((products+"_invMassZee_"+shortFileName).c_str());
-				invMassE->SetName((products+"_invMassE_"+shortFileName).c_str());
-				invMassMu->SetName((products+"_invMassMu_"+shortFileName).c_str());
-				invMassTot->SetName((products+"_invMassTot_"+shortFileName).c_str());
-				invMass4l->SetName((products+"_invMass4l_"+shortFileName).c_str());
-				invMass2D_EMu->SetName((products+"_invMass2D_EMu_"+shortFileName).c_str());
-				invMass2D_EE->SetName((products+"_invMass2D_EE_"+shortFileName).c_str());
-				invMass2D_MuMu->SetName((products+"_invMass2D_MuMu_"+shortFileName).c_str());
+				std::map<string,TH1*>::iterator it = histograms.begin();
+				while(it!=histograms.end()){
+					(it->second)->SetName((products+"_"+it->first+"_"+shortFileName).c_str());
+					it++;
+				}
 			}
 			eventWeight = mcWeight*scaleFactor_PILEUP*scaleFactor_ELE*scaleFactor_MUON*scaleFactor_PHOTON*scaleFactor_TAU*scaleFactor_BTAG*scaleFactor_LepTRIGGER*scaleFactor_PhotonTRIGGER*scaleFactor_TauTRIGGER*scaleFactor_DiTauTRIGGER*lumFactor;
 		}
 		
-		invMassZee->Fill((*lep_pt)[0]);
 		////2 ELECTRON EVENTS////
 		Double_t invMee;
 		if(Cut(2,0)){
 			invMee = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])));
-			//invMassZee->Fill(invMee,eventWeight);
+			histograms["invMassZee"]->Fill(invMee,eventWeight);
 		}
 		/////////////////////////
 
@@ -230,9 +224,9 @@ void mini::Run(){
 			}
 
 			//Fill histograms based off the 2,2 events
-			//(&invMassE[whichIndex])->Fill(invMsqrtE,eventWeight);
-			//(&invMassMu[whichIndex])->Fill(invMsqrtMu,eventWeight);
-			//(&invMass2D_EMu[whichIndex])->Fill(invMsqrtE,invMsqrtMu/*,eventWeight*/);
+			histograms["invMassE"]->Fill(invMsqrtE,eventWeight);
+			histograms["invMassMu"]->Fill(invMsqrtMu,eventWeight);
+			histograms["invMass2D_EMu"]->Fill(invMsqrtE,invMsqrtMu/*,eventWeight*/);
 
 		}else if(Cut(4,0)||Cut(0,4)){    //Include 4 lepton events of all the same type
 			
@@ -265,26 +259,26 @@ void mini::Run(){
 
 			//Fill the histograms the correct way round
 			if((*lep_type)[0]==11){
-				//(&invMassE[whichIndex])->Fill(invMsqrtE,eventWeight);
-				//(&invMassE[whichIndex])->Fill(invMsqrtMu,eventWeight);
-				//(&invMass2D_EE[whichIndex])->Fill(invMsqrtE,invMsqrtMu/*,eventWeight*/);
+				histograms["invMassE"]->Fill(invMsqrtE,eventWeight);
+				histograms["invMassE"]->Fill(invMsqrtMu,eventWeight);
+				histograms["invMass2D_EE"]->Fill(invMsqrtE,invMsqrtMu/*,eventWeight*/);
 			}else{
-				//(&invMassMu[whichIndex])->Fill(invMsqrtE,eventWeight);
-				//(&invMassMu[whichIndex])->Fill(invMsqrtMu,eventWeight);
-				//(&invMass2D_MuMu[whichIndex])->Fill(invMsqrtE,invMsqrtMu/*,eventWeight*/);
+				histograms["invMassMu"]->Fill(invMsqrtE,eventWeight);
+				histograms["invMassMu"]->Fill(invMsqrtMu,eventWeight);
+				histograms["invMass2D_MuMu"]->Fill(invMsqrtE,invMsqrtMu/*,eventWeight*/);
 			}
 			
 		}
 
 		//Finding invariant mass of whole 4 lepton event using Equation [3] in lab book
 		if(lep_n==4){
-			//(&invMass4l[whichIndex])->Fill(sqrt(pow((*lep_pt)[0]*cosh((*lep_eta)[0])+(*lep_pt)[1]*cosh((*lep_eta)[1])+(*lep_pt)[2]*cosh((*lep_eta)[2])+(*lep_pt)[3]*cosh((*lep_eta)[3]),2)-pow((*lep_pt)[0]*cos((*lep_phi)[0])+(*lep_pt)[1]*cos((*lep_phi)[1])+(*lep_pt)[2]*cos((*lep_phi)[2])+(*lep_pt)[3]*cos((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sin((*lep_phi)[0])+(*lep_pt)[1]*sin((*lep_phi)[1])+(*lep_pt)[2]*sin((*lep_phi)[2])+(*lep_pt)[3]*sin((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sinh((*lep_eta)[0])+(*lep_pt)[1]*sinh((*lep_eta)[1])+(*lep_pt)[2]*sinh((*lep_eta)[2])+(*lep_pt)[3]*sinh((*lep_eta)[3]),2)),eventWeight);
+			histograms["invMass4l"]->Fill(sqrt(pow((*lep_pt)[0]*cosh((*lep_eta)[0])+(*lep_pt)[1]*cosh((*lep_eta)[1])+(*lep_pt)[2]*cosh((*lep_eta)[2])+(*lep_pt)[3]*cosh((*lep_eta)[3]),2)-pow((*lep_pt)[0]*cos((*lep_phi)[0])+(*lep_pt)[1]*cos((*lep_phi)[1])+(*lep_pt)[2]*cos((*lep_phi)[2])+(*lep_pt)[3]*cos((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sin((*lep_phi)[0])+(*lep_pt)[1]*sin((*lep_phi)[1])+(*lep_pt)[2]*sin((*lep_phi)[2])+(*lep_pt)[3]*sin((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sinh((*lep_eta)[0])+(*lep_pt)[1]*sinh((*lep_eta)[1])+(*lep_pt)[2]*sinh((*lep_eta)[2])+(*lep_pt)[3]*sinh((*lep_eta)[3]),2)),eventWeight);
 		}
 			
 		//Fill an invariant mass histogram of both e and mu 2 events
-		/*for(Int_t j=1; j<=(&invMassE[whichIndex])->GetNbinsX(); j++){
-			(&invMassTot[whichIndex])->SetBinContent(j,(&invMassE[whichIndex])->GetBinContent(j)+(&invMassMu[whichIndex])->GetBinContent(j));
-		}*/
+		for(Int_t j=1; j<=histograms["invMassE"]->GetNbinsX(); j++){
+			histograms["invMassTot"]->SetBinContent(j,histograms["invMassE"]->GetBinContent(j)+histograms["invMassMu"]->GetBinContent(j));
+		}
 		/////////////////////
 		
 		//to write the last files histograms (loop ends after last event in last file,
@@ -301,6 +295,7 @@ void mini::Run(){
 					(it->second)->Write((products+"_"+it->first+"_"+shortFileName).c_str(),TObject::kWriteDelete);
 				}
 				gDirectory->cd("..");
+				(it->second)->Reset();
 				it++;
 			}
 		}
