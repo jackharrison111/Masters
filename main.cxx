@@ -1,3 +1,4 @@
+//TODO: make an if statement to check whether dataSets.json contains shortFileName
 #define main_cxx
 #include "mainMC.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
@@ -131,6 +132,8 @@ void mini::Run(){
 	histograms["invMass2D_EE"]=invMass2D_EE;
 	histograms["invMass2D_MuMu"]=invMass2D_MuMu;
 
+	TH1D *test = new TH1D("test","test",500,0,3e2);
+
 
 	Int_t counter{0};
 	clock_t startTime = clock();
@@ -223,14 +226,51 @@ void mini::Run(){
 				invMsqrtE = sqrt(2*(*lep_pt)[others[0]]*(*lep_pt)[others[1]]*(cosh((*lep_eta)[others[0]]-(*lep_eta)[others[1]])-cos((*lep_phi)[others[0]]-(*lep_phi)[others[1]])));
 			}
 
-			//Fill histograms based off the 2,2 events
+			//fill histograms based off the 2,2 events
 			histograms["invMassE"]->Fill(invMsqrtE,eventWeight);
 			histograms["invMassMu"]->Fill(invMsqrtMu,eventWeight);
 			histograms["invMass2D_EMu"]->Fill(invMsqrtE,invMsqrtMu/*,eventWeight*/);
 
-		}else if(Cut(4,0)||Cut(0,4)){    //Include 4 lepton events of all the same type
-			
-			pair <Int_t,Int_t> pair1, pair2;   //Pairs of ints to store the correct pairing indices
+		}else if(Cut(4,0)||Cut(0,4)){    //include 4 lepton events of all the same type
+			pair<Int_t,Int_t> pos, neg; //pai positive leptons and negative leptons
+			Bool_t posSet=false;
+			Bool_t negSet=false; //check that the first of the pair hsa been assigned
+			for(Int_t j=0; j<4; j++){
+				if((*lep_charge)[j]==1){
+					if(posSet==false){
+						pos.first=j;
+						posSet=true;
+					}else{
+						pos.second=j;
+					}
+				}else if((*lep_charge)[j]==-1){
+					if(negSet==false){
+						neg.first=j;
+						negSet=true;
+					}else{
+						neg.second=j;
+					}
+				}
+			}
+			//first with first, second with second
+			Double_t invMsqrt1 = sqrt(2*(*lep_pt)[pos.first]*(*lep_pt)[neg.first]*(cosh((*lep_eta)[pos.first]-(*lep_eta)[neg.first])-cos((*lep_phi)[pos.first]-(*lep_phi)[neg.first])))/1000;
+			Double_t invMsqrt2 = sqrt(2*(*lep_pt)[pos.second]*(*lep_pt)[neg.second]*(cosh((*lep_eta)[pos.second]-(*lep_eta)[neg.second])-cos((*lep_phi)[pos.second]-(*lep_phi)[neg.second])))/1000;
+			//first with second, second with first
+			Double_t invMsqrt3 = sqrt(2*(*lep_pt)[pos.first]*(*lep_pt)[neg.second]*(cosh((*lep_eta)[pos.first]-(*lep_eta)[neg.second])-cos((*lep_phi)[pos.first]-(*lep_phi)[neg.second])))/1000;
+			Double_t invMsqrt4 = sqrt(2*(*lep_pt)[pos.second]*(*lep_pt)[neg.first]*(cosh((*lep_eta)[pos.second]-(*lep_eta)[neg.first])-cos((*lep_phi)[pos.second]-(*lep_phi)[neg.first])))/1000;
+
+			if(invMsqrt1<100&&invMsqrt1>80 && invMsqrt2<100&&invMsqrt2>80){ //hardcoded
+				//std::cout<<"second pairing:  1: "<<invMsqrt3<<" , 2: "<<invMsqrt4<<std::endl<<std::endl;
+				test->Fill(invMsqrt3);
+				test->Fill(invMsqrt4);
+			}else if(invMsqrt3<100&&invMsqrt3>80 && invMsqrt4<100&&invMsqrt4>80){ //hardcoded
+				//std::cout<<"first pairing:  1: "<<invMsqrt1<<" , 2: "<<invMsqrt2<<std::endl<<std::endl;
+				test->Fill(invMsqrt1);
+				test->Fill(invMsqrt2);
+			}
+
+
+			/*pair <Int_t,Int_t> pair1, pair2;   //Pairs of ints to store the correct pairing indices
 			Bool_t firstOneSet=false;
 			Bool_t set=false;
 
@@ -246,16 +286,16 @@ void mini::Run(){
 					pair2.second=j;         //Otherwise set the last lepton in pair2
 				}
 			}
-			/*Uncomment to check that pairs are correct
-			std::cout<<"("<<pair1.first<<","<<pair1.second<<") , ("<<pair2.first<<","<<pair2.second<<")"<<std::endl;
-			std::cout<<(*lep_charge)[0]<<","<<(*lep_charge)[1]<<","<<(*lep_charge)[2]<<","<<(*lep_charge)[3]<<std::endl;
-			*/
+			//Uncomment to check that pairs are correct
+			//std::cout<<"("<<pos.first<<","<<pos.second<<") , ("<<neg.first<<","<<neg.second<<")"<<std::endl;
+			//std::cout<<(*lep_charge)[0]<<","<<(*lep_charge)[1]<<","<<(*lep_charge)[2]<<","<<(*lep_charge)[3]<<std::endl<<std::endl;
+			
 			
 			//Find InvMass for pair 1
 			invMsqrtE = sqrt(2*(*lep_pt)[pair1.first]*(*lep_pt)[pair1.second]*(cosh((*lep_eta)[pair1.first]-(*lep_eta)[pair1.second])-cos((*lep_phi)[pair1.first]-(*lep_phi)[pair1.second])));
 			
 			//Find InvMass for pair 2 (ignore Mu label as just re-using previous variable)
-			invMsqrtMu = sqrt(2*(*lep_pt)[pair2.first]*(*lep_pt)[pair2.second]*(cosh((*lep_eta)[pair2.first]-(*lep_eta)[pair2.second])-cos((*lep_phi)[pair2.first]-(*lep_phi)[pair2.second])));
+			invMsqrtMu = sqrt(2*(*lep_pt)[pair2.first]*(*lep_pt)[pair2.second]*(cosh((*lep_eta)[pair2.first]-(*lep_eta)[pair2.second])-cos((*lep_phi)[pair2.first]-(*lep_phi)[pair2.second])));*/
 
 			//Fill the histograms the correct way round
 			if((*lep_type)[0]==11){
@@ -303,8 +343,11 @@ void mini::Run(){
 	//Print the time taken to run the loop (relies on startTime at beginning of loop)
 	clock_t endTime = clock();
 	std::cout<<"Run time: "<<(endTime-startTime)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
-
+	
+	output.cd();
+	test->Write();
 	output.Close(); //Close the output file
+
 } 
 
 
