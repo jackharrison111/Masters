@@ -7,11 +7,9 @@
 
 
 
-void plotter(string chosenHist){
+void plotter(string product, string histType){
 
 	
-	vector<TH1D> histograms;
-	vector<string> histNames;
 
 	gROOT->SetStyle("ATLAS");
 	gStyle->SetOptStat(1111111);
@@ -25,12 +23,13 @@ void plotter(string chosenHist){
 	}
 	
 
+	//TIter next(f->GetListOfKeys());
+	//TKey *myKey;
 
-	TIter next(f->GetListOfKeys());
-	TKey *myKey;
 
+	//Doesnt work
+	/*while((myKey = (TKey*)next())){
 
-	while((myKey = (TKey*)next())){
 		
 		TObject *obj;
 		obj = myKey->ReadObj();
@@ -44,8 +43,12 @@ void plotter(string chosenHist){
 				TIter newnext(f->GetListOfKeys());
 				TKey *myNewKey;
 
-				
-				while((myNewKey = (TKey*)newnext())){
+				std::cout << "HEREEE" << std::endl;
+				//dir->GetObject("averageWaveforms",obj);
+				//TIter newnext(dir->GetListOfKeys());
+				std::cout << "HEREEEE" << std::endl;	
+				//while((myNewKey = (TKey*)newnext())){
+
 				 	
 					TObject *obj2;
 					obj2 = myNewKey->ReadObj();
@@ -58,16 +61,19 @@ void plotter(string chosenHist){
 						h->GetObject("
 						std::cout << h->GetName() << std::endl;
 
+				//}
 					//}
-				}
 
 			}
 
 		}
 	}
+
+	//Loop over all the keys in the file (1st set of directories) == 1lep1tau etc	
+	while((myKey=(TKey*)next())){
 	
-	/*while((myKey=(TKey*)next())){
-	
+		//Make a directory of
+		std::cout << myKey->GetName() << "TEST NAME " << endl;
 		TDirectory *myDir = new TDirectory;
 		myDir = (TDirectory*)myKey->ReadObj();
 		string name = myDir->GetName();
@@ -78,7 +84,8 @@ void plotter(string chosenHist){
 		
 			TIter nextDir(myDir->GetListOfKeys());
 			TKey *myDirKey;
-
+			
+			TCanvas *c = new TCanvas("c", "c");
 
 			while((myDirKey=(TKey*)nextDir())){
 
@@ -90,15 +97,13 @@ void plotter(string chosenHist){
 				myHist = (TH1D*)myDirKey->ReadObj();
 				string histName = myHist->GetName();
 				//std::cout<<histName << std::endl;
-				if(histName == "channel_162_avwf"){
-				//myHist->SetDirectory(0);
-				//myHist->Draw();
-				}
-				if(histName=="channel_162_avwf"){
-				std::cout<<histName<<std::endl;
-				histograms.push_back(*myHist);
-				histNames.push_back(histName);
-				}
+				//if(histName == "channel_162_avwf"){
+				myHist->SetDirectory(0);
+				myHist->Draw("same");
+				//}
+				//if(histName=="channel_162_avwf"){
+				//std::cout<<histName<<std::endl;
+				//}
 
 			}
 		}
@@ -109,18 +114,50 @@ void plotter(string chosenHist){
 		
 		TH1D *myHist = new TH1D;
 		myHist = (TH1D*)myKey->ReadObj();
-		string name = myHist->GetName();
+		string  Hname = myHist->GetName();
 		
-		if(name == "invMassE"){
+		if(Hname == "invMassE"){
 			myHist->Draw();
 		}
 
-		myHist = (TH1D*)f->Get(name.c_str());	
-		histNames.push_back(name);
-		histograms.push_back(*myHist);
+		myHist = (TH1D*)f->Get(Hname.c_str());	
 		
 
 	}*/
+
+
+
+
+	//ATTEMPT 2:::
+	//
+	//
+	//f->cd(product + "/" + histType);
+	
+	f->cd("averageWaveforms");
+	TIter next(gDirectory->GetListOfKeys());
+	TKey *aKey;
+	TCanvas *c = new TCanvas("c", "c");
+
+	while((aKey = (TKey*)next())){
+		
+		TClass *myClass = gROOT->GetClass(aKey->GetClassName());
+		if(!myClass->InheritsFrom("TH1D")){
+		std::cout << "Skipping..." << std::endl;
+		continue;
+		}
+		TH1D *myHist = new TH1D;
+		myHist = (TH1D*)aKey->ReadObj();
+		string histName = myHist->GetName();
+		//std::cout<<histName << std::endl;
+		//if(histName == "channel_162_avwf"){
+		myHist->SetDirectory(0);
+		myHist->Draw("same");
+
+	}
+
+	
+
+		
 
 
 	delete f;
@@ -141,6 +178,13 @@ Int_t plotter(){
 	return 0;
 }
 
+
+int plotter(){
+	
+	plotter("a", "b");
+
+	return 0;
+}
 
 
 
