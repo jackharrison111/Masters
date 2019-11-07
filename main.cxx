@@ -1,3 +1,5 @@
+//TODO: make a map of key : value
+//      eg   "invMassZee" : TH1D *invMassZee .......
 #define main_cxx
 #include "mainMC.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
@@ -7,7 +9,7 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <math.h>
-
+#include <map>
 const Double_t pi = M_PI;
 
 //MeV:
@@ -92,7 +94,7 @@ void mini::Run(){
 
 	if (fChain == 0) return;
 
-	Long64_t n = fChain->GetEntriesFast();
+	Long64_t n = fChain->GetEntries/*Fast*/();
 	Long64_t nbytes = 0, nb = 0;
 	
 	//Save the output file to the correct place based on data type
@@ -102,6 +104,9 @@ void mini::Run(){
 	}else{
 		outputName="re_";
 	}
+
+	
+
 	TFile output((outputName+"output.root").c_str(),"RECREATE");
 	TDirectory *TDir1 = output.mkdir("1fatjet1lep");
 	TDirectory *TDir2 = output.mkdir("1lep");
@@ -118,6 +123,15 @@ void mini::Run(){
 	TH2D *invMass2D_EMu = new TH2D("invMass2D_EMu","ZZ->ee&&#mu#mu",100,0,3e5,100,0,3e5);
 	TH2D *invMass2D_EE = new TH2D("invMass2D_EE","ZZ->ee&&ee",100,0,3e5,100,0,3e5);
 	TH2D *invMass2D_MuMu = new TH2D("invMass2D_MuMu","ZZ->#mu#mu&&#mu#mu",100,0,3e5,100,0,3e5);
+	std::map<string,TH1*> histograms;
+	histograms["invMassZee"]=invMassZee;
+	histograms["invMassE"]=invMassE;
+	histograms["invMassMu"]=invMassMu;
+	histograms["invMassTot"]=invMassTot;
+	histograms["invMass4l"]=invMass4l;
+	histograms["invMass2D_EMu"]=invMass2D_EMu;
+	histograms["invMass2D_EE"]=invMass2D_EE;
+	histograms["invMass2D_MuMu"]=invMass2D_MuMu;
 
 
 	Int_t counter{0};
@@ -130,27 +144,36 @@ void mini::Run(){
 	Double_t lumFactor;
 	//Loop over all events
 	for (Long64_t i=0; i<n; i++){
-
 		Long64_t ientry = LoadTree(i);
 		if(ientry < 0) break;
 		nb = fChain->GetEntry(i);   nbytes += nb;
 		
-		if(fileName!=oldFileName){
-			oldFileName=fileName;
-			invMassZee->Write((products+"_invMassZee_"+fileName).c_str(),TObject::kWriteDelete);
-			output.cd();
-			std::cout<<"here"<<std::endl;
-		}
-
 		fileName = (chain->GetFile())->GetName();
 
 		Double_t eventWeight = 1;
 		if(MC){
 			if(fileName!=oldFileName){ //dont want to calculate lumFactor repeatedly, only once per file/per event type
-				//TODO: clear histograms here?
-				//TODO: reload .json
-				products=fileName.substr(12,fileName.find('/',12)-12); //12 is the position after "/data/ATLAS/"
-				shortFileName=fileName.substr(fileName.find_last_of('/')+1,fileName.length()-fileName.find_last_of('/')); //to get rid of "/data/ATLAS/2lep/MC/" from the TChain file strings
+				if(i!=0){
+					std::map<string,TH1*>::iterator it=histograms.begin();
+					while(it!=histograms.end()){
+						if(gDirectory->cd(it->first.c_str())){
+							(it->second)->Write((products+"_"+it->first+"_"+shortFileName).c_str(),TObject::kWriteDelete);
+						}
+						else{
+							gDirectory->mkdir(it->first.c_str());
+							gDirectory->cd(it->first.c_str());
+							(it->second)->Write((products+"_"+it->first+"_"+shortFileName).c_str(),TObject::kWriteDelete);
+						}
+						gDirectory->cd("..");
+						it++;
+					}
+
+					output.cd();
+					invMassZee->Reset();
+				}
+				oldFileName=fileName;
+				products=oldFileName.substr(12,oldFileName.find('/',12)-12); //12 is the position after "/data/ATLAS/"
+				shortFileName=oldFileName.substr(oldFileName.find_last_of('/')+1,oldFileName.length()-oldFileName.find_last_of('/')); //to get rid of "/data/ATLAS/2lep/MC/" from the TChain file strings
 				convert i;
 				i.makeMap();
 				lumFactor=1000*totRealLum*i.infos[shortFileName]["xsec"]/(i.infos[shortFileName]["sumw"]*i.infos[shortFileName]["red_eff"]);
@@ -167,21 +190,13 @@ void mini::Run(){
 			}
 			eventWeight = mcWeight*scaleFactor_PILEUP*scaleFactor_ELE*scaleFactor_MUON*scaleFactor_PHOTON*scaleFactor_TAU*scaleFactor_BTAG*scaleFactor_LepTRIGGER*scaleFactor_PhotonTRIGGER*scaleFactor_TauTRIGGER*scaleFactor_DiTauTRIGGER*lumFactor;
 		}
-
-		/*Int_t whichIndex;
-		Int_t index{0};
-		for(std::vector<string>::iterator it=mcNames.begin(); it<mcNames.end(); it++){
-			if((*it)==(chain->GetFile())->GetName()){
-				whichIndex=index;
-			}
-			index++;
-		}*/
-
+		
+		invMassZee->Fill((*lep_pt)[0]);
 		////2 ELECTRON EVENTS////
 		Double_t invMee;
 		if(Cut(2,0)){
 			invMee = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])));
-		//	(&invMassZee[whichIndex])->Fill(invMee,eventWeight);
+			//invMassZee->Fill(invMee,eventWeight);
 		}
 		/////////////////////////
 
@@ -271,8 +286,25 @@ void mini::Run(){
 			(&invMassTot[whichIndex])->SetBinContent(j,(&invMassE[whichIndex])->GetBinContent(j)+(&invMassMu[whichIndex])->GetBinContent(j));
 		}*/
 		/////////////////////
+		
+		//to write the last files histograms (loop ends after last event in last file,
+		//but writing normally occurs at start of next loop)
+		if(i==(n-1)){
+			std::map<string,TH1*>::iterator it=histograms.begin();
+			while(it!=histograms.end()){
+				if(gDirectory->cd(it->first.c_str())){
+					(it->second)->Write((products+"_"+it->first+"_"+shortFileName).c_str(),TObject::kWriteDelete);
+				}
+				else{
+					gDirectory->mkdir(it->first.c_str());
+					gDirectory->cd(it->first.c_str());
+					(it->second)->Write((products+"_"+it->first+"_"+shortFileName).c_str(),TObject::kWriteDelete);
+				}
+				gDirectory->cd("..");
+				it++;
+			}
+		}
 	}
-
 	//Print the time taken to run the loop (relies on startTime at beginning of loop)
 	clock_t endTime = clock();
 	std::cout<<"Run time: "<<(endTime-startTime)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
