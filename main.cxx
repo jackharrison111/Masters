@@ -7,18 +7,7 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <math.h>
-
-//Make histograms:
-std::vector<string> mcNames;
-std::vector<TH1D> invMassZee;
-std::vector<TH1D> invMassE;
-std::vector<TH1D> invMassMu;
-std::vector<TH1D> invMassTot;
-std::vector<TH1D> invMass4l;
-std::vector<TH2D> invMass2D_EMu;
-std::vector<TH2D> invMass2D_EE;
-std::vector<TH2D> invMass2D_MuMu;
-
+#include <map>
 const Double_t pi = M_PI;
 
 //MeV:
@@ -103,74 +92,105 @@ void mini::Run(){
 
 	if (fChain == 0) return;
 
-	Long64_t n = fChain->GetEntriesFast();
+	Long64_t n = fChain->GetEntries/*Fast*/();
 	Long64_t nbytes = 0, nb = 0;
 	
+	//Save the output file to the correct place based on data type
+	string outputName;
+	if(MC){
+		outputName="mc_";
+	}else{
+		outputName="re_";
+	}
+
+	
+
+	TFile output((outputName+"output.root").c_str(),"RECREATE");
+	TDirectory *TDir1 = output.mkdir("1fatjet1lep");
+	TDirectory *TDir2 = output.mkdir("1lep");
+	TDirectory *TDir3 = output.mkdir("1lep1tau");
+	TDirectory *TDir4 = output.mkdir("1tau");
+	TDirectory *TDir5 = output.mkdir("2lep");
+	TDirectory *TDir6 = output.mkdir("2tau");
+	TDirectory *TDir7 = output.mkdir("GamGam");
+	TH1D *invMassZee = new TH1D("invMassZee","Z->ee",500,0,3e5);
+	TH1D *invMassE = new TH1D("invMassE","Z->ee",500,0,3e5);
+	TH1D *invMassMu = new TH1D("invMassMu","Z->#mu#mu",500,0,3e5);
+	TH1D *invMassTot = new TH1D("invMassTot","Z->ee||#mu#mu",500,0,3e5);
+	TH1D *invMass4l = new TH1D("invMass4l","Z->llll",500,0,3e5);
+	TH2D *invMass2D_EMu = new TH2D("invMass2D_EMu","ZZ->ee&&#mu#mu",100,0,3e5,100,0,3e5);
+	TH2D *invMass2D_EE = new TH2D("invMass2D_EE","ZZ->ee&&ee",100,0,3e5,100,0,3e5);
+	TH2D *invMass2D_MuMu = new TH2D("invMass2D_MuMu","ZZ->#mu#mu&&#mu#mu",100,0,3e5,100,0,3e5);
+	std::map<string,TH1*> histograms;
+	histograms["invMassZee"]=invMassZee;
+	histograms["invMassE"]=invMassE;
+	histograms["invMassMu"]=invMassMu;
+	histograms["invMassTot"]=invMassTot;
+	histograms["invMass4l"]=invMass4l;
+	histograms["invMass2D_EMu"]=invMass2D_EMu;
+	histograms["invMass2D_EE"]=invMass2D_EE;
+	histograms["invMass2D_MuMu"]=invMass2D_MuMu;
+
+
 	Int_t counter{0};
 	clock_t startTime = clock();
 	
+	string fileName;
 	string oldFileName; //to calculate lumFactor only once for each MC file
+	string shortFileName;
+	string products;
 	Double_t lumFactor;
 	//Loop over all events
 	for (Long64_t i=0; i<n; i++){
-
 		Long64_t ientry = LoadTree(i);
 		if(ientry < 0) break;
 		nb = fChain->GetEntry(i);   nbytes += nb;
 		
+		fileName = (chain->GetFile())->GetName();
+
 		Double_t eventWeight = 1;
 		if(MC){
-			string fileName = (chain->GetFile())->GetName();
 			if(fileName!=oldFileName){ //dont want to calculate lumFactor repeatedly, only once per file/per event type
+				if(i!=0){
+					std::map<string,TH1*>::iterator it=histograms.begin();
+					while(it!=histograms.end()){
+						if(gDirectory->cd(it->first.c_str())){
+							(it->second)->Write((products+"_"+it->first+"_"+shortFileName).c_str(),TObject::kWriteDelete);
+						}
+						else{
+							gDirectory->mkdir(it->first.c_str());
+							gDirectory->cd(it->first.c_str());
+							(it->second)->Write((products+"_"+it->first+"_"+shortFileName).c_str(),TObject::kWriteDelete);
+						}
+						gDirectory->cd("..");
+						(it->second)->Reset();
+						it++;
+					}
+
+					output.cd();
+				}
 				oldFileName=fileName;
-				mcNames.push_back(fileName);
-				fileName=fileName.substr(fileName.find_last_of('/')+1,fileName.length()-fileName.find_last_of('/')); //to get rid of "/data/ATLAS/2lep/MC/" from the TChain file strings
+				products=oldFileName.substr(12,oldFileName.find('/',12)-12); //12 is the position after "/data/ATLAS/"
+				shortFileName=oldFileName.substr(oldFileName.find_last_of('/')+1,oldFileName.length()-oldFileName.find_last_of('/')); //to get rid of "/data/ATLAS/2lep/MC/" from the TChain file strings
 				convert i;
 				i.makeMap();
-				lumFactor = 1000 * totRealLum * i.infos[fileName]["xsec"]/(i.infos[fileName]["sumw"]*i.infos[fileName]["red_eff"]);
-				//mcNames.push_back(fileName);
-				TH1D *dInvMassZee = new TH1D(("invMassZee_"+fileName).c_str(),"Z->ee",500,0,3e5);
-				invMassZee.push_back(*dInvMassZee);
-				delete dInvMassZee;
-				TH1D *dInvMassE = new TH1D(("invMassE_"+fileName).c_str(),"Z->ee",500,0,3e5);
-				invMassE.push_back(*dInvMassE);
-				delete dInvMassE;
-				TH1D *dInvMassMu = new TH1D(("invMassMu_"+fileName).c_str(),"Z->#mu#mu",500,0,3e5);
-				invMassMu.push_back(*dInvMassMu);
-				delete dInvMassMu;
-				TH1D *dInvMassTot = new TH1D(("invMassTot_"+fileName).c_str(),"Z->ee||#mu#mu",500,0,3e5);
-				invMassTot.push_back(*dInvMassTot);
-				delete dInvMassTot;
-				TH1D *dInvMass4l = new TH1D(("invMass4l_"+fileName).c_str(),"Z->llll",500,0,3e5);
-				invMass4l.push_back(*dInvMass4l);
-				delete dInvMass4l;
-				TH2D *dInvMass2D_EMu = new TH2D(("invMass2D_EMu_"+fileName).c_str(),"ZZ->ee&&#mu#mu",100,0,3e5,100,0,3e5);
-				invMass2D_EMu.push_back(*dInvMass2D_EMu);
-				delete dInvMass2D_EMu;
-				TH2D *dInvMass2D_EE = new TH2D(("invMass2D_EE_"+fileName).c_str(),"ZZ->ee&&ee",100,0,3e5,100,0,3e5);
-				invMass2D_EE.push_back(*dInvMass2D_EE);
-				delete dInvMass2D_EE;
-				TH2D *dInvMass2D_MuMu = new TH2D(("invMass2D_MuMu_"+fileName).c_str(),"ZZ->#mu#mu&&#mu#mu",100,0,3e5,100,0,3e5);
-				invMass2D_MuMu.push_back(*dInvMass2D_MuMu);
-				delete dInvMass2D_MuMu;
+				lumFactor=1000*totRealLum*i.infos[shortFileName]["xsec"]/(i.infos[shortFileName]["sumw"]*i.infos[shortFileName]["red_eff"]);
+				
+				gDirectory->cd(products.c_str());
+				std::map<string,TH1*>::iterator it = histograms.begin();
+				while(it!=histograms.end()){
+					(it->second)->SetName((products+"_"+it->first+"_"+shortFileName).c_str());
+					it++;
+				}
 			}
 			eventWeight = mcWeight*scaleFactor_PILEUP*scaleFactor_ELE*scaleFactor_MUON*scaleFactor_PHOTON*scaleFactor_TAU*scaleFactor_BTAG*scaleFactor_LepTRIGGER*scaleFactor_PhotonTRIGGER*scaleFactor_TauTRIGGER*scaleFactor_DiTauTRIGGER*lumFactor;
 		}
-
-		Int_t whichIndex;
-		Int_t index{0};
-		for(std::vector<string>::iterator it=mcNames.begin(); it<mcNames.end(); it++){
-			if((*it)==(chain->GetFile())->GetName()){
-				whichIndex=index;
-			}
-			index++;
-		}
-
+		
 		////2 ELECTRON EVENTS////
 		Double_t invMee;
 		if(Cut(2,0)){
 			invMee = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])));
-			(&invMassZee[whichIndex])->Fill(invMee,eventWeight);
+			histograms["invMassZee"]->Fill(invMee,eventWeight);
 		}
 		/////////////////////////
 
@@ -204,9 +224,9 @@ void mini::Run(){
 			}
 
 			//Fill histograms based off the 2,2 events
-			(&invMassE[whichIndex])->Fill(invMsqrtE,eventWeight);
-			(&invMassMu[whichIndex])->Fill(invMsqrtMu,eventWeight);
-			(&invMass2D_EMu[whichIndex])->Fill(invMsqrtE,invMsqrtMu/*,eventWeight*/);
+			histograms["invMassE"]->Fill(invMsqrtE,eventWeight);
+			histograms["invMassMu"]->Fill(invMsqrtMu,eventWeight);
+			histograms["invMass2D_EMu"]->Fill(invMsqrtE,invMsqrtMu/*,eventWeight*/);
 
 		}else if(Cut(4,0)||Cut(0,4)){    //Include 4 lepton events of all the same type
 			
@@ -239,116 +259,50 @@ void mini::Run(){
 
 			//Fill the histograms the correct way round
 			if((*lep_type)[0]==11){
-				(&invMassE[whichIndex])->Fill(invMsqrtE,eventWeight);
-				(&invMassE[whichIndex])->Fill(invMsqrtMu,eventWeight);
-				(&invMass2D_EE[whichIndex])->Fill(invMsqrtE,invMsqrtMu/*,eventWeight*/);
+				histograms["invMassE"]->Fill(invMsqrtE,eventWeight);
+				histograms["invMassE"]->Fill(invMsqrtMu,eventWeight);
+				histograms["invMass2D_EE"]->Fill(invMsqrtE,invMsqrtMu/*,eventWeight*/);
 			}else{
-				(&invMassMu[whichIndex])->Fill(invMsqrtE,eventWeight);
-				(&invMassMu[whichIndex])->Fill(invMsqrtMu,eventWeight);
-				(&invMass2D_MuMu[whichIndex])->Fill(invMsqrtE,invMsqrtMu/*,eventWeight*/);
+				histograms["invMassMu"]->Fill(invMsqrtE,eventWeight);
+				histograms["invMassMu"]->Fill(invMsqrtMu,eventWeight);
+				histograms["invMass2D_MuMu"]->Fill(invMsqrtE,invMsqrtMu/*,eventWeight*/);
 			}
 			
 		}
 
 		//Finding invariant mass of whole 4 lepton event using Equation [3] in lab book
 		if(lep_n==4){
-			(&invMass4l[whichIndex])->Fill(sqrt(pow((*lep_pt)[0]*cosh((*lep_eta)[0])+(*lep_pt)[1]*cosh((*lep_eta)[1])+(*lep_pt)[2]*cosh((*lep_eta)[2])+(*lep_pt)[3]*cosh((*lep_eta)[3]),2)-pow((*lep_pt)[0]*cos((*lep_phi)[0])+(*lep_pt)[1]*cos((*lep_phi)[1])+(*lep_pt)[2]*cos((*lep_phi)[2])+(*lep_pt)[3]*cos((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sin((*lep_phi)[0])+(*lep_pt)[1]*sin((*lep_phi)[1])+(*lep_pt)[2]*sin((*lep_phi)[2])+(*lep_pt)[3]*sin((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sinh((*lep_eta)[0])+(*lep_pt)[1]*sinh((*lep_eta)[1])+(*lep_pt)[2]*sinh((*lep_eta)[2])+(*lep_pt)[3]*sinh((*lep_eta)[3]),2)),eventWeight);
+			histograms["invMass4l"]->Fill(sqrt(pow((*lep_pt)[0]*cosh((*lep_eta)[0])+(*lep_pt)[1]*cosh((*lep_eta)[1])+(*lep_pt)[2]*cosh((*lep_eta)[2])+(*lep_pt)[3]*cosh((*lep_eta)[3]),2)-pow((*lep_pt)[0]*cos((*lep_phi)[0])+(*lep_pt)[1]*cos((*lep_phi)[1])+(*lep_pt)[2]*cos((*lep_phi)[2])+(*lep_pt)[3]*cos((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sin((*lep_phi)[0])+(*lep_pt)[1]*sin((*lep_phi)[1])+(*lep_pt)[2]*sin((*lep_phi)[2])+(*lep_pt)[3]*sin((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sinh((*lep_eta)[0])+(*lep_pt)[1]*sinh((*lep_eta)[1])+(*lep_pt)[2]*sinh((*lep_eta)[2])+(*lep_pt)[3]*sinh((*lep_eta)[3]),2)),eventWeight);
 		}
 			
 		//Fill an invariant mass histogram of both e and mu 2 events
-		for(Int_t j=1; j<=(&invMassE[whichIndex])->GetNbinsX(); j++){
-			(&invMassTot[whichIndex])->SetBinContent(j,(&invMassE[whichIndex])->GetBinContent(j)+(&invMassMu[whichIndex])->GetBinContent(j));
+		for(Int_t j=1; j<=histograms["invMassE"]->GetNbinsX(); j++){
+			histograms["invMassTot"]->SetBinContent(j,histograms["invMassE"]->GetBinContent(j)+histograms["invMassMu"]->GetBinContent(j));
 		}
 		/////////////////////
 		
-
-
-
-
+		//to write the last files histograms (loop ends after last event in last file,
+		//but writing normally occurs at start of next loop)
+		if(i==(n-1)){
+			std::map<string,TH1*>::iterator it=histograms.begin();
+			while(it!=histograms.end()){
+				if(gDirectory->cd(it->first.c_str())){
+					(it->second)->Write((products+"_"+it->first+"_"+shortFileName).c_str(),TObject::kWriteDelete);
+				}
+				else{
+					gDirectory->mkdir(it->first.c_str());
+					gDirectory->cd(it->first.c_str());
+					(it->second)->Write((products+"_"+it->first+"_"+shortFileName).c_str(),TObject::kWriteDelete);
+				}
+				gDirectory->cd("..");
+				(it->second)->Reset();
+				it++;
+			}
+		}
 	}
-
 	//Print the time taken to run the loop (relies on startTime at beginning of loop)
 	clock_t endTime = clock();
 	std::cout<<"Run time: "<<(endTime-startTime)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
-	
-
-	/* Used for fitting a gaussian 
-	TF1 *myGaussian = new TF1("myGaus",Gaussian,70e3,120e3,3);
-	myGaussian->SetParNames("#mu","#sigma", "A");
-	myGaussian->SetParameters(9e4,3e3,400);
-	myGaussian->SetParLimits(0,7e4,1e5);
-	myGaussian->SetParLimits(1,0,1e4);
-	myGaussian->SetParLimits(2,0,600);
-	histogram->Fit("myGaus","R+");
-	*/
-	
-	//Fitting a composite Lorentz and Background to the histogram
-	/*TF1 *myFit = new TF1("myFit",Fit,75e3,110e3,order+4);
-	myFit->SetParNames("#mu","#Gamma","A");
-	myFit->SetParameters(9.1e4,3.9e3,4.5e5);
-	myFit->SetParLimits(0,7e4,1.1e5);
-	myFit->SetParLimits(1,0,1.4e4);
-	myFit->SetParLimits(2,0,1e16);
-	invMassTot->Fit("myFit","R+");*/
-	
-	//Save the output file to the correct place based on data type
-	string outputName;
-	if(MC){
-		outputName="mc_";
-	}else{
-		outputName="re_";
-	}
-	TFile output((outputName+"output.root").c_str(),"RECREATE");
-	
-	//Write the histograms - EVERY HISTOGRAM NEEDS TO BE WRITTEN HERE
-	TDirectory *one = output.mkdir("invMassZee");
-	one->cd();
-	for(Int_t i=0; i<mcNames.size(); i++){
-		(&invMassZee[i])->SetTitle("Z->ee;M_inv/MeV;counts");
-		(&invMassZee[i])->Write();
-	}
-	TDirectory *two = output.mkdir("invMassE");
-	two->cd();
-	for(Int_t i=0; i<mcNames.size(); i++){
-		(&invMassE[i])->SetTitle("Z->ee;M_inv/MeV;counts");
-		(&invMassE[i])->Write();
-	}
-	TDirectory *three = output.mkdir("invMassMu");
-	three->cd();
-	for(Int_t i=0; i<mcNames.size(); i++){
-		(&invMassMu[i])->SetTitle("Z->#mu#mu;M_inv/MeV;counts");
-		(&invMassMu[i])->Write();
-	}
-	TDirectory *four = output.mkdir("invMassTot");
-	four->cd();
-	for(Int_t i=0; i<mcNames.size(); i++){
-		(&invMassTot[i])->SetTitle("Z->ee||#mu#mu;M_inv/MeV;counts");
-		(&invMassTot[i])->Write();
-	}
-	TDirectory *five = output.mkdir("invMass4l");
-	five->cd();
-	for(Int_t i=0; i<mcNames.size(); i++){
-		(&invMass4l[i])->SetTitle("Z->llll;M_inv/MeV;counts");
-		(&invMass4l[i])->Write();
-	}
-	TDirectory *six = output.mkdir("invMass2D_EMu");
-	six->cd();
-	for(Int_t i=0; i<mcNames.size(); i++){
-		(&invMass2D_EMu[i])->SetTitle("ZZ->ee&&#mu#mu;M_inv_ee/MeV;M_inv_#mu#mu/MeV");
-		(&invMass2D_EMu[i])->Write();
-	}
-	TDirectory *seven = output.mkdir("invMass2D_EE");
-	seven->cd();
-	for(Int_t i=0; i<mcNames.size(); i++){
-		(&invMass2D_EE[i])->SetTitle("ZZ->ee&&ee;M_inv_ee1/MeV;M_inv_ee2/MeV");
-		(&invMass2D_EE[i])->Write();
-	}
-	TDirectory *eight = output.mkdir("invMass2D_MuMu");
-	eight->cd();
-	for(Int_t i=0; i<mcNames.size(); i++){
-		(&invMass2D_MuMu[i])->SetTitle("ZZ->#mu#mu&#mu#mu;M_inv_#mu#mu1/MeV;M_inv_#mu#mu2/MeV");
-		(&invMass2D_MuMu[i])->Write();
-	}
 
 	output.Close(); //Close the output file
 } 
