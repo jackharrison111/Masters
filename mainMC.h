@@ -237,7 +237,15 @@ mini::mini(TTree *tree) : fChain(0)
       }
       f->GetObject("mini",tree);*/
       chain = new TChain("mini");
-      chain->Add("/data/ATLAS/2lep/MC/*");
+      //chain->Add("/data/ATLAS/1fatjet1lep/MC/*");
+      //chain->Add("/data/ATLAS/1lep/MC/*");
+      //chain->Add("/data/ATLAS/1lep1tau/MC/*");
+      //chain->Add("/data/ATLAS/1tau/MC/*");
+      //chain->Add("/data/ATLAS/2lep/MC/*");
+      //chain->Add("/data/ATLAS/2tau/MC/*");
+      //chain->Add("/data/ATLAS/GamGam/MC/*");
+      chain->Add("/data/ATLAS/2lep/MC/mc15_13TeV.410025.PwPyEG_P2012_SingleTopSchan_noAllHad_top.2lep_raw.root");
+      chain->Add("/data/ATLAS/2tau/MC/mc15_13TeV.361108.PwPy8EG_AZNLOCTEQ6L1_Ztautau.2tau_raw.root");
    }
    //Init(tree);
    Init(chain);
