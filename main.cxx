@@ -143,6 +143,10 @@ void mini::Run(){
 	string shortFileName;
 	string products;
 	Double_t lumFactor;
+
+	Int_t single{0}; //counts events that pass Cut(4,0)||Cut(0,4)
+	Int_t both{0}; //counts events that pass Cut(4,0)||Cut(0,4) AND both pairs reconstruct to ~M_Z
+
 	//Loop over all events
 	for (Long64_t i=0; i<n; i++){
 		Long64_t ientry = LoadTree(i);
@@ -258,15 +262,39 @@ void mini::Run(){
 			//first with second, second with first
 			Double_t invMsqrt3 = sqrt(2*(*lep_pt)[pos.first]*(*lep_pt)[neg.second]*(cosh((*lep_eta)[pos.first]-(*lep_eta)[neg.second])-cos((*lep_phi)[pos.first]-(*lep_phi)[neg.second])))/1000;
 			Double_t invMsqrt4 = sqrt(2*(*lep_pt)[pos.second]*(*lep_pt)[neg.first]*(cosh((*lep_eta)[pos.second]-(*lep_eta)[neg.first])-cos((*lep_phi)[pos.second]-(*lep_phi)[neg.first])))/1000;
-
-			if(invMsqrt1<100&&invMsqrt1>80 && invMsqrt2<100&&invMsqrt2>80){ //hardcoded
-				//std::cout<<"second pairing:  1: "<<invMsqrt3<<" , 2: "<<invMsqrt4<<std::endl<<std::endl;
-				test->Fill(invMsqrt3);
-				test->Fill(invMsqrt4);
-			}else if(invMsqrt3<100&&invMsqrt3>80 && invMsqrt4<100&&invMsqrt4>80){ //hardcoded
-				//std::cout<<"first pairing:  1: "<<invMsqrt1<<" , 2: "<<invMsqrt2<<std::endl<<std::endl;
+	
+			//note: possibility of double counting here
+			//TODO: can this be avoided? don't think so
+			if(invMsqrt1<96&&invMsqrt1>86){ //hardcoded
 				test->Fill(invMsqrt1);
+				single++;
+				if(invMsqrt2<96&&invMsqrt2>86){
+					test->Fill(invMsqrt2);
+					both++;
+				}
+			}else if(invMsqrt2<96&&invMsqrt2>86){
 				test->Fill(invMsqrt2);
+				single++;
+				if(invMsqrt1<96&&invMsqrt1>86){
+					test->Fill(invMsqrt1);
+					both++;
+				}
+			}
+
+			if(invMsqrt3<96&&invMsqrt3>86){
+				test->Fill(invMsqrt3);
+				single++;
+				if(invMsqrt4<96&&invMsqrt4>86){
+					test->Fill(invMsqrt4);
+					both++;
+				}
+			}else if(invMsqrt4<96&&invMsqrt4>86){
+				test->Fill(invMsqrt4);
+				single++;
+				if(invMsqrt3<96&&invMsqrt3>86){
+					test->Fill(invMsqrt3);
+					both++;
+				}
 			}
 
 
@@ -344,6 +372,8 @@ void mini::Run(){
 	clock_t endTime = clock();
 	std::cout<<"Run time: "<<(endTime-startTime)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
 	
+	std::cout<<"Efficiency: "<<both*100/single<<"%"<<std::endl;
+
 	output.cd();
 	test->Write();
 	output.Close(); //Close the output file
