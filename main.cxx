@@ -72,7 +72,7 @@ Double_t mini::Background(Double_t *x, Double_t *par, Int_t order){
 	return B;
 }
 
-Int_t mini::order = 0; //global??
+Int_t mini::order = 2; //global??
 //combine
 Double_t mini::Fit(Double_t *x, Double_t *par){
 	return Lorentz(x, par) + Background(x,&par[3],order);
@@ -235,6 +235,9 @@ void mini::Run(){
 			histograms["invMassMu"]->Fill(invMsqrtMu,eventWeight);
 			histograms["invMass2D_EMu"]->Fill(invMsqrtE,invMsqrtMu/*,eventWeight*/);
 
+			test->Fill(invMsqrtE/1000);
+			test->Fill(invMsqrtMu/1000);
+
 		}else if(Cut(4,0)||Cut(0,4)){    //include 4 lepton events of all the same type
 			pair<Int_t,Int_t> pos, neg; //pai positive leptons and negative leptons
 			Bool_t posSet=false;
@@ -265,33 +268,35 @@ void mini::Run(){
 	
 			//note: possibility of double counting here
 			//TODO: can this be avoided? don't think so
-			if(invMsqrt1<96&&invMsqrt1>86){ //hardcoded
+			Int_t lower{76};
+			Int_t higher{106};
+			if(invMsqrt1<higher&&invMsqrt1>lower){ //hardcoded
 				test->Fill(invMsqrt1);
 				single++;
-				if(invMsqrt2<96&&invMsqrt2>86){
+				if(invMsqrt2<higher&&invMsqrt2>lower){
 					test->Fill(invMsqrt2);
 					both++;
 				}
-			}else if(invMsqrt2<96&&invMsqrt2>86){
+			}else if(invMsqrt2<higher&&invMsqrt2>lower){
 				test->Fill(invMsqrt2);
 				single++;
-				if(invMsqrt1<96&&invMsqrt1>86){
+				if(invMsqrt1<higher&&invMsqrt1>lower){
 					test->Fill(invMsqrt1);
 					both++;
 				}
 			}
 
-			if(invMsqrt3<96&&invMsqrt3>86){
+			if(invMsqrt3<higher&&invMsqrt3>lower){
 				test->Fill(invMsqrt3);
 				single++;
-				if(invMsqrt4<96&&invMsqrt4>86){
+				if(invMsqrt4<higher&&invMsqrt4>lower){
 					test->Fill(invMsqrt4);
 					both++;
 				}
-			}else if(invMsqrt4<96&&invMsqrt4>86){
+			}else if(invMsqrt4<higher&&invMsqrt4>lower){
 				test->Fill(invMsqrt4);
 				single++;
-				if(invMsqrt3<96&&invMsqrt3>86){
+				if(invMsqrt3<higher&&invMsqrt3>lower){
 					test->Fill(invMsqrt3);
 					both++;
 				}
@@ -375,6 +380,21 @@ void mini::Run(){
 	std::cout<<"Efficiency: "<<both*100/single<<"%"<<std::endl;
 
 	output.cd();
+	TF1 *invMassFit = new TF1("invMassFit",Fit,25,150,order+4); //hardcoded
+	invMassFit->SetParNames("#mu","#gamma","A","a","b","c");
+	invMassFit->SetParameters(90,5,1,1,1,1);
+	invMassFit->SetParLimits(0,86,96);
+	invMassFit->SetParLimits(1,0,50);
+	invMassFit->SetLineColor(kRed);
+	test->Fit("invMassFit","+R");
+	Double_t integral=0;
+	Double_t background=0;
+	for(Int_t i=25;i<150;i++){
+		integral+=invMassFit->Eval(i);
+		background+=invMassFit->GetParameter(5)+invMassFit->GetParameter(4)*i+invMassFit->GetParameter(3)*pow(i,2);
+	}
+	std::cout<<sqrt(2*integral*log(1+(integral-background)/background)-2*(integral-background))<<std::endl;
+	//std::cout<<invMassFit->Integral(0,3e2)<<std::endl;
 	test->Write();
 	output.Close(); //Close the output file
 
