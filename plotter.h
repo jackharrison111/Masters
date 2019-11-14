@@ -15,7 +15,7 @@ void plotter(string product, string histType){
 	gStyle->SetOptStat(1111111);
 
 
-	TFile *f = new TFile("rootOutput/mc_output.root");
+	TFile *f = new TFile("mc_output.root");
 	//("rootOutput/mc_output.root");
 
 	if(!f->IsOpen()){
@@ -133,11 +133,17 @@ void plotter(string product, string histType){
 	//
 	//f->cd(product + "/" + histType);
 	
-	f->cd("averageWaveforms");
+	f->cd((product +"/" +histType).c_str());
 	TIter next(gDirectory->GetListOfKeys());
 	TKey *aKey;
 	TCanvas *c = new TCanvas("c", "c");
+	TH1D *totalHist = new TH1D("totalHist", "Totals", 500, 0, 3e5);
+	TH1D *chosenHist = new TH1D;
+	
+	TList *histList = new TList;
 
+	string signalFile = "mc15_13TeV.361063.Sh_CT10_llll.2lep_raw.root"; 
+	int counter{0};
 	while((aKey = (TKey*)next())){
 		
 		TClass *myClass = gROOT->GetClass(aKey->GetClassName());
@@ -150,38 +156,49 @@ void plotter(string product, string histType){
 		string histName = myHist->GetName();
 		//std::cout<<histName << std::endl;
 		//if(histName == "channel_162_avwf"){
+		std::cout << histName << std::endl;
+		
+		string printChoice = product + "_" + histType + "_" + signalFile;
+		/*if(counter==0){//histName == printChoice){
+			myHist->SetDirectory(0);
+			//myHist->SetLineColor(kRed);
+			//myHist->Draw("hist");
+			chosenHist = myHist;	
+		}*/
+
 		myHist->SetDirectory(0);
-		myHist->Draw("same");
-
-	}
-
-	
-
+		myHist->Draw("histsame");
 		
 
+		myHist->SetDirectory(0);
+		//myHist->Draw("same");
 
+		
+		for(Int_t i = 1; i <= myHist->GetNbinsX(); i++){		
+			Double_t content = myHist->GetBinContent(i);
+			totalHist->SetBinContent(i,(totalHist->GetBinContent(i) + content));
+
+		}
+		
+	counter++;
+	}
+	/*totalHist->SetLineColor(kBlue);	
+	totalHist->SetLineColor(kBlue);	
+	totalHist->SetDirectory(0);	
+	totalHist->Draw("hist");
+	
+	chosenHist->SetLineColor(kRed);
+	chosenHist->Draw("histsame");
+	std::cout << chosenHist->GetMinimum() << std::endl;
+	*/
 	delete f;
-
-
-	//(&histograms[0])->SetDirectory(gROOT);
-	//(&histograms[0])->Draw();
-	
-
-	//TCanvas *c1 = new TCanvas("mc_Canvas","MC");
-	/*for(vector<TH1D>::iterator it = histograms.begin(); it != histograms.end(); ++it){
-		(&it)->Draw();	
-	}*/
-}
-
-Int_t plotter(){
-	plotter("a");
-	return 0;
 }
 
 
-int plotter(){
+
+int plot(){
 	
-	plotter("a", "b");
+	plotter("foJack", "foJackSq");
 
 	return 0;
 }
