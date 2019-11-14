@@ -15,7 +15,7 @@ const Double_t pi = M_PI;
 Double_t eMass = 0.511;
 Double_t pMass = 938.28;
 Double_t sqrtS = 13e6;
-
+Double_t zMass = 91.2;
 Double_t totRealLum = 10.064; //inv fb - open data set
 
 //function to return number of chosen lepton type in an event
@@ -114,14 +114,14 @@ void mini::Run(){
 	TDirectory *TDir5 = output.mkdir("2lep");
 	TDirectory *TDir6 = output.mkdir("2tau");
 	TDirectory *TDir7 = output.mkdir("GamGam");
-	TH1D *invMassZee = new TH1D("invMassZee","Z->ee",500,0,3e5);
-	TH1D *invMassE = new TH1D("invMassE","Z->ee",500,0,3e5);
-	TH1D *invMassMu = new TH1D("invMassMu","Z->#mu#mu",500,0,3e5);
-	TH1D *invMassTot = new TH1D("invMassTot","Z->ee||#mu#mu",500,0,3e5);
-	TH1D *invMass4l = new TH1D("invMass4l","Z->llll",500,0,3e5);
-	TH2D *invMass2D_EMu = new TH2D("invMass2D_EMu","ZZ->ee&&#mu#mu",100,0,3e5,100,0,3e5);
-	TH2D *invMass2D_EE = new TH2D("invMass2D_EE","ZZ->ee&&ee",100,0,3e5,100,0,3e5);
-	TH2D *invMass2D_MuMu = new TH2D("invMass2D_MuMu","ZZ->#mu#mu&&#mu#mu",100,0,3e5,100,0,3e5);
+	TH1D *invMassZee = new TH1D("invMassZee","Z->ee",200,0,160);
+	TH1D *invMassE = new TH1D("invMassE","Z->ee",200,0,160);
+	TH1D *invMassMu = new TH1D("invMassMu","Z->#mu#mu",200,0,160);
+	TH1D *invMassTot = new TH1D("invMassTot","Z->ee||#mu#mu",200,0,160);
+	TH1D *invMass4l = new TH1D("invMass4l","Z->llll",200,0,160);
+	TH2D *invMass2D_EMu = new TH2D("invMass2D_EMu","ZZ->ee&&#mu#mu",100,0,160,100,0,160);
+	TH2D *invMass2D_EE = new TH2D("invMass2D_EE","ZZ->ee&&ee",100,0,160,100,0,160);
+	TH2D *invMass2D_MuMu = new TH2D("invMass2D_MuMu","ZZ->#mu#mu&&#mu#mu",100,0,160,100,0,160);
 	std::map<string,TH1*> histograms;
 	histograms["invMassZee"]=invMassZee;
 	histograms["invMassE"]=invMassE;
@@ -132,10 +132,10 @@ void mini::Run(){
 	histograms["invMass2D_EE"]=invMass2D_EE;
 	histograms["invMass2D_MuMu"]=invMass2D_MuMu;
 
-	TH1D *test = new TH1D("test","test",500,0,3e2);
-	TH1D *test2 = new TH1D("test2","test2",500,0,3e2);
-	TH1D *test3 = new TH1D("test3","test3",500,0,3e2);
-
+	TH1D *test = new TH1D("test","",200,0,160);
+	TH1D *test2 = new TH1D("test2","",200,0,160);
+	TH1D *test3 = new TH1D("test3","",200,0,160);
+	TH1D *test4 = new TH1D("test4","",200,0,160);
 
 	Int_t counter{0};
 	clock_t startTime = clock();
@@ -149,7 +149,16 @@ void mini::Run(){
 	Int_t single{0}; //counts events that pass Cut(4,0)||Cut(0,4)
 	Int_t both{0}; //counts events that pass Cut(4,0)||Cut(0,4) AND both pairs reconstruct to ~M_Z
 
+	Int_t single2{0}; //counts events that pass Cut(4,0)||Cut(0,4)
+	Int_t both2{0}; //counts events that pass Cut(4,0)||Cut(0,4) AND both pairs reconstruct to ~M_Z
 	//Loop over all events
+	Int_t single3{0}; //counts events that pass Cut(4,0)||Cut(0,4)
+	Int_t both3{0}; //counts events that pass Cut(4,0)||Cut(0,4) AND both pairs reconstruct to ~M_Z
+	Int_t single4{0}; //counts events that pass Cut(4,0)||Cut(0,4)
+	Int_t both4{0}; //counts events that pass Cut(4,0)||Cut(0,4) AND both pairs reconstruct to ~M_Z
+
+	Int_t fileCounter{1};
+	Bool_t newFile{true};
 	for (Long64_t i=0; i<n; i++){
 		Long64_t ientry = LoadTree(i);
 		if(ientry < 0) break;
@@ -160,6 +169,7 @@ void mini::Run(){
 		Double_t eventWeight = 1;
 		if(MC){
 			if(fileName!=oldFileName){ //dont want to calculate lumFactor repeatedly, only once per file/per event type
+				std::cout<<(chain->GetFile())->GetSize()/1e6<<" MB : File "<<fileCounter<<" out of "<<((chain->GetListOfFiles())->GetLast()+1)<<std::endl;
 				if(i!=0){
 					std::map<string,TH1*>::iterator it=histograms.begin();
 					while(it!=histograms.end()){
@@ -175,8 +185,8 @@ void mini::Run(){
 						(it->second)->Reset();
 						it++;
 					}
-
 					output.cd();
+					fileCounter++;
 				}
 				oldFileName=fileName;
 				products=oldFileName.substr(12,oldFileName.find('/',12)-12); //12 is the position after "/data/ATLAS/"
@@ -244,6 +254,8 @@ void mini::Run(){
 			test2->Fill(invMsqrtMu);
 			test3->Fill(invMsqrtE);
 			test3->Fill(invMsqrtMu);
+			/*test4->Fill(invMsqrtE);
+			test4->Fill(invMsqrtMu);*/
 
 		}else if(Cut(4,0)||Cut(0,4)){    //include 4 lepton events of all the same type
 			pair<Int_t,Int_t> pos, neg; //pai positive leptons and negative leptons
@@ -275,6 +287,11 @@ void mini::Run(){
 	
 			//note: possibility of double counting here
 			//TODO: can this be avoided? don't think so
+			
+			
+
+
+			/*
 			Int_t lower{76};
 			Int_t higher{106};
 			if(invMsqrt1<higher&&invMsqrt1>lower){ //hardcoded
@@ -284,8 +301,7 @@ void mini::Run(){
 					test->Fill(invMsqrt2);
 					both++;
 				}
-			}
-			if(invMsqrt3<higher&&invMsqrt3>lower){
+			}else if(invMsqrt3<higher&&invMsqrt3>lower){
 				single++;
 				if(invMsqrt4<higher&&invMsqrt4>lower){
 					test->Fill(invMsqrt3);
@@ -293,60 +309,112 @@ void mini::Run(){
 					both++;
 				}
 			}
-			lower = 81;
-			higher = 101;
+			*/
+
+			vector<Double_t> deltas;
+			deltas.push_back(abs(invMsqrt1-zMass));
+			deltas.push_back(abs(invMsqrt2-zMass));
+			deltas.push_back(abs(invMsqrt3-zMass));
+			deltas.push_back(abs(invMsqrt4-zMass));
+			std::sort(deltas.begin(), deltas.end());
+			vector<Double_t> masses;
+			masses.push_back(invMsqrt1);
+			masses.push_back(invMsqrt2);
+			masses.push_back(invMsqrt3);
+			masses.push_back(invMsqrt4);
+			pair<Double_t, Double_t> pair1(invMsqrt1, invMsqrt2);
+			pair<Double_t, Double_t> pair2(invMsqrt3, invMsqrt4);
+			for(vector<Double_t>::iterator it = masses.begin(); it != masses.end(); it++){
+				Double_t diff = abs(*it - zMass);
+				if(diff == deltas[0]){
+					if((*it == pair1.first)||(*it == pair1.second)){
+						test->Fill(pair1.first);
+						test->Fill(pair1.second);
+					}else{
+						test->Fill(pair2.first);
+						test->Fill(pair2.second);
+					}
+
+				}
+
+			}
+			
+			
+			
+			/*
+			Int_t lower = 81;
+			Int_t higher = 101;
 			if(invMsqrt1<higher&&invMsqrt1>lower){ //hardcoded
-				single++;
+				single2++;
 				if(invMsqrt2<higher&&invMsqrt2>lower){
 					test2->Fill(invMsqrt1);
 					test2->Fill(invMsqrt2);
-					both++;
+					both2++;
 				}
-			}
-			if(invMsqrt3<higher&&invMsqrt3>lower){
-				single++;
+			}else if(invMsqrt3<higher&&invMsqrt3>lower){
+				single2++;
 				if(invMsqrt4<higher&&invMsqrt4>lower){
 					test2->Fill(invMsqrt3);
 					test2->Fill(invMsqrt4);
-					both++;
+					both2++;
 				}
 			}
+			
+			Bool_t found{false};
 			lower = 86;
 			higher = 96;
 			if(invMsqrt1<higher&&invMsqrt1>lower){ //hardcoded
-				single++;
+				single3++;
 				if(invMsqrt2<106&&invMsqrt2>76){
 					test3->Fill(invMsqrt1);
 					test3->Fill(invMsqrt2);
-					both++;
+					both3++;
+					found=true;
 				}
 			}else if(invMsqrt2<higher&&invMsqrt2>lower){
-				single++;
+				single3++;
 				if(invMsqrt1<106&&invMsqrt1>76){
 					test3->Fill(invMsqrt2);
 					test3->Fill(invMsqrt1);
-					both++;
+					both3++;
+					found=true;
 				}
 			}
 
-			if(invMsqrt3<higher&&invMsqrt3>lower){
-				single++;
+			if((invMsqrt3<higher&&invMsqrt3>lower)&&(!found)){
+				single3++;
 				if(invMsqrt4<106&&invMsqrt4>76){
 					test3->Fill(invMsqrt3);
 					test3->Fill(invMsqrt4);
-					both++;
+					both3++;
 				}
-			}else if(invMsqrt4<higher&&invMsqrt4>lower){
-				single++;
+			}else if((invMsqrt4<higher&&invMsqrt4>lower)&&(!found)){
+				single3++;
 				if(invMsqrt3<106&&invMsqrt3>76){
 					test3->Fill(invMsqrt4);
 					test3->Fill(invMsqrt3);
-					both++;
+					both3++;
 				}
 			}
 
+		
+
+
+*/
+			lower = 86;
+			higher = 96;
+			if((invMsqrt1<higher&&invMsqrt1>lower)||(invMsqrt2<higher&&invMsqrt2>lower)){ //hardcoded
+				test2/*4*/->Fill(invMsqrt1);
+				test2->Fill(invMsqrt2);
+			}
+		  	else if((invMsqrt3<higher&&invMsqrt3>lower)||(invMsqrt4<higher&&invMsqrt4>lower)){ //hardcoded
+				test2->Fill(invMsqrt3);
+				test2->Fill(invMsqrt4);
+			}
+			
+			/*
 			//Fill the histograms the correct way round
-		/*	if((*lep_type)[0]==11){
+			if((*lep_type)[0]==11){
 				histograms["invMassE"]->Fill(invMsqrtE,eventWeight);
 				histograms["invMassE"]->Fill(invMsqrtMu,eventWeight);
 				histograms["invMass2D_EE"]->Fill(invMsqrtE,invMsqrtMu*//*,eventWeight///);
@@ -392,8 +460,9 @@ void mini::Run(){
 	clock_t endTime = clock();
 	std::cout<<"Run time: "<<(endTime-startTime)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
 	
-	std::cout<<"Efficiency: "<<both*100/single<<"%"<<std::endl;
-
+	//std::cout<<"Test1 efficiency: "<<both*100/single<<"%"<<std::endl;
+	//std::cout<<"Test2 efficiency: "<<both2*100/single2<<"%"<<std::endl;
+	//std::cout<<"Test3 efficiency: "<<both3*100/single3<<"%"<<std::endl;
 	output.cd();
 	TF1 *invMassFit = new TF1("invMassFit",Fit,25,150,order+4); //hardcoded
 	invMassFit->SetParNames("#mu","#gamma","A","a","b","c");
@@ -418,6 +487,7 @@ void mini::Run(){
 	test->Write();
 	test2->Write();
 	test3->Write();
+//	test4->Write();
 	output.Close(); //Close the output file
 
 } 
