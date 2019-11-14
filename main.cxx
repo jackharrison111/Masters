@@ -133,6 +133,8 @@ void mini::Run(){
 	histograms["invMass2D_MuMu"]=invMass2D_MuMu;
 
 	TH1D *test = new TH1D("test","test",500,0,3e2);
+	TH1D *test2 = new TH1D("test2","test2",500,0,3e2);
+	TH1D *test3 = new TH1D("test3","test3",500,0,3e2);
 
 
 	Int_t counter{0};
@@ -193,14 +195,15 @@ void mini::Run(){
 			eventWeight = mcWeight*scaleFactor_PILEUP*scaleFactor_ELE*scaleFactor_MUON*scaleFactor_PHOTON*scaleFactor_TAU*scaleFactor_BTAG*scaleFactor_LepTRIGGER*scaleFactor_PhotonTRIGGER*scaleFactor_TauTRIGGER*scaleFactor_DiTauTRIGGER*lumFactor;
 		}
 		
+		/*
 		////2 ELECTRON EVENTS////
 		Double_t invMee;
 		if(Cut(2,0)){
-			invMee = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])));
+			invMee = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])))/1000;
 			histograms["invMassZee"]->Fill(invMee,eventWeight);
 		}
 		/////////////////////////
-
+		*/
 
 
 		////4 LEPTON EVENTS////
@@ -223,11 +226,11 @@ void mini::Run(){
 
 			//Find the electron/muon invariant mass from the correct pairings
 			if((*lep_type)[0]==11){
-				invMsqrtE = sqrt(2*(*lep_pt)[0]*(*lep_pt)[which]*(cosh((*lep_eta)[0]-(*lep_eta)[which])-cos((*lep_phi)[0]-(*lep_phi)[which])));
-				invMsqrtMu = sqrt(2*(*lep_pt)[others[0]]*(*lep_pt)[others[1]]*(cosh((*lep_eta)[others[0]]-(*lep_eta)[others[1]])-cos((*lep_phi)[others[0]]-(*lep_phi)[others[1]])));
+				invMsqrtE = sqrt(2*(*lep_pt)[0]*(*lep_pt)[which]*(cosh((*lep_eta)[0]-(*lep_eta)[which])-cos((*lep_phi)[0]-(*lep_phi)[which])))/1000;
+				invMsqrtMu = sqrt(2*(*lep_pt)[others[0]]*(*lep_pt)[others[1]]*(cosh((*lep_eta)[others[0]]-(*lep_eta)[others[1]])-cos((*lep_phi)[others[0]]-(*lep_phi)[others[1]])))/1000;
 			}else{
-				invMsqrtMu = sqrt(2*(*lep_pt)[0]*(*lep_pt)[which]*(cosh((*lep_eta)[0]-(*lep_eta)[which])-cos((*lep_phi)[0]-(*lep_phi)[which])));
-				invMsqrtE = sqrt(2*(*lep_pt)[others[0]]*(*lep_pt)[others[1]]*(cosh((*lep_eta)[others[0]]-(*lep_eta)[others[1]])-cos((*lep_phi)[others[0]]-(*lep_phi)[others[1]])));
+				invMsqrtMu = sqrt(2*(*lep_pt)[0]*(*lep_pt)[which]*(cosh((*lep_eta)[0]-(*lep_eta)[which])-cos((*lep_phi)[0]-(*lep_phi)[which])))/1000;
+				invMsqrtE = sqrt(2*(*lep_pt)[others[0]]*(*lep_pt)[others[1]]*(cosh((*lep_eta)[others[0]]-(*lep_eta)[others[1]])-cos((*lep_phi)[others[0]]-(*lep_phi)[others[1]])))/1000;
 			}
 
 			//fill histograms based off the 2,2 events
@@ -235,8 +238,12 @@ void mini::Run(){
 			histograms["invMassMu"]->Fill(invMsqrtMu,eventWeight);
 			histograms["invMass2D_EMu"]->Fill(invMsqrtE,invMsqrtMu/*,eventWeight*/);
 
-			test->Fill(invMsqrtE/1000);
-			test->Fill(invMsqrtMu/1000);
+			test->Fill(invMsqrtE);
+			test->Fill(invMsqrtMu);
+			test2->Fill(invMsqrtE);
+			test2->Fill(invMsqrtMu);
+			test3->Fill(invMsqrtE);
+			test3->Fill(invMsqrtMu);
 
 		}else if(Cut(4,0)||Cut(0,4)){    //include 4 lepton events of all the same type
 			pair<Int_t,Int_t> pos, neg; //pai positive leptons and negative leptons
@@ -271,81 +278,89 @@ void mini::Run(){
 			Int_t lower{76};
 			Int_t higher{106};
 			if(invMsqrt1<higher&&invMsqrt1>lower){ //hardcoded
-				test->Fill(invMsqrt1);
 				single++;
 				if(invMsqrt2<higher&&invMsqrt2>lower){
+					test->Fill(invMsqrt1);
 					test->Fill(invMsqrt2);
 					both++;
 				}
-			}else if(invMsqrt2<higher&&invMsqrt2>lower){
-				test->Fill(invMsqrt2);
+			}
+			if(invMsqrt3<higher&&invMsqrt3>lower){
 				single++;
-				if(invMsqrt1<higher&&invMsqrt1>lower){
-					test->Fill(invMsqrt1);
+				if(invMsqrt4<higher&&invMsqrt4>lower){
+					test->Fill(invMsqrt3);
+					test->Fill(invMsqrt4);
+					both++;
+				}
+			}
+			lower = 81;
+			higher = 101;
+			if(invMsqrt1<higher&&invMsqrt1>lower){ //hardcoded
+				single++;
+				if(invMsqrt2<higher&&invMsqrt2>lower){
+					test2->Fill(invMsqrt1);
+					test2->Fill(invMsqrt2);
+					both++;
+				}
+			}
+			if(invMsqrt3<higher&&invMsqrt3>lower){
+				single++;
+				if(invMsqrt4<higher&&invMsqrt4>lower){
+					test2->Fill(invMsqrt3);
+					test2->Fill(invMsqrt4);
+					both++;
+				}
+			}
+			lower = 86;
+			higher = 96;
+			if(invMsqrt1<higher&&invMsqrt1>lower){ //hardcoded
+				single++;
+				if(invMsqrt2<106&&invMsqrt2>76){
+					test3->Fill(invMsqrt1);
+					test3->Fill(invMsqrt2);
+					both++;
+				}
+			}else if(invMsqrt2<higher&&invMsqrt2>lower){
+				single++;
+				if(invMsqrt1<106&&invMsqrt1>76){
+					test3->Fill(invMsqrt2);
+					test3->Fill(invMsqrt1);
 					both++;
 				}
 			}
 
 			if(invMsqrt3<higher&&invMsqrt3>lower){
-				test->Fill(invMsqrt3);
 				single++;
-				if(invMsqrt4<higher&&invMsqrt4>lower){
-					test->Fill(invMsqrt4);
+				if(invMsqrt4<106&&invMsqrt4>76){
+					test3->Fill(invMsqrt3);
+					test3->Fill(invMsqrt4);
 					both++;
 				}
 			}else if(invMsqrt4<higher&&invMsqrt4>lower){
-				test->Fill(invMsqrt4);
 				single++;
-				if(invMsqrt3<higher&&invMsqrt3>lower){
-					test->Fill(invMsqrt3);
+				if(invMsqrt3<106&&invMsqrt3>76){
+					test3->Fill(invMsqrt4);
+					test3->Fill(invMsqrt3);
 					both++;
 				}
 			}
 
-
-			/*pair <Int_t,Int_t> pair1, pair2;   //Pairs of ints to store the correct pairing indices
-			Bool_t firstOneSet=false;
-			Bool_t set=false;
-
-			for(Int_t j=1; j<4; j++){
-				if((*lep_charge)[j]!=(*lep_charge)[0] && set==false){
-					pair1.first=0;		//Set the first and second pairs 
-					pair1.second=j;
-					set=true;
-				}else if(firstOneSet==false){   //If you haven't already set the first same charged lepton
-					pair2.first=j;
-					firstOneSet=true;
-				}else{
-					pair2.second=j;         //Otherwise set the last lepton in pair2
-				}
-			}
-			//Uncomment to check that pairs are correct
-			//std::cout<<"("<<pos.first<<","<<pos.second<<") , ("<<neg.first<<","<<neg.second<<")"<<std::endl;
-			//std::cout<<(*lep_charge)[0]<<","<<(*lep_charge)[1]<<","<<(*lep_charge)[2]<<","<<(*lep_charge)[3]<<std::endl<<std::endl;
-			
-			
-			//Find InvMass for pair 1
-			invMsqrtE = sqrt(2*(*lep_pt)[pair1.first]*(*lep_pt)[pair1.second]*(cosh((*lep_eta)[pair1.first]-(*lep_eta)[pair1.second])-cos((*lep_phi)[pair1.first]-(*lep_phi)[pair1.second])));
-			
-			//Find InvMass for pair 2 (ignore Mu label as just re-using previous variable)
-			invMsqrtMu = sqrt(2*(*lep_pt)[pair2.first]*(*lep_pt)[pair2.second]*(cosh((*lep_eta)[pair2.first]-(*lep_eta)[pair2.second])-cos((*lep_phi)[pair2.first]-(*lep_phi)[pair2.second])));*/
-
 			//Fill the histograms the correct way round
-			if((*lep_type)[0]==11){
+		/*	if((*lep_type)[0]==11){
 				histograms["invMassE"]->Fill(invMsqrtE,eventWeight);
 				histograms["invMassE"]->Fill(invMsqrtMu,eventWeight);
-				histograms["invMass2D_EE"]->Fill(invMsqrtE,invMsqrtMu/*,eventWeight*/);
+				histograms["invMass2D_EE"]->Fill(invMsqrtE,invMsqrtMu*//*,eventWeight///);
 			}else{
 				histograms["invMassMu"]->Fill(invMsqrtE,eventWeight);
 				histograms["invMassMu"]->Fill(invMsqrtMu,eventWeight);
-				histograms["invMass2D_MuMu"]->Fill(invMsqrtE,invMsqrtMu/*,eventWeight*/);
+				histograms["invMass2D_MuMu"]->Fill(invMsqrtE,invMsqrtMu*//*,eventWeight*//*);
 			}
-			
+		*/	
 		}
-
+/*
 		//Finding invariant mass of whole 4 lepton event using Equation [3] in lab book
 		if(lep_n==4){
-			histograms["invMass4l"]->Fill(sqrt(pow((*lep_pt)[0]*cosh((*lep_eta)[0])+(*lep_pt)[1]*cosh((*lep_eta)[1])+(*lep_pt)[2]*cosh((*lep_eta)[2])+(*lep_pt)[3]*cosh((*lep_eta)[3]),2)-pow((*lep_pt)[0]*cos((*lep_phi)[0])+(*lep_pt)[1]*cos((*lep_phi)[1])+(*lep_pt)[2]*cos((*lep_phi)[2])+(*lep_pt)[3]*cos((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sin((*lep_phi)[0])+(*lep_pt)[1]*sin((*lep_phi)[1])+(*lep_pt)[2]*sin((*lep_phi)[2])+(*lep_pt)[3]*sin((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sinh((*lep_eta)[0])+(*lep_pt)[1]*sinh((*lep_eta)[1])+(*lep_pt)[2]*sinh((*lep_eta)[2])+(*lep_pt)[3]*sinh((*lep_eta)[3]),2)),eventWeight);
+			histograms["invMass4l"]->Fill(sqrt(pow((*lep_pt)[0]*cosh((*lep_eta)[0])+(*lep_pt)[1]*cosh((*lep_eta)[1])+(*lep_pt)[2]*cosh((*lep_eta)[2])+(*lep_pt)[3]*cosh((*lep_eta)[3]),2)-pow((*lep_pt)[0]*cos((*lep_phi)[0])+(*lep_pt)[1]*cos((*lep_phi)[1])+(*lep_pt)[2]*cos((*lep_phi)[2])+(*lep_pt)[3]*cos((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sin((*lep_phi)[0])+(*lep_pt)[1]*sin((*lep_phi)[1])+(*lep_pt)[2]*sin((*lep_phi)[2])+(*lep_pt)[3]*sin((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sinh((*lep_eta)[0])+(*lep_pt)[1]*sinh((*lep_eta)[1])+(*lep_pt)[2]*sinh((*lep_eta)[2])+(*lep_pt)[3]*sinh((*lep_eta)[3]),2))/1000,eventWeight);
 		}
 			
 		//Fill an invariant mass histogram of both e and mu 2 events
@@ -371,7 +386,7 @@ void mini::Run(){
 				(it->second)->Reset();
 				it++;
 			}
-		}
+		}*/
 	}
 	//Print the time taken to run the loop (relies on startTime at beginning of loop)
 	clock_t endTime = clock();
@@ -395,7 +410,14 @@ void mini::Run(){
 	}
 	std::cout<<sqrt(2*integral*log(1+(integral-background)/background)-2*(integral-background))<<std::endl;
 	//std::cout<<invMassFit->Integral(0,3e2)<<std::endl;
+	
+	TDirectory *testDir= output.mkdir("foJack");
+	testDir->cd();
+	gDirectory->mkdir("foJackSq");
+	gDirectory->cd("foJackSq");
 	test->Write();
+	test2->Write();
+	test3->Write();
 	output.Close(); //Close the output file
 
 } 
