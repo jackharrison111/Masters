@@ -7,11 +7,7 @@
 #define LIB_JSONCPP_JSON_TOOL_H_INCLUDED
 
 #if !defined(JSON_IS_AMALGAMATION)
-<<<<<<< HEAD
-#include "json/config.h"
-=======
 #include "../../include/json/config.h"
->>>>>>> 19b529984d1c4bef84391a299a08059c6cf49b6e
 #endif
 
 // Also support old flag NO_LOCALE_SUPPORT
