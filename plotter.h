@@ -15,7 +15,7 @@ void plotter(string product, string histType){
 	gStyle->SetOptStat(1111111);
 
 
-	TFile *f = new TFile("rootOutput/mc_output.root");
+	TFile *f = new TFile("mc_output.root");
 	//("rootOutput/mc_output.root");
 
 	if(!f->IsOpen()){
@@ -133,11 +133,17 @@ void plotter(string product, string histType){
 	//
 	//f->cd(product + "/" + histType);
 	
-	f->cd("averageWaveforms");
+	f->cd((product +"/" +histType).c_str());
 	TIter next(gDirectory->GetListOfKeys());
 	TKey *aKey;
 	TCanvas *c = new TCanvas("c", "c");
+	TH1D *totalHist = new TH1D("totalHist", "Totals", 500, 0, 3e5);
+	TH1D *chosenHist = new TH1D;
+	
+	TList *histList = new TList;
 
+	string signalFile = "mc15_13TeV.361063.Sh_CT10_llll.2lep_raw.root"; 
+	int counter{0};
 	while((aKey = (TKey*)next())){
 		
 		TClass *myClass = gROOT->GetClass(aKey->GetClassName());
@@ -150,38 +156,71 @@ void plotter(string product, string histType){
 		string histName = myHist->GetName();
 		//std::cout<<histName << std::endl;
 		//if(histName == "channel_162_avwf"){
+		std::cout << histName << std::endl;
+		
+		string printChoice = product + "_" + histType + "_" + signalFile;
+<<<<<<< HEAD
+		/*if(counter==0){//histName == printChoice){
+=======
+		if(counter==0){//histName == printChoice){
+>>>>>>> f8951f4fb59ab5146330f7955db3279c5ceb3fee
+			myHist->SetDirectory(0);
+			//myHist->SetLineColor(kRed);
+			//myHist->Draw("hist");
+			chosenHist = myHist;	
+<<<<<<< HEAD
+		}*/
+
 		myHist->SetDirectory(0);
-		myHist->Draw("same");
+		myHist->Draw("histsame");
+=======
+		}
 
-	}
-
-	
+		myHist->SetDirectory(0);
+		//myHist->Draw("same");
+>>>>>>> f8951f4fb59ab5146330f7955db3279c5ceb3fee
 
 		
+		for(Int_t i = 1; i <= myHist->GetNbinsX(); i++){		
+			Double_t content = myHist->GetBinContent(i);
+			totalHist->SetBinContent(i,(totalHist->GetBinContent(i) + content));
 
-
-	delete f;
-
-
-	//(&histograms[0])->SetDirectory(gROOT);
-	//(&histograms[0])->Draw();
+		}
+		
+	counter++;
+	}
+<<<<<<< HEAD
+	/*totalHist->SetLineColor(kBlue);	
+=======
+	totalHist->SetLineColor(kBlue);	
+>>>>>>> f8951f4fb59ab5146330f7955db3279c5ceb3fee
+	totalHist->SetDirectory(0);	
+	totalHist->Draw("hist");
 	
-
+	chosenHist->SetLineColor(kRed);
+	chosenHist->Draw("histsame");
+	std::cout << chosenHist->GetMinimum() << std::endl;
+<<<<<<< HEAD
+	*/
+	delete f;
+=======
+	delete f;
 	//TCanvas *c1 = new TCanvas("mc_Canvas","MC");
 	/*for(vector<TH1D>::iterator it = histograms.begin(); it != histograms.end(); ++it){
 		(&it)->Draw();	
 	}*/
-}
-
-Int_t plotter(){
-	plotter("a");
-	return 0;
+>>>>>>> f8951f4fb59ab5146330f7955db3279c5ceb3fee
 }
 
 
-int plotter(){
+
+int plot(){
 	
-	plotter("a", "b");
+<<<<<<< HEAD
+	plotter("foJack", "foJackSq");
+=======
+	plotter("2lep", "invMassE");
+>>>>>>> f8951f4fb59ab5146330f7955db3279c5ceb3fee
 
 	return 0;
 }
