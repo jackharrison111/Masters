@@ -159,26 +159,19 @@ void plotter(string product, string histType){
 		std::cout << histName << std::endl;
 		
 		string printChoice = product + "_" + histType + "_" + signalFile;
-<<<<<<< HEAD
 		/*if(counter==0){//histName == printChoice){
-=======
-		if(counter==0){//histName == printChoice){
->>>>>>> f8951f4fb59ab5146330f7955db3279c5ceb3fee
 			myHist->SetDirectory(0);
 			//myHist->SetLineColor(kRed);
 			//myHist->Draw("hist");
 			chosenHist = myHist;	
-<<<<<<< HEAD
 		}*/
 
 		myHist->SetDirectory(0);
 		myHist->Draw("histsame");
-=======
-		}
+		
 
 		myHist->SetDirectory(0);
 		//myHist->Draw("same");
->>>>>>> f8951f4fb59ab5146330f7955db3279c5ceb3fee
 
 		
 		for(Int_t i = 1; i <= myHist->GetNbinsX(); i++){		
@@ -189,38 +182,23 @@ void plotter(string product, string histType){
 		
 	counter++;
 	}
-<<<<<<< HEAD
 	/*totalHist->SetLineColor(kBlue);	
-=======
 	totalHist->SetLineColor(kBlue);	
->>>>>>> f8951f4fb59ab5146330f7955db3279c5ceb3fee
 	totalHist->SetDirectory(0);	
 	totalHist->Draw("hist");
 	
 	chosenHist->SetLineColor(kRed);
 	chosenHist->Draw("histsame");
 	std::cout << chosenHist->GetMinimum() << std::endl;
-<<<<<<< HEAD
 	*/
 	delete f;
-=======
-	delete f;
-	//TCanvas *c1 = new TCanvas("mc_Canvas","MC");
-	/*for(vector<TH1D>::iterator it = histograms.begin(); it != histograms.end(); ++it){
-		(&it)->Draw();	
-	}*/
->>>>>>> f8951f4fb59ab5146330f7955db3279c5ceb3fee
 }
 
 
 
 int plot(){
 	
-<<<<<<< HEAD
 	plotter("foJack", "foJackSq");
-=======
-	plotter("2lep", "invMassE");
->>>>>>> f8951f4fb59ab5146330f7955db3279c5ceb3fee
 
 	return 0;
 }
