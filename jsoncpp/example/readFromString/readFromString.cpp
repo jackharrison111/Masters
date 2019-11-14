@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 #include "json.h"
+=======
+#include "json/json.h"
+>>>>>>> 19b529984d1c4bef84391a299a08059c6cf49b6e
 #include <iostream>
 /**
  * \brief Parse a raw string into Value object using the CharReaderBuilder

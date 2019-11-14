@@ -5,7 +5,11 @@
 
 #if !defined(JSON_IS_AMALGAMATION)
 #include "json_tool.h"
+<<<<<<< HEAD
 #include "json/writer.h"
+=======
+#include "../../include/json/writer.h"
+>>>>>>> 19b529984d1c4bef84391a299a08059c6cf49b6e
 #endif // if !defined(JSON_IS_AMALGAMATION)
 #include <cassert>
 #include <cstring>
