@@ -401,8 +401,8 @@ void mini::Run(){
 
 
 */
-			lower = 86;
-			higher = 96;
+			Int_t lower = 86;
+			Int_t higher = 96;
 			if((invMsqrt1<higher&&invMsqrt1>lower)||(invMsqrt2<higher&&invMsqrt2>lower)){ //hardcoded
 				test2/*4*/->Fill(invMsqrt1);
 				test2->Fill(invMsqrt2);
