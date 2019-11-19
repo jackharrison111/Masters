@@ -1,6 +1,6 @@
 //TODO: make an if statement to check whether dataSets.json contains shortFileName
 #define main_cxx
-#include "mainMC.h" //change this for mc or real data
+#include "main.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
 #include <TH2.h>
 //#include <TROOT.h>
@@ -151,8 +151,8 @@ void mini::Run(){
 		if(MC){
 			eventWeight = mcWeight*scaleFactor_PILEUP*scaleFactor_ELE*scaleFactor_MUON*scaleFactor_PHOTON*scaleFactor_TAU*scaleFactor_BTAG*scaleFactor_LepTRIGGER*scaleFactor_PhotonTRIGGER*scaleFactor_TauTRIGGER*scaleFactor_DiTauTRIGGER*lumFactor;
 		}
-		
-		
+
+
 		////2 ELECTRON EVENTS////
 		Double_t invMee;
 		if(Cut(2,0)){

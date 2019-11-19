@@ -237,10 +237,10 @@ mini::mini(TTree *tree) : fChain(0)
       }
       f->GetObject("mini",tree);*/
       chain = new TChain("mini");
-      chain->Add("/data/ATLAS/1fatjet1lep/MC/*");
-      chain->Add("/data/ATLAS/1lep/MC/*");
-      chain->Add("/data/ATLAS/1lep1tau/MC/*");
-      chain->Add("/data/ATLAS/1tau/MC/*");
+      //chain->Add("/data/ATLAS/1fatjet1lep/MC/*");
+      //chain->Add("/data/ATLAS/1lep/MC/*");
+      //chain->Add("/data/ATLAS/1lep1tau/MC/*");
+      //chain->Add("/data/ATLAS/1tau/MC/*");
       chain->Add("/data/ATLAS/2lep/MC/*");
       chain->Add("/data/ATLAS/2tau/MC/*");
       chain->Add("/data/ATLAS/GamGam/MC/*");
