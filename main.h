@@ -232,7 +232,13 @@ mini::mini(TTree *tree) : fChain(0)
 // used to generate this class and read the Tree.
    if (tree == 0) {
       chain = new TChain("mini");
+      chain->Add("/data/ATLAS/1fatjet1lep/Data/*");
+      chain->Add("/data/ATLAS/1lep/Data/*");
+      chain->Add("/data/ATLAS/1lep1tau/Data/*");
+      chain->Add("/data/ATLAS/1tau/Data/*");
       chain->Add("/data/ATLAS/2lep/Data/*");
+      chain->Add("/data/ATLAS/2tau/Data/*");
+      chain->Add("/data/ATLAS/GamGam/Data/*");
    }
    Init(chain);
 }
@@ -409,7 +415,9 @@ void mini::Init(TTree *tree)
    fChain->SetBranchAddress("tau_eta", &tau_eta, &b_tau_eta);
    fChain->SetBranchAddress("tau_phi", &tau_phi, &b_tau_phi);
    fChain->SetBranchAddress("tau_E", &tau_E, &b_tau_E);
+   if(fChain->GetBranch("tau_charge")){
    fChain->SetBranchAddress("tau_charge", &tau_charge, &b_tau_charge);
+   }
    fChain->SetBranchAddress("tau_isTightID", &tau_isTightID, &b_tau_isTightID);
    fChain->SetBranchAddress("tau_truthMatched", &tau_truthMatched, &b_tau_truthMatched);
    fChain->SetBranchAddress("tau_trigMatched", &tau_trigMatched, &b_tau_trigMatched);

@@ -43,6 +43,7 @@ void plot(string product, string histType){
 		
 
 
+
 		//TH1D *chosenHist = new TH1D;
 		
 		/*
@@ -83,6 +84,7 @@ void plot(string product, string histType){
 			legend->AddEntry(myHist, names[counter].c_str());
 			*/
 			myHist->SetDirectory(0);
+
 
 			for(Int_t i = 1; i <= myHist->GetNbinsX(); i++){		
 				Double_t content = myHist->GetBinContent(i);
@@ -168,7 +170,7 @@ void plot(string product, string histType){
 
 int plotter(){
 	
-	plot("foJack", "foJackSq");
+	plot("2lep","invMass2l");
 
 	return 0;
 }
