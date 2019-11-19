@@ -134,6 +134,7 @@ void mini::Run(){
 			if(MC){
 				convert i;
 				i.makeMap();
+				
 				lumFactor=1000*totRealLum*i.infos[shortFileName]["xsec"]/(i.infos[shortFileName]["sumw"]*i.infos[shortFileName]["red_eff"]);
 				//TODO: fix this:
 				if(i.infos[shortFileName]["sumw"]==0){
