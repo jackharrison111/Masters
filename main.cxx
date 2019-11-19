@@ -1,6 +1,6 @@
 //TODO: make an if statement to check whether dataSets.json contains shortFileName
 #define main_cxx
-#include "main.h" //change this for mc or real data
+#include "mainMC.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
 #include <TH2.h>
 //#include <TROOT.h>
@@ -47,42 +47,6 @@ Bool_t mini::Cut(Int_t e, Int_t mu){ //electron and muons only so far
 	return false;
 }
 
-//gaussian fit for resonance
-Double_t mini::Gaussian(Double_t *x, Double_t *par){
-	Double_t g = par[2]*exp(-pow(((x[0]-par[0])/par[1]),2)/2);
-	return g;
-}
-
-//lorentzian fit for resonance
-Double_t mini::Lorentz(Double_t *x, Double_t *par){
-	Double_t L = par[1]*par[2]/(pow(x[0]-par[0],2) + pow(0.5*par[1],2));
-	return L;
-}
-
-//fit to resonance background (quadratic/cubic)
-Double_t mini::Background(Double_t *x, Double_t *par, Int_t order){
-	Double_t B = 0;
-	if(order==3){	
-		B = par[3] + par[2]*x[0] + par[1]*pow(x[0],2) + par[0]*pow(x[0],3);
-	}else if(order==2){
-		B = par[2] + par[1]*x[0] + par[0]*pow(x[0],2);
-	}else{
-		return 0;
-	}
-	return B;
-}
-
-Int_t mini::order = 2; //global??
-//combine
-Double_t mini::Fit(Double_t *x, Double_t *par){
-	return Lorentz(x, par) + Background(x,&par[3],order);
-}
-
-
-
-
-
-
 
 
 
@@ -106,7 +70,7 @@ void mini::Run(){
 
 	
 
-	TFile output((outputName+"output_19-11.root").c_str(),"RECREATE");
+	TFile output((outputName+"output.root").c_str(),"RECREATE");
 	TDirectory *TDir1 = output.mkdir("1fatjet1lep");
 	TDirectory *TDir2 = output.mkdir("1lep");
 	TDirectory *TDir3 = output.mkdir("1lep1tau");
@@ -171,6 +135,10 @@ void mini::Run(){
 				convert i;
 				i.makeMap();
 				lumFactor=1000*totRealLum*i.infos[shortFileName]["xsec"]/(i.infos[shortFileName]["sumw"]*i.infos[shortFileName]["red_eff"]);
+				//TODO: fix this:
+				if(i.infos[shortFileName]["sumw"]==0){
+					lumFactor=0;
+				}
 			}
 			
 			gDirectory->cd(products.c_str());
@@ -343,24 +311,8 @@ void mini::Run(){
 	//Print the time taken to run the loop (relies on startTime at beginning of loop)
 	clock_t endTime = clock();
 	std::cout<<"Run time: "<<(endTime-startTime)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
-	
+
 	output.cd();
-	TF1 *invMassFit = new TF1("invMassFit",Fit,25,150,order+4); //hardcoded
-	invMassFit->SetParNames("#mu","#gamma","A","a","b","c");
-	invMassFit->SetParameters(90,5,1,1,1,1);
-	invMassFit->SetParLimits(0,86,96);
-	invMassFit->SetParLimits(1,0,50);
-	invMassFit->SetLineColor(kRed);
-	histograms["invMass2l"]->Fit("invMassFit","+R");
-	Double_t integral=0;
-	Double_t background=0;
-	for(Int_t i=25;i<150;i++){
-		integral+=invMassFit->Eval(i);
-		background+=invMassFit->GetParameter(5)+invMassFit->GetParameter(4)*i+invMassFit->GetParameter(3)*pow(i,2);
-	}
-	std::cout<<sqrt(2*integral*log(1+(integral-background)/background)-2*(integral-background))<<std::endl;
-	//std::cout<<invMassFit->Integral(0,3e2)<<std::endl;
-	
 	output.Close(); //Close the output file
 
 } 
