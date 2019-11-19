@@ -39,10 +39,13 @@ void plot(string product, string histType){
 
 
 	vector<string> names;
-	names.push_back("76-106 GeV");
-	names.push_back("81-101 GeV");
-	names.push_back("76-106 & 86-96 GeV");
+	//names.push_back("76-106 GeV");
+	//names.push_back("81-101 GeV");
+	//names.push_back("76-106 & 86-96 GeV");
+	//names.push_back("at least one 86-96 GeV");
+	names.push_back("minimum |M_{inv}-M_{Z}|");
 	names.push_back("at least one 86-96 GeV");
+	names.push_back("2e 2#mu");
 
 	string signalFile = "mc15_13TeV.361063.Sh_CT10_llll.2lep_raw.root"; 
 	int counter{0};
@@ -67,7 +70,7 @@ void plot(string product, string histType){
 			//myHist->Draw("hist");
 			chosenHist = myHist;	
 		}*/
-		myHist->SetLineColor(4 - counter);
+		myHist->SetLineColor(counter+1);
 		myHist->SetDirectory(0);
 		myHist->Draw("histsame");
 		
@@ -104,7 +107,7 @@ void plot(string product, string histType){
 
 int plotter(){
 	
-	plot("foJack", "foJackSq");
+	plot("2lep","invMass2l");
 
 	return 0;
 }
