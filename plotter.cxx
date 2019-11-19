@@ -3,6 +3,43 @@
 #include <TH2.h>
 #include <vector>
 
+
+
+
+Double_t Gaussian(Double_t *x, Double_t *par){
+	Double_t g = par[2]*exp(-pow(((x[0]-par[0])/par[1]),2)/2);
+	return g;
+}
+
+//lorentzian fit for resonance
+Double_t Lorentz(Double_t *x, Double_t *par){
+	Double_t L = par[1]*par[2]/(pow(x[0]-par[0],2) + pow(0.5*par[1],2));
+	return L;
+}
+
+//fit to resonance background (quadratic/cubic)
+Double_t Background(Double_t *x, Double_t *par, Int_t order){
+	Double_t B = 0;
+	if(order==3){   
+		B = par[3] + par[2]*x[0] + par[1]*pow(x[0],2) + par[0]*pow(x[0],3);
+	}else if(order==2){
+		B = par[2] + par[1]*x[0] + par[0]*pow(x[0],2);
+	}else{
+		return 0;
+	}
+	return B;
+}
+
+Int_t order = 2; //global??
+//combine
+Double_t Fit(Double_t *x, Double_t *par){
+	return Lorentz(x, par) + Background(x,&par[3],order);
+}
+
+
+
+
+
 void plot(string product, string histType){
 
 
@@ -164,6 +201,31 @@ void plot(string product, string histType){
 	totalHist->Draw("hist");
 	re_totalHist->Draw("histsame");
 	legend->Draw();
+
+	Int_t upperFit{120};
+	Int_t lowerFit{40};
+
+
+	invMassFit = new TF1("invMassFit",Fit,lowerFit,upperFit,order+4); //hardcoded
+	invMassFit->SetParNames("#mu","#gamma","A","a","b","c");
+	invMassFit->SetParameters(90,5,1,1,1,1);
+	invMassFit->SetParLimits(0,86,96);
+	invMassFit->SetParLimits(1,0,50);
+	invMassFit->SetLineColor(kRed);
+	re_totalHist->Fit("invMassFit","+R");
+	Double_t integral=0;
+	Double_t background=0;
+	Double_t Nrec=0;
+	for(Int_t i=lowerFit;i<upperFit;i++){
+		integral+=invMassFit->Eval(i);
+		background+=invMassFit->GetParameter(5)+invMassFit->GetParameter(4)*i+invMassFit->GetParameter(3)*pow(i,2);
+		Nrec+=invMassFit->GetParameter(1)*invMassFit->GetParameter(2)/(pow(i-invMassFit->GetParameter(0),2)+pow(invMassFit->GetParameter(1)/2,2));
+	}
+	std::cout<<"integral-background: "<<integral-background<<std::endl;
+	std::cout<<"Nrec: "<<Nrec<<std::endl;
+		
+
+
 
 }
 
