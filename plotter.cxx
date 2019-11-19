@@ -58,16 +58,15 @@ void plot(string product, string histType){
 
 	TCanvas *c = new TCanvas("c", "c");	
 	TLegend *legend = new TLegend(1,0.5);
-
-	TH1D *totalHist = new TH1D("totalHist", "Totals", 500, 0, 3e5);
+	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
 	
 	
-	TFile *f = new TFile("rootOutput/mc_output.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("mc_output_19-11_temp.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
 	
-	string Zlep = "invMass2l"
+	string Zlep = "invMass2l";
 
 	for(vector<string>::iterator it = productNames.begin(); it != productNames.end(); it++){
 
@@ -121,13 +120,14 @@ void plot(string product, string histType){
 			legend->AddEntry(myHist, names[counter].c_str());
 			*/
 			myHist->SetDirectory(0);
-
-
+			std::cout << histName << std::endl;
 			for(Int_t i = 1; i <= myHist->GetNbinsX(); i++){		
 				Double_t content = myHist->GetBinContent(i);
+				std::cout << content << std::endl;
 				totalHist->SetBinContent(i,(totalHist->GetBinContent(i) + content));
 
 			}
+		
 		
 		//legend->Draw();
 		counter++;
@@ -142,14 +142,15 @@ void plot(string product, string histType){
 	chosenHist->Draw("histsame");
 	std::cout << chosenHist->GetMinimum() << std::endl;
 	*/
-	delete f;
+	f->Close();
 
+	//totalHist->Draw("histsame");
 	
-	TH1D *re_totalHist = new TH1D("re_totalHist", "Real Totals", 500, 0, 3e5);
+	TH1D *re_totalHist = new TH1D("re_totalHist", "Real Totals", 200, 0, 160);
 
-	TFile *f2 = new TFile("rootOutput/re_output.root");
+	TFile *f2 = new TFile("re_output_19-11.root");
 	
-	if(!f2.is_open()){
+	if(!f2->IsOpen()){
 		std::cout << "Couldn't open re_output.root" << std::endl;
 	}
 
@@ -190,29 +191,36 @@ void plot(string product, string histType){
 	}
 	delete f2;
 	//ADD LEGEND AND TITLES TO NEW HISTOGRAM
-	totalHist->SetDirectory(0);
-	re_totalHist->SetDirectory(0);
 
-	c->SetTitle(";;M_{inv} (GeV); Counts");
 	legend->SetHeader("Data source", "C");
-	legend->AddEntry(re_totalHist, ("Real").c_str());
-	legend->AddEntry(totalHist, ("MC").c_str());
-	totalHist->SetLineColor(kRed);
-	totalHist->Draw("hist");
-	re_totalHist->Draw("histsame");
-	legend->Draw();
+	legend->AddEntry(re_totalHist, "Real", "l"/*).c_str()*/);
+	legend->AddEntry(totalHist, "MC", "l"/*).c_str()*/);
 
+	totalHist->SetLineColor(kRed);
+	totalHist->SetDirectory(0);
+	totalHist->SetTitle(";M_{inv} /GeV; Counts /0.8GeV");
+	totalHist->Draw("hist");
+	re_totalHist->SetDirectory(0);
+	re_totalHist->SetTitle(";;M_{inv} /GeV; Counts/0.8GeV");
+	//re_totalHist->Print("all");
+	re_totalHist->Draw("histsame");
+	
 	Int_t upperFit{120};
 	Int_t lowerFit{40};
 
 
-	invMassFit = new TF1("invMassFit",Fit,lowerFit,upperFit,order+4); //hardcoded
+	TF1 *invMassFit = new TF1("invMassFit",Fit,lowerFit,upperFit,order+4); //hardcoded
 	invMassFit->SetParNames("#mu","#gamma","A","a","b","c");
 	invMassFit->SetParameters(90,5,1,1,1,1);
 	invMassFit->SetParLimits(0,86,96);
 	invMassFit->SetParLimits(1,0,50);
 	invMassFit->SetLineColor(kRed);
-	re_totalHist->Fit("invMassFit","+R");
+	re_totalHist->Fit("invMassFit","+RN");
+	
+	
+	
+	legend->Draw();
+	
 	Double_t integral=0;
 	Double_t background=0;
 	Double_t Nrec=0;
