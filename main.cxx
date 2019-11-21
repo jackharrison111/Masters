@@ -114,6 +114,8 @@ void mini::Run(){
 		Double_t eventWeight = 1;
 		if(fileName!=oldFileName){ //dont want to calculate lumFactor repeatedly, only once per file/per event type
 			std::cout<<(chain->GetFile())->GetSize()/1e6<<" MB : File "<<fileCounter<<" out of "<<((chain->GetListOfFiles())->GetLast()+1)<<std::endl;
+			//TODO: is this right here?
+			fileCounter++;
 			if(i!=0){
 				std::map<string,TH1*>::iterator it=histograms.begin();
 				while(it!=histograms.end()){
@@ -130,7 +132,7 @@ void mini::Run(){
 					it++;
 				}
 				output.cd();
-				fileCounter++;
+				//fileCounter++;
 			}
 			oldFileName=fileName;
 			products=oldFileName.substr(12,oldFileName.find('/',12)-12); //12 is the position after "/data/ATLAS/"
@@ -186,7 +188,7 @@ void mini::Run(){
 					others[k]=j;
 					k++;
 				}
-			}
+		}
 
 			//Find the electron/muon invariant mass from the correct pairings
 			if((*lep_type)[0]==11){
@@ -197,8 +199,8 @@ void mini::Run(){
 				invM1 = sqrt(2*(*lep_pt)[others[0]]*(*lep_pt)[others[1]]*(cosh((*lep_eta)[others[0]]-(*lep_eta)[others[1]])-cos((*lep_phi)[others[0]]-(*lep_phi)[others[1]])))/1000;
 			}
 			//fill histograms based off the 2,2 events
-			histograms["invMass2l"]->Fill(invM1,eventWeight);
-			histograms["invMass2l"]->Fill(invM2,eventWeight);
+			histograms["invMass2l"]->Fill(invM1/*,eventWeight*/);
+			histograms["invMass2l"]->Fill(invM2/*,eventWeight*/);
 			histograms["invMass2D_EMu"]->Fill(invM1,invM2/*,eventWeight*/);
 
 		}else if(Cut(4,0)||Cut(0,4)){    //include 4 lepton events of all the same type
@@ -263,8 +265,8 @@ void mini::Run(){
 			Int_t lower = 86;
 			Int_t higher = 96;
 			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
-				histograms["invMass2l"]->Fill(invM1,eventWeight);
-				histograms["invMass2l"]->Fill(invM2,eventWeight);
+				histograms["invMass2l"]->Fill(invM1/*,eventWeight*/);
+				histograms["invMass2l"]->Fill(invM2/*,eventWeight*/);
 				if((*lep_type)[0]==11){
 					histograms["invMass2D_EE"]->Fill(invM1,invM2);
 				}else{
@@ -272,8 +274,8 @@ void mini::Run(){
 				}
 			}
 		  	else if((invM3<higher&&invM3>lower)||(invM4<higher&&invM4>lower)){ //hardcoded
-				histograms["invMass2l"]->Fill(invM3,eventWeight);
-				histograms["invMass2l"]->Fill(invM4,eventWeight);
+				histograms["invMass2l"]->Fill(invM3/*,eventWeight*/);
+				histograms["invMass2l"]->Fill(invM4/*,eventWeight*/);
 				if((*lep_type)[0]==11){
 					histograms["invMass2D_EE"]->Fill(invM3,invM4);
 				}else{

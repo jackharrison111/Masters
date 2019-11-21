@@ -41,9 +41,6 @@ Double_t Fit(Double_t *x, Double_t *par){
 
 
 void plot(string product, string histType){
-
-
-
 	vector<string> productNames;
 	productNames.push_back("1fatjet1lep");	
 	productNames.push_back("1lep");
@@ -61,64 +58,48 @@ void plot(string product, string histType){
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
 	
 	
-	TFile *f = new TFile("mc_output_19-11.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("mc_output_21-11.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
 	
 	string Zlep = "invMass2l";
-
 	//for(vector<string>::iterator it = productNames.begin(); it != productNames.end(); it++){
-
-
 		f->cd((product +"/" + histType).c_str());
 		gDirectory->pwd();
 		TIter next(gDirectory->GetListOfKeys());
 		TKey *aKey;
-		//legend->SetHeader("Cuts", "C");
-		
-
-
 
 		//TH1D *chosenHist = new TH1D;
 		
-		/*
-		vector<string> names;
-		names.push_back("76-106 GeV");
-		names.push_back("81-101 GeV");
-		names.push_back("76-106 & 86-96 GeV");
-		names.push_back("at least one 86-96 GeV");
-		*/
-		string signalFile = "mc15_13TeV.361063.Sh_CT10_llll.2lep_raw.root"; 
+		string signalFile = "mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.2lep_raw.root"; 
 		int counter{0};
 		while((aKey = (TKey*)next())){
-			
 			TClass *myClass = gROOT->GetClass(aKey->GetClassName());
 			if(!myClass->InheritsFrom("TH1D")){
-			std::cout << "Skipping..." << std::endl;
-			continue;
+				std::cout << "Skipping..." << std::endl;
+				continue;
 			}
 			TH1D *myHist = new TH1D;
 			myHist = (TH1D*)aKey->ReadObj();
 			string histName = myHist->GetName();
+			//TODO: dont delete - how to choose a specific hist
 			//std::cout<<histName << std::endl;
-			//if(histName == "channel_162_avwf"){
-			//std::cout << histName << std::endl;
 			
-			/*string printChoice = product + "_" + histType + "_" + signalFile;
-			if(counter==0){//histName == printChoice){
+			string printChoice = product + "_" + histType + "_" + signalFile;
+			/*if(histName == printChoice){
 				myHist->SetDirectory(0);
-				//myHist->SetLineColor(kRed);
+				myHist->SetTitle(";M_{inv} /GeV; Counts");
+				myHist->SetLineColor(kRed);
+				legend->AddEntry(myHist,"Signal channel","l");
+				//myHist->SetCanExtend(TH1::kYaxis);
+				myHist->Draw("histsame");
 				//myHist->Draw("hist");
-				chosenHist = myHist;	
-			}
-			myHist->SetLineColor(4 - counter);
-			myHist->SetDirectory(0);
-			myHist->Draw("histsame");
+				//chosenHist = myHist;	
+			}*/
+			//myHist->SetLineColor(4 - counter);
+			//myHist->SetDirectory(0);
 			
-			myHist->SetTitle(";M_{inv} /GeV; Counts");
-			legend->AddEntry(myHist, names[counter].c_str());
-			*/
 			myHist->SetDirectory(0);
 			std::cout << histName << std::endl;
 			for(Int_t i = 1; i <= myHist->GetNbinsX(); i++){		
@@ -129,9 +110,6 @@ void plot(string product, string histType){
 				}
 
 			}
-		
-		
-		//legend->Draw();
 		counter++;
 		}
 //	}
@@ -146,18 +124,14 @@ void plot(string product, string histType){
 	*/
 	f->Close();
 
-	//totalHist->Draw("histsame");
 	
 	TH1D *re_totalHist = new TH1D("re_totalHist", "Real Totals", 200, 0, 160);
-
-	TFile *f2 = new TFile("re_output_19-11.root");
-	
+	TFile *f2 = new TFile("re_output_21-11.root");
 	if(!f2->IsOpen()){
 		std::cout << "Couldn't open re_output.root" << std::endl;
 	}
 
 	//for(vector<string>::iterator at = productNames.begin(); at != productNames.end(); at++){
-		
 		f2->cd((product + "/" + histType).c_str());
 		gDirectory->pwd();
 		TIter re_next(gDirectory->GetListOfKeys());
@@ -173,27 +147,17 @@ void plot(string product, string histType){
 			TH1D *reHist = new TH1D;
 			reHist = (TH1D*)reKey->ReadObj();
 			string name = reHist->GetName();
-			//std::cout << name << std::endl;
-			
-			/*if(counter==0){//histName == printChoice){
-				myHist->SetDirectory(0);
-				//myHist->SetLineColor(kRed);
-				//myHist->Draw("hist");
-				chosenHist = myHist;	
-			}*/
 			reHist->SetDirectory(0);
 					
 			for(Int_t i = 1; i <= reHist->GetNbinsX(); i++){		
 				Double_t re_content = reHist->GetBinContent(i);
 				re_totalHist->SetBinContent(i,(re_totalHist->GetBinContent(i) + re_content));
-
 			}
-
 		}
 	//}
 	delete f2;
-	//ADD LEGEND AND TITLES TO NEW HISTOGRAM
 
+	//ADD LEGEND AND TITLES TO NEW HISTOGRAM
 	legend->SetHeader("Data source", "C");
 	legend->AddEntry(re_totalHist, "Real", "l"/*).c_str()*/);
 	legend->AddEntry(totalHist, "MC", "l"/*).c_str()*/);
@@ -203,14 +167,13 @@ void plot(string product, string histType){
 	totalHist->SetTitle(";M_{inv} /GeV; Counts /0.8GeV");
 	totalHist->Draw("hist");
 	re_totalHist->SetDirectory(0);
-	re_totalHist->SetTitle(";;M_{inv} /GeV; Counts/0.8GeV");
-	//re_totalHist->Print("all");
+	re_totalHist->SetLineColor(kBlack);
+	re_totalHist->SetTitle(";M_{inv} /GeV; Counts/0.8GeV");
 	re_totalHist->Draw("histsame");
+	legend->Draw();
 	
 	Int_t upperFit{120};
 	Int_t lowerFit{40};
-
-
 	TF1 *invMassFit = new TF1("invMassFit",Fit,lowerFit,upperFit,order+4); //hardcoded
 	invMassFit->SetParNames("#mu","#gamma","A","a","b","c");
 	invMassFit->SetParameters(90,5,1,1,1,1);
@@ -218,10 +181,6 @@ void plot(string product, string histType){
 	invMassFit->SetParLimits(1,0,50);
 	invMassFit->SetLineColor(kRed);
 	re_totalHist->Fit("invMassFit","+RN");
-	
-	
-	
-	legend->Draw();
 	
 	Double_t integral=0;
 	Double_t background=0;
@@ -233,16 +192,10 @@ void plot(string product, string histType){
 	}
 	std::cout<<"integral-background: "<<integral-background<<std::endl;
 	std::cout<<"Nrec: "<<Nrec<<std::endl;
-		
-
-
-
 }
 
 
 int plotter(){
-	
 	plot("2lep","invMass2l");
-
 	return 0;
 }
