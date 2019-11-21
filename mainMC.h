@@ -242,8 +242,8 @@ mini::mini(TTree *tree) : fChain(0)
       //chain->Add("/data/ATLAS/1lep1tau/MC/*");
       //chain->Add("/data/ATLAS/1tau/MC/*");
       chain->Add("/data/ATLAS/2lep/MC/*");
-      chain->Add("/data/ATLAS/2tau/MC/*");
-      chain->Add("/data/ATLAS/GamGam/MC/*");
+      //chain->Add("/data/ATLAS/2tau/MC/*");
+      //chain->Add("/data/ATLAS/GamGam/MC/*");
       //chain->Add("/data/ATLAS/2lep/MC/mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.2lep_raw.root");
       //chain->Add("/data/ATLAS/2lep/MC/mc15_13TeV.364250.Sh_222_NNPDF30NNLO_llll.2lep_raw.root");
    }
