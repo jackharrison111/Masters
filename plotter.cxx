@@ -54,14 +54,14 @@ void plot(string product, string histType){
 	productNames.push_back("GamGam");
 
 	gROOT->SetStyle("ATLAS");
-	gStyle->SetOptStat(1111111);
+	gStyle->SetOptStat(0);
 
 	TCanvas *c = new TCanvas("c", "c");	
 	TLegend *legend = new TLegend(1,0.5);
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
 	
 	
-	TFile *f = new TFile("mc_output_19-11_temp.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("mc_output_19-11.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -124,7 +124,9 @@ void plot(string product, string histType){
 			for(Int_t i = 1; i <= myHist->GetNbinsX(); i++){		
 				Double_t content = myHist->GetBinContent(i);
 				std::cout << content << std::endl;
+				if(histName != (product + "_" + histType + "_" + "mc15_13TeV.307431.MGPy8EG_A14NNPDF23LO_RS_G_ZZ_llll_c10_m0200.2lep_raw.root")){
 				totalHist->SetBinContent(i,(totalHist->GetBinContent(i) + content));
+				}
 
 			}
 		
@@ -203,7 +205,7 @@ void plot(string product, string histType){
 	re_totalHist->SetDirectory(0);
 	re_totalHist->SetTitle(";;M_{inv} /GeV; Counts/0.8GeV");
 	//re_totalHist->Print("all");
-	//re_totalHist->Draw("histsame");
+	re_totalHist->Draw("histsame");
 	
 	Int_t upperFit{120};
 	Int_t lowerFit{40};
