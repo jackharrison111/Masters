@@ -1,6 +1,6 @@
 //TODO: make an if statement to check whether dataSets.json contains shortFileName
 #define main_cxx
-#include "mainMC.h" //change this for mc or real data
+#include "main.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
 #include <TH2.h>
 //#include <TROOT.h>
@@ -74,7 +74,7 @@ void mini::Run(){
 
 	
 
-	TFile output((outputName+"output_helpme.root").c_str(),"RECREATE");
+	TFile output((outputName+"output_21-11_Zmumu.root").c_str(),"RECREATE");
 	TDirectory *TDir1 = output.mkdir("1fatjet1lep");
 	TDirectory *TDir2 = output.mkdir("1lep");
 	TDirectory *TDir3 = output.mkdir("1lep1tau");
@@ -84,6 +84,7 @@ void mini::Run(){
 	TDirectory *TDir7 = output.mkdir("GamGam");
 	std::map<string,TH1*> histograms;
 	histograms["invMassZee"]=new TH1D("invMassZee","Z->ee",200,0,160);
+	histograms["invMassZmumu"]=new TH1D("invMassZmumu","Z->#mu#mu",200,0,160);
 	//histograms["invMassE"]=new TH1D("invMassE","Z->ee",200,0,160);
 	//histograms["invMassMu"]=new TH1D("invMassMu","Z->#mu#mu",200,0,160);
 	//histograms["invMassTot"]=new TH1D("invMassTot","Z->ee||#mu#mu",200,0,160);
@@ -166,12 +167,19 @@ void mini::Run(){
 
 
 		////2 ELECTRON EVENTS////
-		Double_t invMee;
+		Double_t invM;
 		if(Cut(2,0)){
-			invMee = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])))/1000;
-			histograms["invMassZee"]->Fill(invMee,eventWeight);
+			invM = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])))/1000;
+			histograms["invMassZee"]->Fill(invM,eventWeight);
 		}
 		/////////////////////////
+		//
+		////2 MUON EVENTS////
+		if(Cut(0,2)){
+			invM = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])))/1000;
+			histograms["invMassZmumu"]->Fill(invM,eventWeight);
+		}
+		/////////////////////
 		////4 LEPTON EVENTS////
 		Double_t invM1, invM2, invM3, invM4;
 		//Check for 2e 2mu events
@@ -199,8 +207,8 @@ void mini::Run(){
 				invM1 = sqrt(2*(*lep_pt)[others[0]]*(*lep_pt)[others[1]]*(cosh((*lep_eta)[others[0]]-(*lep_eta)[others[1]])-cos((*lep_phi)[others[0]]-(*lep_phi)[others[1]])))/1000;
 			}
 			//fill histograms based off the 2,2 events
-			histograms["invMass2l"]->Fill(invM1/*,eventWeight*/);
-			histograms["invMass2l"]->Fill(invM2/*,eventWeight*/);
+			histograms["invMass2l"]->Fill(invM1,eventWeight);
+			histograms["invMass2l"]->Fill(invM2,eventWeight);
 			histograms["invMass2D_EMu"]->Fill(invM1,invM2/*,eventWeight*/);
 
 		}else if(Cut(4,0)||Cut(0,4)){    //include 4 lepton events of all the same type
@@ -231,7 +239,8 @@ void mini::Run(){
 			invM3 = sqrt(2*(*lep_pt)[pos.first]*(*lep_pt)[neg.second]*(cosh((*lep_eta)[pos.first]-(*lep_eta)[neg.second])-cos((*lep_phi)[pos.first]-(*lep_phi)[neg.second])))/1000;
 			invM4 = sqrt(2*(*lep_pt)[pos.second]*(*lep_pt)[neg.first]*(cosh((*lep_eta)[pos.second]-(*lep_eta)[neg.first])-cos((*lep_phi)[pos.second]-(*lep_phi)[neg.first])))/1000;
 	
-			/*
+			Double_t theseWans[2];
+
 			// this finds closest reconstruction to M_Z
 			vector<Double_t> deltas;
 			deltas.push_back(abs(invM1-zMass));
@@ -250,23 +259,31 @@ void mini::Run(){
 				Double_t diff = abs(*it - zMass);
 				if(diff == deltas[0]){
 					if((*it == pair1.first)||(*it == pair1.second)){
-						test->Fill(pair1.first);
-						test->Fill(pair1.second);
+						//test->Fill(pair1.first);
+						//test->Fill(pair1.second);
+						theseWans[0]=pair1.first;
+						theseWans[1]=pair1.second;
 					}else{
-						test->Fill(pair2.first);
-						test->Fill(pair2.second);
+						//test->Fill(pair2.first);
+						//test->Fill(pair2.second);
+						theseWans[0]=pair2.first;
+						theseWans[1]=pair2.second;
 					}
 
 				}
 
 			}
-			*/
+			
 			
 			Int_t lower = 86;
 			Int_t higher = 96;
 			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
-				histograms["invMass2l"]->Fill(invM1/*,eventWeight*/);
-				histograms["invMass2l"]->Fill(invM2/*,eventWeight*/);
+				histograms["invMass2l"]->Fill(invM1,eventWeight);
+				histograms["invMass2l"]->Fill(invM2,eventWeight);
+				if(theseWans[0]!=invM1||theseWans[1]!=invM2){
+					std::cout<<"min: "<<theseWans[0]<<","<<theseWans[1]<<std::endl;
+					std::cout<<"86-96: "<<invM1<<","<<invM2<<std::endl<<std::endl;
+				}
 				if((*lep_type)[0]==11){
 					histograms["invMass2D_EE"]->Fill(invM1,invM2);
 				}else{
@@ -274,8 +291,12 @@ void mini::Run(){
 				}
 			}
 		  	else if((invM3<higher&&invM3>lower)||(invM4<higher&&invM4>lower)){ //hardcoded
-				histograms["invMass2l"]->Fill(invM3/*,eventWeight*/);
-				histograms["invMass2l"]->Fill(invM4/*,eventWeight*/);
+				histograms["invMass2l"]->Fill(invM3,eventWeight);
+				histograms["invMass2l"]->Fill(invM4,eventWeight);
+				if(theseWans[0]!=invM3||theseWans[1]!=invM4){
+					std::cout<<"min: "<<theseWans[0]<<","<<theseWans[1]<<std::endl;
+					std::cout<<"86-96: "<<invM3<<","<<invM4<<std::endl<<std::endl;
+				}
 				if((*lep_type)[0]==11){
 					histograms["invMass2D_EE"]->Fill(invM3,invM4);
 				}else{
