@@ -54,7 +54,7 @@ void plot(string product, string histType){
 	productNames.push_back("GamGam");
 
 	gROOT->SetStyle("ATLAS");
-	gStyle->SetOptStat(0);
+	gStyle->SetOptStat(1111111);
 
 	TCanvas *c = new TCanvas("c", "c");	
 	TLegend *legend = new TLegend(1,0.5);
@@ -68,10 +68,10 @@ void plot(string product, string histType){
 	
 	string Zlep = "invMass2l";
 
-	for(vector<string>::iterator it = productNames.begin(); it != productNames.end(); it++){
+	//for(vector<string>::iterator it = productNames.begin(); it != productNames.end(); it++){
 
 
-		f->cd((*it +"/" +Zlep).c_str());
+		f->cd((product +"/" + histType).c_str());
 		gDirectory->pwd();
 		TIter next(gDirectory->GetListOfKeys());
 		TKey *aKey;
@@ -132,7 +132,7 @@ void plot(string product, string histType){
 		//legend->Draw();
 		counter++;
 		}
-	}
+//	}
 	/*totalHist->SetLineColor(kBlue);	
 	totalHist->SetLineColor(kBlue);	
 	totalHist->SetDirectory(0);	
@@ -154,9 +154,9 @@ void plot(string product, string histType){
 		std::cout << "Couldn't open re_output.root" << std::endl;
 	}
 
-	for(vector<string>::iterator at = productNames.begin(); at != productNames.end(); at++){
+	//for(vector<string>::iterator at = productNames.begin(); at != productNames.end(); at++){
 		
-		f2->cd((*at + "/" + Zlep).c_str());
+		f2->cd((product + "/" + histType).c_str());
 		gDirectory->pwd();
 		TIter re_next(gDirectory->GetListOfKeys());
 		TKey *reKey;
@@ -188,7 +188,7 @@ void plot(string product, string histType){
 			}
 
 		}
-	}
+	//}
 	delete f2;
 	//ADD LEGEND AND TITLES TO NEW HISTOGRAM
 
@@ -203,7 +203,7 @@ void plot(string product, string histType){
 	re_totalHist->SetDirectory(0);
 	re_totalHist->SetTitle(";;M_{inv} /GeV; Counts/0.8GeV");
 	//re_totalHist->Print("all");
-	re_totalHist->Draw("histsame");
+	//re_totalHist->Draw("histsame");
 	
 	Int_t upperFit{120};
 	Int_t lowerFit{40};
