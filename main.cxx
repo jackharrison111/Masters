@@ -1,6 +1,6 @@
 //TODO: make an if statement to check whether dataSets.json contains shortFileName
 #define main_cxx
-#include "main.h" //change this for mc or real data
+#include "mainMC.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
 #include <TH2.h>
 //#include <TROOT.h>
@@ -110,6 +110,8 @@ void mini::Run(){
 		Double_t eventWeight = 1;
 		if(fileName!=oldFileName){ //dont want to calculate lumFactor repeatedly, only once per file/per event type
 			std::cout<<(chain->GetFile())->GetSize()/1e6<<" MB : File "<<fileCounter<<" out of "<<((chain->GetListOfFiles())->GetLast()+1)<<std::endl;
+			//TODO: is this right here?
+			fileCounter++;
 			if(i!=0){
 				std::map<string,TH1*>::iterator it=histograms.begin();
 				while(it!=histograms.end()){
@@ -126,7 +128,7 @@ void mini::Run(){
 					it++;
 				}
 				output.cd();
-				fileCounter++;
+				//fileCounter++;
 			}
 			oldFileName=fileName;
 			products=oldFileName.substr(12,oldFileName.find('/',12)-12); //12 is the position after "/data/ATLAS/"
@@ -134,6 +136,7 @@ void mini::Run(){
 			if(MC){
 				convert i;
 				i.makeMap();
+				
 				lumFactor=1000*totRealLum*i.infos[shortFileName]["xsec"]/(i.infos[shortFileName]["sumw"]*i.infos[shortFileName]["red_eff"]);
 				//TODO: fix this:
 				if(i.infos[shortFileName]["sumw"]==0){
@@ -191,8 +194,8 @@ void mini::Run(){
 			}
 
 			//fill histograms based off the 2,2 events
-			histograms["invMass2l"]->Fill(invM1,eventWeight);
-			histograms["invMass2l"]->Fill(invM2,eventWeight);
+			histograms["invMass2l"]->Fill(invM1/*,eventWeight*/);
+			histograms["invMass2l"]->Fill(invM2/*,eventWeight*/);
 			histograms["invMass2D_EMu"]->Fill(invM1,invM2/*,eventWeight*/);
 
 		}else if(Cut(4,0)||Cut(0,4)){    //include 4 lepton events of all the same type
@@ -257,8 +260,8 @@ void mini::Run(){
 			Int_t lower = 86;
 			Int_t higher = 96;
 			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
-				histograms["invMass2l"]->Fill(invM1,eventWeight);
-				histograms["invMass2l"]->Fill(invM2,eventWeight);
+				histograms["invMass2l"]->Fill(invM1/*,eventWeight*/);
+				histograms["invMass2l"]->Fill(invM2/*,eventWeight*/);
 				if((*lep_type)[0]==11){
 					histograms["invMass2D_EE"]->Fill(invM1,invM2);
 				}else{
@@ -266,8 +269,8 @@ void mini::Run(){
 				}
 			}
 		  	else if((invM3<higher&&invM3>lower)||(invM4<higher&&invM4>lower)){ //hardcoded
-				histograms["invMass2l"]->Fill(invM3,eventWeight);
-				histograms["invMass2l"]->Fill(invM4,eventWeight);
+				histograms["invMass2l"]->Fill(invM3/*,eventWeight*/);
+				histograms["invMass2l"]->Fill(invM4/*,eventWeight*/);
 				if((*lep_type)[0]==11){
 					histograms["invMass2D_EE"]->Fill(invM3,invM4);
 				}else{

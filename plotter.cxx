@@ -51,21 +51,21 @@ void plot(string product, string histType){
 	productNames.push_back("GamGam");
 
 	gROOT->SetStyle("ATLAS");
-	gStyle->SetOptStat(0);
+	gStyle->SetOptStat(1111111);
 
 	TCanvas *c = new TCanvas("c", "c");	
 	TLegend *legend = new TLegend(1,0.5);
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
 	
 	
-	TFile *f = new TFile("mc_output_19-11_temp.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("mc_output_21-11_noweights.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
 	
 	string Zlep = "invMass2l";
-	for(vector<string>::iterator it = productNames.begin(); it != productNames.end(); it++){
-		f->cd((*it +"/" +Zlep).c_str());
+	//for(vector<string>::iterator it = productNames.begin(); it != productNames.end(); it++){
+		f->cd((product +"/" + histType).c_str());
 		gDirectory->pwd();
 		TIter next(gDirectory->GetListOfKeys());
 		TKey *aKey;
@@ -87,7 +87,7 @@ void plot(string product, string histType){
 			//std::cout<<histName << std::endl;
 			
 			string printChoice = product + "_" + histType + "_" + signalFile;
-			if(histName == printChoice){
+			/*if(histName == printChoice){
 				myHist->SetDirectory(0);
 				myHist->SetTitle(";M_{inv} /GeV; Counts");
 				myHist->SetLineColor(kRed);
@@ -96,7 +96,7 @@ void plot(string product, string histType){
 				myHist->Draw("histsame");
 				//myHist->Draw("hist");
 				//chosenHist = myHist;	
-			}
+			}*/
 			//myHist->SetLineColor(4 - counter);
 			//myHist->SetDirectory(0);
 			
@@ -109,18 +109,27 @@ void plot(string product, string histType){
 			}
 		counter++;
 		}
-	}
+//	}
+	/*totalHist->SetLineColor(kBlue);	
+	totalHist->SetLineColor(kBlue);	
+	totalHist->SetDirectory(0);	
+	totalHist->Draw("hist");
+	
+	chosenHist->SetLineColor(kRed);
+	chosenHist->Draw("histsame");
+	std::cout << chosenHist->GetMinimum() << std::endl;
+	*/
 	f->Close();
 
 	
 	TH1D *re_totalHist = new TH1D("re_totalHist", "Real Totals", 200, 0, 160);
-	TFile *f2 = new TFile("re_output_19-11.root");
+	TFile *f2 = new TFile("re_output_21-11.root");
 	if(!f2->IsOpen()){
 		std::cout << "Couldn't open re_output.root" << std::endl;
 	}
 
-	for(vector<string>::iterator at = productNames.begin(); at != productNames.end(); at++){
-		f2->cd((*at + "/" + Zlep).c_str());
+	//for(vector<string>::iterator at = productNames.begin(); at != productNames.end(); at++){
+		f2->cd((product + "/" + histType).c_str());
 		gDirectory->pwd();
 		TIter re_next(gDirectory->GetListOfKeys());
 		TKey *reKey;
@@ -142,21 +151,21 @@ void plot(string product, string histType){
 				re_totalHist->SetBinContent(i,(re_totalHist->GetBinContent(i) + re_content));
 			}
 		}
-	}
+	//}
 	delete f2;
 
 	//ADD LEGEND AND TITLES TO NEW HISTOGRAM
 	legend->SetHeader("Data source", "C");
 	legend->AddEntry(re_totalHist, "Real", "l"/*).c_str()*/);
-	//legend->AddEntry(totalHist, "MC", "l"/*).c_str()*/);
+	legend->AddEntry(totalHist, "MC", "l"/*).c_str()*/);
 
-	//totalHist->SetLineColor(kRed);
-	//totalHist->SetDirectory(0);
-	//totalHist->SetTitle(";M_{inv} /GeV; Counts /0.8GeV");
-	//totalHist->Draw("hist");
+	totalHist->SetLineColor(kRed);
+	totalHist->SetDirectory(0);
+	totalHist->SetTitle(";M_{inv} /GeV; Counts /0.8GeV");
+	totalHist->Draw("hist");
 	re_totalHist->SetDirectory(0);
 	re_totalHist->SetLineColor(kBlack);
-	re_totalHist->SetTitle(";;M_{inv} /GeV; Counts/0.8GeV");
+	re_totalHist->SetTitle(";M_{inv} /GeV; Counts/0.8GeV");
 	re_totalHist->Draw("histsame");
 	legend->Draw();
 	
