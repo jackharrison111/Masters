@@ -58,7 +58,7 @@ void plot(string product, string histType){
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
 	
 	
-	TFile *f = new TFile("mc_output_21-11.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("mc_output_21-11_Eff.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -104,7 +104,6 @@ void plot(string product, string histType){
 			std::cout << histName << std::endl;
 			for(Int_t i = 1; i <= myHist->GetNbinsX(); i++){		
 				Double_t content = myHist->GetBinContent(i);
-				std::cout << content << std::endl;
 				if(histName != (product + "_" + histType + "_" + "mc15_13TeV.307431.MGPy8EG_A14NNPDF23LO_RS_G_ZZ_llll_c10_m0200.2lep_raw.root")){
 				totalHist->SetBinContent(i,(totalHist->GetBinContent(i) + content));
 				}
@@ -159,20 +158,20 @@ void plot(string product, string histType){
 
 	//ADD LEGEND AND TITLES TO NEW HISTOGRAM
 	legend->SetHeader("Data source", "C");
-	legend->AddEntry(re_totalHist, "Real", "l"/*).c_str()*/);
+	//legend->AddEntry(re_totalHist, "Real", "l"/*).c_str()*/);
 	legend->AddEntry(totalHist, "MC", "l"/*).c_str()*/);
 
-	totalHist->SetLineColor(kRed);
+	//totalHist->SetLineColor(kRed);
 	totalHist->SetDirectory(0);
 	totalHist->SetTitle(";M_{inv} /GeV; Counts /0.8GeV");
-	totalHist->Draw("hist");
+	//totalHist->Draw("hist");
 	re_totalHist->SetDirectory(0);
 	re_totalHist->SetLineColor(kBlack);
 	re_totalHist->SetTitle(";M_{inv} /GeV; Counts/0.8GeV");
-	re_totalHist->Draw("histsame");
+	//re_totalHist->Draw("histsame");
 	legend->Draw();
 	
-	Int_t upperFit{120};
+	Int_t upperFit{140};
 	Int_t lowerFit{40};
 	TF1 *invMassFit = new TF1("invMassFit",Fit,lowerFit,upperFit,order+4); //hardcoded
 	invMassFit->SetParNames("#mu","#gamma","A","a","b","c");
@@ -180,18 +179,27 @@ void plot(string product, string histType){
 	invMassFit->SetParLimits(0,86,96);
 	invMassFit->SetParLimits(1,0,50);
 	invMassFit->SetLineColor(kRed);
-	re_totalHist->Fit("invMassFit","+RN");
+	totalHist->Fit("invMassFit","+R");
+	Double_t x[200], y[200];
+	for(Int_t i=0; i<200; i++){
+		x[i]=160*i/200;
+		y[i]=invMassFit->GetParameter(1)*invMassFit->GetParameter(2)/(pow(x[i]-invMassFit->GetParameter(0),2)+pow(0.5*invMassFit->GetParameter(1),2));
+	}
+	TGraph *g = new TGraph(200,x,y);
+	g->SetLineColor(kGreen);
+	g->Draw("same");
 	
 	Double_t integral=0;
 	Double_t background=0;
 	Double_t Nrec=0;
-	for(Int_t i=lowerFit;i<upperFit;i++){
+	for(Int_t i=80;i<100;i++){
 		integral+=invMassFit->Eval(i);
 		background+=invMassFit->GetParameter(5)+invMassFit->GetParameter(4)*i+invMassFit->GetParameter(3)*pow(i,2);
 		Nrec+=invMassFit->GetParameter(1)*invMassFit->GetParameter(2)/(pow(i-invMassFit->GetParameter(0),2)+pow(invMassFit->GetParameter(1)/2,2));
 	}
-	std::cout<<"integral-background: "<<integral-background<<std::endl;
-	std::cout<<"Nrec: "<<Nrec<<std::endl;
+	//std::cout<<"integral-background: "<<integral-background<<std::endl;
+	std::cout << "Events: " << Nrec << std::endl;
+	std::cout<<"csec="<<Nrec/(10.064*0.0835851)<<std::endl;
 }
 
 

@@ -74,7 +74,7 @@ void mini::Run(){
 
 	
 
-	TFile output((outputName+"output_helpme.root").c_str(),"RECREATE");
+	TFile output((outputName+"output_21-11_Eff.root").c_str(),"RECREATE");
 	TDirectory *TDir1 = output.mkdir("1fatjet1lep");
 	TDirectory *TDir2 = output.mkdir("1lep");
 	TDirectory *TDir3 = output.mkdir("1lep1tau");
@@ -101,6 +101,10 @@ void mini::Run(){
 	string shortFileName;
 	string products;
 	Double_t lumFactor;
+	
+	Double_t Efficiency;
+	Int_t sumwRec{0};
+	Double_t sumw;
 
 	Int_t fileCounter{1};
 	Bool_t newFile{true};
@@ -146,6 +150,8 @@ void mini::Run(){
 				if(i.infos[shortFileName]["sumw"]==0){
 					lumFactor=0;
 				}
+				sumw = i.infos[shortFileName]["sumw"];
+				
 				//std::cout << i.infos[shortFileName]["xsec"] << " / (" << i.infos[shortFileName]["sumw"] << " * " << i.infos[shortFileName]["red_eff"] << std::endl; 
 			}
 			
@@ -199,10 +205,13 @@ void mini::Run(){
 				invM1 = sqrt(2*(*lep_pt)[others[0]]*(*lep_pt)[others[1]]*(cosh((*lep_eta)[others[0]]-(*lep_eta)[others[1]])-cos((*lep_phi)[others[0]]-(*lep_phi)[others[1]])))/1000;
 			}
 			//fill histograms based off the 2,2 events
-			histograms["invMass2l"]->Fill(invM1/*,eventWeight*/);
-			histograms["invMass2l"]->Fill(invM2/*,eventWeight*/);
+			histograms["invMass2l"]->Fill(invM1,eventWeight);
+			histograms["invMass2l"]->Fill(invM2,eventWeight);
 			histograms["invMass2D_EMu"]->Fill(invM1,invM2/*,eventWeight*/);
-
+			
+			if(sumw != 0){
+				Efficiency += eventWeight/sumw;
+			}
 		}else if(Cut(4,0)||Cut(0,4)){    //include 4 lepton events of all the same type
 			pair<Int_t,Int_t> pos, neg; //pai positive leptons and negative leptons
 			Bool_t posSet=false;
@@ -261,12 +270,22 @@ void mini::Run(){
 
 			}
 			*/
-			
+
+			//TODO::
+			//	Fix efficiency to find a good value for the xsec
+			//	Maybe put cut efficiency?
+			//
+
+
+		   	Double_t sumw2 += eventWeight;	
 			Int_t lower = 86;
 			Int_t higher = 96;
 			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
-				histograms["invMass2l"]->Fill(invM1/*,eventWeight*/);
-				histograms["invMass2l"]->Fill(invM2/*,eventWeight*/);
+				histograms["invMass2l"]->Fill(invM1,eventWeight);
+				histograms["invMass2l"]->Fill(invM2,eventWeight);
+				if(sumw != 0){
+					Efficiency += eventWeight / sumw;
+				}
 				if((*lep_type)[0]==11){
 					histograms["invMass2D_EE"]->Fill(invM1,invM2);
 				}else{
@@ -274,8 +293,11 @@ void mini::Run(){
 				}
 			}
 		  	else if((invM3<higher&&invM3>lower)||(invM4<higher&&invM4>lower)){ //hardcoded
-				histograms["invMass2l"]->Fill(invM3/*,eventWeight*/);
-				histograms["invMass2l"]->Fill(invM4/*,eventWeight*/);
+				histograms["invMass2l"]->Fill(invM3,eventWeight);
+				histograms["invMass2l"]->Fill(invM4,eventWeight);	
+				if(sumw != 0){
+					Efficiency += eventWeight / sumw;
+				}
 				if((*lep_type)[0]==11){
 					histograms["invMass2D_EE"]->Fill(invM3,invM4);
 				}else{
@@ -319,6 +341,13 @@ void mini::Run(){
 	//Print the time taken to run the loop (relies on startTime at beginning of loop)
 	clock_t endTime = clock();
 	std::cout<<"Run time: "<<(endTime-startTime)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
+	
+	if(MC){
+		std::cout << "Efficiency for " << outputName << " = " << Efficiency << std::endl;
+	}
+	else{
+		//std::cout << "Efficiency for " << outputName << " = " << sumwRec / sumw << std::endl;
+	}
 
 	output.cd();
 	output.Close(); //Close the output file
