@@ -57,7 +57,11 @@ void mini::Run(){
 
 	if (fChain == 0) return;
 
-	Long64_t n = fChain->GetEntries/*Fast*/();
+	Long64_t n = fChain->GetEntries();//Fast();
+	//if(n == 9223372036854775807){
+	//	n = fChain->GetEntries();
+	//}
+	std::cout << n << std::endl;
 	Long64_t nbytes = 0, nb = 0;
 	
 	//Save the output file to the correct place based on data type
@@ -70,7 +74,7 @@ void mini::Run(){
 
 	
 
-	TFile output((outputName+"output.root").c_str(),"RECREATE");
+	TFile output((outputName+"output_helpme.root").c_str(),"RECREATE");
 	TDirectory *TDir1 = output.mkdir("1fatjet1lep");
 	TDirectory *TDir2 = output.mkdir("1lep");
 	TDirectory *TDir3 = output.mkdir("1lep1tau");
@@ -142,6 +146,7 @@ void mini::Run(){
 				if(i.infos[shortFileName]["sumw"]==0){
 					lumFactor=0;
 				}
+				//std::cout << i.infos[shortFileName]["xsec"] << " / (" << i.infos[shortFileName]["sumw"] << " * " << i.infos[shortFileName]["red_eff"] << std::endl; 
 			}
 			
 			gDirectory->cd(products.c_str());
@@ -154,6 +159,10 @@ void mini::Run(){
 		if(MC){
 			eventWeight = mcWeight*scaleFactor_PILEUP*scaleFactor_ELE*scaleFactor_MUON*scaleFactor_PHOTON*scaleFactor_TAU*scaleFactor_BTAG*scaleFactor_LepTRIGGER*scaleFactor_PhotonTRIGGER*scaleFactor_TauTRIGGER*scaleFactor_DiTauTRIGGER*lumFactor;
 		}
+		
+		if(shortFileName == "mc15_13TeV.307431.MGPy8EG_A14NNPDF23LO_RS_G_ZZ_llll_c10_m0200.2lep_raw.root"){
+			//std::cout << eventWeight << std::endl;
+		}
 
 
 		////2 ELECTRON EVENTS////
@@ -163,9 +172,6 @@ void mini::Run(){
 			histograms["invMassZee"]->Fill(invMee,eventWeight);
 		}
 		/////////////////////////
-		
-
-
 		////4 LEPTON EVENTS////
 		Double_t invM1, invM2, invM3, invM4;
 		//Check for 2e 2mu events
@@ -182,7 +188,7 @@ void mini::Run(){
 					others[k]=j;
 					k++;
 				}
-			}
+		}
 
 			//Find the electron/muon invariant mass from the correct pairings
 			if((*lep_type)[0]==11){
@@ -192,7 +198,6 @@ void mini::Run(){
 				invM2 = sqrt(2*(*lep_pt)[0]*(*lep_pt)[which]*(cosh((*lep_eta)[0]-(*lep_eta)[which])-cos((*lep_phi)[0]-(*lep_phi)[which])))/1000;
 				invM1 = sqrt(2*(*lep_pt)[others[0]]*(*lep_pt)[others[1]]*(cosh((*lep_eta)[others[0]]-(*lep_eta)[others[1]])-cos((*lep_phi)[others[0]]-(*lep_phi)[others[1]])))/1000;
 			}
-
 			//fill histograms based off the 2,2 events
 			histograms["invMass2l"]->Fill(invM1/*,eventWeight*/);
 			histograms["invMass2l"]->Fill(invM2/*,eventWeight*/);
