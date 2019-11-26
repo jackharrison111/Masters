@@ -79,7 +79,7 @@ void convert::makeMap(){
 			if(dataSets.count(outerName)>0){
 				//real file outerName s won't be found (this is good)? they are in dataSets.py but not infofile.py
 				which = dataSets.find(outerName);
-				if(which!=dataSets.end()){
+				if(which!=dataSets.end()){ //map.find(".") returns map.end() if "." isnt found
 					infos.insert(pair<string, std::map<string, double>>(which->second, this->data));
 				}
 			}

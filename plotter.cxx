@@ -58,12 +58,12 @@ void plot(string product, string histType){
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
 	
 	
-	TFile *f = new TFile("mc_output_21-11.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("rootOutput/mc_output_26-11_noBSM.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
 	
-	string Zlep = "invMass2l";
+	string Zlep = "invMassZmumu";
 	//for(vector<string>::iterator it = productNames.begin(); it != productNames.end(); it++){
 		f->cd((product +"/" + histType).c_str());
 		gDirectory->pwd();
@@ -126,7 +126,7 @@ void plot(string product, string histType){
 
 	
 	TH1D *re_totalHist = new TH1D("re_totalHist", "Real Totals", 200, 0, 160);
-	TFile *f2 = new TFile("re_output_21-11.root");
+	TFile *f2 = new TFile("rootOutput/re_output_21-11_Zmumu.root");
 	if(!f2->IsOpen()){
 		std::cout << "Couldn't open re_output.root" << std::endl;
 	}
@@ -196,6 +196,6 @@ void plot(string product, string histType){
 
 
 int plotter(){
-	plot("2lep","invMass2l");
+	plot("2lep","invMassZmumu");
 	return 0;
 }
