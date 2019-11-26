@@ -1,6 +1,6 @@
 //TODO: make an if statement to check whether dataSets.json contains shortFileName
 #define main_cxx
-#include "main.h" //change this for mc or real data
+#include "mainMC.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
 #include <TH2.h>
 //#include <TROOT.h>
@@ -61,7 +61,7 @@ void mini::Run(){
 	//if(n == 9223372036854775807){
 	//	n = fChain->GetEntries();
 	//}
-	std::cout << n << std::endl;
+	//std::cout << n << std::endl;
 	Long64_t nbytes = 0, nb = 0;
 	
 	//Save the output file to the correct place based on data type
@@ -74,7 +74,7 @@ void mini::Run(){
 
 	
 
-	TFile output((outputName+"output_21-11_Zmumu.root").c_str(),"RECREATE");
+	TFile output((outputName+"output_26-11_noBSM.root").c_str(),"RECREATE");
 	TDirectory *TDir1 = output.mkdir("1fatjet1lep");
 	TDirectory *TDir2 = output.mkdir("1lep");
 	TDirectory *TDir3 = output.mkdir("1lep1tau");
@@ -115,7 +115,6 @@ void mini::Run(){
 		Double_t eventWeight = 1;
 		if(fileName!=oldFileName){ //dont want to calculate lumFactor repeatedly, only once per file/per event type
 			std::cout<<(chain->GetFile())->GetSize()/1e6<<" MB : File "<<fileCounter<<" out of "<<((chain->GetListOfFiles())->GetLast()+1)<<std::endl;
-			//TODO: is this right here?
 			fileCounter++;
 			if(i!=0){
 				std::map<string,TH1*>::iterator it=histograms.begin();
@@ -133,7 +132,6 @@ void mini::Run(){
 					it++;
 				}
 				output.cd();
-				//fileCounter++;
 			}
 			oldFileName=fileName;
 			products=oldFileName.substr(12,oldFileName.find('/',12)-12); //12 is the position after "/data/ATLAS/"
@@ -146,6 +144,7 @@ void mini::Run(){
 				//TODO: fix this:
 				if(i.infos[shortFileName]["sumw"]==0){
 					lumFactor=0;
+					continue; //breaks the current iteration of for loop, continues with next event?
 				}
 				//std::cout << i.infos[shortFileName]["xsec"] << " / (" << i.infos[shortFileName]["sumw"] << " * " << i.infos[shortFileName]["red_eff"] << std::endl; 
 			}
@@ -161,10 +160,6 @@ void mini::Run(){
 			eventWeight = mcWeight*scaleFactor_PILEUP*scaleFactor_ELE*scaleFactor_MUON*scaleFactor_PHOTON*scaleFactor_TAU*scaleFactor_BTAG*scaleFactor_LepTRIGGER*scaleFactor_PhotonTRIGGER*scaleFactor_TauTRIGGER*scaleFactor_DiTauTRIGGER*lumFactor;
 		}
 		
-		if(shortFileName == "mc15_13TeV.307431.MGPy8EG_A14NNPDF23LO_RS_G_ZZ_llll_c10_m0200.2lep_raw.root"){
-			//std::cout << eventWeight << std::endl;
-		}
-
 
 		////2 ELECTRON EVENTS////
 		Double_t invM;
@@ -239,8 +234,7 @@ void mini::Run(){
 			invM3 = sqrt(2*(*lep_pt)[pos.first]*(*lep_pt)[neg.second]*(cosh((*lep_eta)[pos.first]-(*lep_eta)[neg.second])-cos((*lep_phi)[pos.first]-(*lep_phi)[neg.second])))/1000;
 			invM4 = sqrt(2*(*lep_pt)[pos.second]*(*lep_pt)[neg.first]*(cosh((*lep_eta)[pos.second]-(*lep_eta)[neg.first])-cos((*lep_phi)[pos.second]-(*lep_phi)[neg.first])))/1000;
 	
-			Double_t theseWans[2];
-
+			/*
 			// this finds closest reconstruction to M_Z
 			vector<Double_t> deltas;
 			deltas.push_back(abs(invM1-zMass));
@@ -261,18 +255,15 @@ void mini::Run(){
 					if((*it == pair1.first)||(*it == pair1.second)){
 						//test->Fill(pair1.first);
 						//test->Fill(pair1.second);
-						theseWans[0]=pair1.first;
-						theseWans[1]=pair1.second;
 					}else{
 						//test->Fill(pair2.first);
 						//test->Fill(pair2.second);
-						theseWans[0]=pair2.first;
-						theseWans[1]=pair2.second;
 					}
 
 				}
 
 			}
+			*/
 			
 			
 			Int_t lower = 86;
@@ -280,10 +271,6 @@ void mini::Run(){
 			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
 				histograms["invMass2l"]->Fill(invM1,eventWeight);
 				histograms["invMass2l"]->Fill(invM2,eventWeight);
-				if(theseWans[0]!=invM1||theseWans[1]!=invM2){
-					std::cout<<"min: "<<theseWans[0]<<","<<theseWans[1]<<std::endl;
-					std::cout<<"86-96: "<<invM1<<","<<invM2<<std::endl<<std::endl;
-				}
 				if((*lep_type)[0]==11){
 					histograms["invMass2D_EE"]->Fill(invM1,invM2);
 				}else{
@@ -293,10 +280,6 @@ void mini::Run(){
 		  	else if((invM3<higher&&invM3>lower)||(invM4<higher&&invM4>lower)){ //hardcoded
 				histograms["invMass2l"]->Fill(invM3,eventWeight);
 				histograms["invMass2l"]->Fill(invM4,eventWeight);
-				if(theseWans[0]!=invM3||theseWans[1]!=invM4){
-					std::cout<<"min: "<<theseWans[0]<<","<<theseWans[1]<<std::endl;
-					std::cout<<"86-96: "<<invM3<<","<<invM4<<std::endl<<std::endl;
-				}
 				if((*lep_type)[0]==11){
 					histograms["invMass2D_EE"]->Fill(invM3,invM4);
 				}else{
