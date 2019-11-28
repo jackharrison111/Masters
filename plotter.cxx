@@ -24,19 +24,24 @@ Double_t Background(Double_t *x, Double_t *par, Int_t order){
 		B = par[3] + par[2]*x[0] + par[1]*pow(x[0],2) + par[0]*pow(x[0],3);
 	}else if(order==2){
 		B = par[2] + par[1]*x[0] + par[0]*pow(x[0],2);
+	}else if(order==1){
+		B = par[1] + par[0]*x[0];
 	}else{
 		return 0;
 	}
 	return B;
 }
 
-Int_t order = 2; //global??
+Int_t order = 1; //global?
 //combine
 Double_t Fit(Double_t *x, Double_t *par){
 	return Lorentz(x, par) + Background(x,&par[3],order);
 }
 
+Double_t BackFit(Double_t *x, Double_t *par){
+	return Background(x,par,order);
 
+}
 
 
 
@@ -58,15 +63,15 @@ void plot(string product, string histType){
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
 	
 	
-	TFile *f = new TFile("mc_output_21-11_Eff.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("rootOutput/mc_output_26-11_noBSM.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
 	
-	string Zlep = "invMass2l";
+	string Zlep = "invMassZmumu";
 	//for(vector<string>::iterator it = productNames.begin(); it != productNames.end(); it++){
 		f->cd((product +"/" + histType).c_str());
-		gDirectory->pwd();
+		//gDirectory->pwd();
 		TIter next(gDirectory->GetListOfKeys());
 		TKey *aKey;
 
@@ -101,7 +106,7 @@ void plot(string product, string histType){
 			//myHist->SetDirectory(0);
 			
 			myHist->SetDirectory(0);
-			std::cout << histName << std::endl;
+			//std::cout << histName << std::endl;
 			for(Int_t i = 1; i <= myHist->GetNbinsX(); i++){		
 				Double_t content = myHist->GetBinContent(i);
 				if(histName != (product + "_" + histType + "_" + "mc15_13TeV.307431.MGPy8EG_A14NNPDF23LO_RS_G_ZZ_llll_c10_m0200.2lep_raw.root")){
@@ -125,14 +130,14 @@ void plot(string product, string histType){
 
 	
 	TH1D *re_totalHist = new TH1D("re_totalHist", "Real Totals", 200, 0, 160);
-	TFile *f2 = new TFile("re_output_21-11.root");
+	TFile *f2 = new TFile("rootOutput/re_output_21-11_Zmumu.root");
 	if(!f2->IsOpen()){
 		std::cout << "Couldn't open re_output.root" << std::endl;
 	}
 
 	//for(vector<string>::iterator at = productNames.begin(); at != productNames.end(); at++){
 		f2->cd((product + "/" + histType).c_str());
-		gDirectory->pwd();
+		//gDirectory->pwd();
 		TIter re_next(gDirectory->GetListOfKeys());
 		TKey *reKey;
 
@@ -161,45 +166,107 @@ void plot(string product, string histType){
 	//legend->AddEntry(re_totalHist, "Real", "l"/*).c_str()*/);
 	legend->AddEntry(totalHist, "MC", "l"/*).c_str()*/);
 
-	//totalHist->SetLineColor(kRed);
+	totalHist->SetLineColor(kRed);
 	totalHist->SetDirectory(0);
 	totalHist->SetTitle(";M_{inv} /GeV; Counts /0.8GeV");
-	//totalHist->Draw("hist");
+	totalHist->Draw("hist");
 	re_totalHist->SetDirectory(0);
 	re_totalHist->SetLineColor(kBlack);
 	re_totalHist->SetTitle(";M_{inv} /GeV; Counts/0.8GeV");
 	//re_totalHist->Draw("histsame");
-	legend->Draw();
+	//legend->Draw();
 	
 	Int_t upperFit{140};
-	Int_t lowerFit{40};
+	Int_t lowerFit{50};
 	TF1 *invMassFit = new TF1("invMassFit",Fit,lowerFit,upperFit,order+4); //hardcoded
-	invMassFit->SetParNames("#mu","#gamma","A","a","b","c");
+	invMassFit->SetParNames("#mu","#gamma","A","a","b");
 	invMassFit->SetParameters(90,5,1,1,1,1);
 	invMassFit->SetParLimits(0,86,96);
-	invMassFit->SetParLimits(1,0,50);
+	invMassFit->SetParLimits(1,0,20);
+	invMassFit->SetParLimits(2,0,200);
+	//invMassFit->SetParLimits(3,-2,-0.01);
+	invMassFit->SetParLimits(4,-160*invMassFit->GetParameter(3),10);
 	invMassFit->SetLineColor(kRed);
-	totalHist->Fit("invMassFit","+R");
+	totalHist->Fit("invMassFit","+RN");
+
+	
+	TF1 *backFit = new TF1("backFit",BackFit,20,65,order+1); //hardcoded
+	backFit->SetParNames("m","c");
+	backFit->SetParameters(1,1);
+	backFit->SetParLimits(0,-2,-0.01);
+	totalHist->Fit("backFit", "+RN");
+
+	
 	Double_t x[200], y[200];
 	for(Int_t i=0; i<200; i++){
 		x[i]=160*i/200;
-		y[i]=invMassFit->GetParameter(1)*invMassFit->GetParameter(2)/(pow(x[i]-invMassFit->GetParameter(0),2)+pow(0.5*invMassFit->GetParameter(1),2));
+		//y[i]=invMassFit->GetParameter(1)*invMassFit->GetParameter(2)/(pow(x[i]-invMassFit->GetParameter(0),2)+pow(0.5*invMassFit->GetParameter(1),2));
+		y[i] = backFit->GetParameter(1) + backFit->GetParameter(0)*x[i];
 	}
 	TGraph *g = new TGraph(200,x,y);
 	g->SetLineColor(kGreen);
 	g->Draw("same");
 	
+	//legend->AddEntry(g, "Background", "l");
+	//legend->Draw();	
+	
+
+	TH1D *signalHist = new TH1D("signalHist", "Signal", 200, 0, 160);
+	for(Int_t i=0; i<= totalHist->GetNbinsX(); i++){	
+		signalHist->SetBinContent(i, totalHist->GetBinContent(i) - y[i]);
+	}
+	signalHist->SetLineColor(kBlack);
+	
+	signalHist->Draw("hist");
+	TF1 *sigFit = new TF1("sigFit", Lorentz,65,105,3 );
+	sigFit->SetParNames("s#mu", "s#gamma", "sA");
+	sigFit->SetParLimits(0, 85,95);
+	sigFit->SetParLimits(1, 0,5);
+	sigFit->SetParLimits(2, 0,200);
+	signalHist->Fit("sigFit", "+R");
+
+
+
+	/*Double_t x2[200], y2[200];
+	for(Int_t i=0; i<200; i++){
+		x2[i]=160*i/200;
+		//y2[i]=invMassFit->Eval(x2[i]);
+		y2[i] = invMassFit->GetParameter(order+3)+invMassFit->GetParameter(order+2)*x2[i];//+invMassFit->GetParameter(order+1)*pow(x2[i],2) + invMassFit->GetParameter(order)*pow(x2[i],3);
+	}
+	TGraph *g2 = new TGraph(200,x2,y2);
+	g2->SetLineColor(kOrange);
+	//g2->Draw("same");
+	*/
+	Double_t x3[200], y3[200];
+	for(Int_t i=0; i<200; i++){
+		x3[i]=160*i/200;
+		y3[i]=sigFit->GetParameter(1)*sigFit->GetParameter(2)/(pow(x3[i] - invMassFit->GetParameter(0),2) + pow(sigFit->GetParameter(1)/2,2));
+	}
+	TGraph *g3 = new TGraph(200,x3,y3);
+	g3->SetLineColor(kBlue);
+	g3->Draw("same");
+	
 	Double_t integral=0;
 	Double_t background=0;
 	Double_t Nrec=0;
-	for(Int_t i=80;i<100;i++){
-		integral+=invMassFit->Eval(i);
-		background+=invMassFit->GetParameter(5)+invMassFit->GetParameter(4)*i+invMassFit->GetParameter(3)*pow(i,2);
-		Nrec+=invMassFit->GetParameter(1)*invMassFit->GetParameter(2)/(pow(i-invMassFit->GetParameter(0),2)+pow(invMassFit->GetParameter(1)/2,2));
+	Double_t backFromBackFit{0};
+	for(Int_t i=0;i<200;i++){
+		if(160*i/200>=80&&160*i/200<=100){
+			Double_t ii=160*i/200;
+			integral+=invMassFit->Eval(ii);
+			background+=invMassFit->GetParameter(order+3)+invMassFit->GetParameter(order+2)*ii;// + invMassFit->GetParameter(order+1)*pow(i,2) + invMassFit->GetParameter(order)*pow(i,3);
+			Nrec+=invMassFit->GetParameter(1)*invMassFit->GetParameter(2)/(pow(ii-invMassFit->GetParameter(0),2)+pow(invMassFit->GetParameter(1)/2,2));
+
+			backFromBackFit += backFit->GetParameter(1) + backFit->GetParameter(0)*ii;
+		}
 	}
-	//std::cout<<"integral-background: "<<integral-background<<std::endl;
+	std::cout<<"integral-background: "<<integral-background<<std::endl;
+	std::cout << "BackFit events: " << backFromBackFit << std::endl;
+	std::cout << "integral - backFit: " << integral - backFromBackFit << std::endl;
+	
 	std::cout << "Events: " << Nrec << std::endl;
-	std::cout<<"csec="<<Nrec/(10.064*0.0835851)<<std::endl;
+	std::cout<<"Xsec (including Branching) ="<<(Nrec*4)/(10.064*7.6585e-5)<<std::endl;
+	std::cout<<"Xsec (other way) ="<<4*(integral-backFromBackFit)/(10.064*7.6585e-5)<<std::endl;
 }
 
 

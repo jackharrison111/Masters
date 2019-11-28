@@ -61,7 +61,7 @@ void mini::Run(){
 	//if(n == 9223372036854775807){
 	//	n = fChain->GetEntries();
 	//}
-	std::cout << n << std::endl;
+	//std::cout << n << std::endl;
 	Long64_t nbytes = 0, nb = 0;
 	
 	//Save the output file to the correct place based on data type
@@ -74,7 +74,7 @@ void mini::Run(){
 
 	
 
-	TFile output((outputName+"output_21-11_Eff.root").c_str(),"RECREATE");
+	TFile output((outputName+"output_26-11_noBSM.root").c_str(),"RECREATE");
 	TDirectory *TDir1 = output.mkdir("1fatjet1lep");
 	TDirectory *TDir2 = output.mkdir("1lep");
 	TDirectory *TDir3 = output.mkdir("1lep1tau");
@@ -84,6 +84,7 @@ void mini::Run(){
 	TDirectory *TDir7 = output.mkdir("GamGam");
 	std::map<string,TH1*> histograms;
 	histograms["invMassZee"]=new TH1D("invMassZee","Z->ee",200,0,160);
+	histograms["invMassZmumu"]=new TH1D("invMassZmumu","Z->#mu#mu",200,0,160);
 	//histograms["invMassE"]=new TH1D("invMassE","Z->ee",200,0,160);
 	//histograms["invMassMu"]=new TH1D("invMassMu","Z->#mu#mu",200,0,160);
 	//histograms["invMassTot"]=new TH1D("invMassTot","Z->ee||#mu#mu",200,0,160);
@@ -118,7 +119,6 @@ void mini::Run(){
 		Double_t eventWeight = 1;
 		if(fileName!=oldFileName){ //dont want to calculate lumFactor repeatedly, only once per file/per event type
 			std::cout<<(chain->GetFile())->GetSize()/1e6<<" MB : File "<<fileCounter<<" out of "<<((chain->GetListOfFiles())->GetLast()+1)<<std::endl;
-			//TODO: is this right here?
 			fileCounter++;
 			if(i!=0){
 				std::map<string,TH1*>::iterator it=histograms.begin();
@@ -136,7 +136,6 @@ void mini::Run(){
 					it++;
 				}
 				output.cd();
-				//fileCounter++;
 			}
 			oldFileName=fileName;
 			products=oldFileName.substr(12,oldFileName.find('/',12)-12); //12 is the position after "/data/ATLAS/"
@@ -165,19 +164,25 @@ void mini::Run(){
 		if(MC){
 			eventWeight = mcWeight*scaleFactor_PILEUP*scaleFactor_ELE*scaleFactor_MUON*scaleFactor_PHOTON*scaleFactor_TAU*scaleFactor_BTAG*scaleFactor_LepTRIGGER*scaleFactor_PhotonTRIGGER*scaleFactor_TauTRIGGER*scaleFactor_DiTauTRIGGER*lumFactor;
 		}
-		
-		if(shortFileName == "mc15_13TeV.307431.MGPy8EG_A14NNPDF23LO_RS_G_ZZ_llll_c10_m0200.2lep_raw.root"){
-			//std::cout << eventWeight << std::endl;
+		if(lumFactor==0){
+			continue; //breaks the current iteration of for loop, continues with next event?
 		}
 
 
 		////2 ELECTRON EVENTS////
-		Double_t invMee;
+		Double_t invM;
 		if(Cut(2,0)){
-			invMee = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])))/1000;
-			histograms["invMassZee"]->Fill(invMee,eventWeight);
+			invM = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])))/1000;
+			histograms["invMassZee"]->Fill(invM,eventWeight);
 		}
 		/////////////////////////
+		//
+		////2 MUON EVENTS////
+		if(Cut(0,2)){
+			invM = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])))/1000;
+			histograms["invMassZmumu"]->Fill(invM,eventWeight);
+		}
+		/////////////////////
 		////4 LEPTON EVENTS////
 		Double_t invM1, invM2, invM3, invM4;
 		//Check for 2e 2mu events
@@ -259,25 +264,17 @@ void mini::Run(){
 				Double_t diff = abs(*it - zMass);
 				if(diff == deltas[0]){
 					if((*it == pair1.first)||(*it == pair1.second)){
-						test->Fill(pair1.first);
-						test->Fill(pair1.second);
+						//test->Fill(pair1.first);
+						//test->Fill(pair1.second);
 					}else{
-						test->Fill(pair2.first);
-						test->Fill(pair2.second);
+						//test->Fill(pair2.first);
+						//test->Fill(pair2.second);
 					}
 
 				}
 
 			}
 			*/
-
-			//TODO::
-			//	Fix efficiency to find a good value for the xsec
-			//	Maybe put cut efficiency?
-			//
-
-
-		   	Double_t sumw2 += eventWeight;	
 			Int_t lower = 86;
 			Int_t higher = 96;
 			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
