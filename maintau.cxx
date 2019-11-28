@@ -38,12 +38,6 @@ Bool_t mini::Cut(Int_t e, Int_t mu, Int_t tau){ //electron and muons only so far
 				charge+=(*lep_charge)[i];
 			}
 			if(charge==1 || charge==-1){ //ie 2 leptons 1 antilepton or vice versa
-				std::cout<<"lepton no.: "<<lep_n<<std::endl;
-				std::cout<<"no. electrons: "<<e<<", no. muons: "<<mu<<std::endl;
-				std::cout<<"total lepton charge: "<<charge<<std::endl;
-				std::cout<<"no. jets: "<<jet_n<<std::endl;
-				std::cout<<"no. taus: "<<tau_n<<std::endl;
-				std::cout<<"tau charges: "<<(*tau_charge)[0]<<", "<<(*tau_charge)[1]<<std::endl<<std::endl;
 				return true;
 			}
 		}
@@ -79,14 +73,11 @@ void mini::Run(){
 
 	
 
-	TFile output((outputName+"output_26-11_tau.root").c_str(),"RECREATE");
+	TFile output((outputName+"output_28-11_tau.root").c_str(),"RECREATE");
 	TDirectory *TDir3 = output.mkdir("1lep1tau");
 	std::map<string,TH1*> histograms;
 	histograms["invMassZee"]=new TH1D("invMassZee","Z->ee",200,0,160);
 	histograms["invMassZmumu"]=new TH1D("invMassZmumu","Z->#mu#mu",200,0,160);
-	//histograms["invMassE"]=new TH1D("invMassE","Z->ee",200,0,160);
-	//histograms["invMassMu"]=new TH1D("invMassMu","Z->#mu#mu",200,0,160);
-	//histograms["invMassTot"]=new TH1D("invMassTot","Z->ee||#mu#mu",200,0,160);
 	histograms["invMass2l"]=new TH1D("invMass2l","Z->ll",200,0,160);
 	histograms["invMass4l"]=new TH1D("invMass4l","Z'->llll",200,0,160);
 	histograms["invMass2D_EMu"]=new TH2D("invMass2D_EMu","ZZ->ee&&#mu#mu",100,0,160,100,0,160);
@@ -159,18 +150,63 @@ void mini::Run(){
 		}
 		if(lumFactor==0) continue; //breaks the current iteration of for loop, continues with next event?
 
-//		if(Cut(2,1,1)||Cut(1,2,1)){
-//		}
-		if(tau_n==1 && lep_n==3){
-			/*tauCounter++;
-			std::cout<<"lep_n="<<lep_n<<std::endl<<"lep_charges: ";
-			for(Int_t j=0; j<lep_n; j++){
-				std::cout<<(*lep_charge)[j]<<" ";
+
+
+
+
+
+		Double_t invM1, invM2;
+		if(Cut(2,1,1)||Cut(1,2,1)){
+			Int_t totalQ = (*lep_charge)[0]+(*lep_charge)[1]+(*lep_charge)[2];
+			if(totalQ+(*tau_charge)[0]!=0) continue;
+			Int_t tauPartner;
+			Int_t oddLep;
+
+			// all 3 leps same type
+			if((*lep_type)[0]==(*lep_type)[1]&&(*lep_type)[0]==(*lep_type)[2]){
+				vector<Int_t> sameLeps;
+				for(Int_t j=0; j<3; j++){
+					if((*lep_charge)[j]==-totalQ){
+						oddLep=j;
+					}
+				}
+				for(Int_t j=0; j<3; j++){
+					if(j!=oddLep){
+						sameLeps.push_back(j);
+					}
+				}
+				// now compare lepton - lepton pairings and oddlepton - tau pairings
+				// ......
 			}
-			std::cout<<"\ntau_charges="<<(*tau_charge)[0]<<","<<(*tau_charge)[1]<<std::endl<<std::endl;*/
-			std::cout<<(*lep_charge)[0]+(*lep_charge)[1]+(*lep_charge)[2]<<std::endl;
+
+			// 2 leps same type, other not
+			else{
+				pait<Int_t, Int_t> leps;
+				if((*lep_type)[0]==(*lep_type)[1]){ //pair 0&1
+					leps.first=0;
+					leps.second=1;
+				}else if((*lep_type)[1]==(*lep_type)[2]){ //pair 1&2
+					leps.first=1;
+					leps.second=2;		
+				}else{ //pair 0&2
+					leps.first=0;
+					leps.second=2;
+				}
+				for(Int_t j=0; j<3; j++){
+					if(j==leps.first||j==leps.second) continue;
+					oddLep=j; //lep which doesnt have a broder
+				}
+				// now compare lepton - lepton pairings and oddlepton - tau pairings
+				// ......
+			}
 		}
-		
+
+
+
+
+
+
+
 		
 		//to write the last files histograms (loop ends after last event in last file,
 		//but writing normally occurs at start of next loop)
