@@ -63,7 +63,7 @@ void plot(string product, string histType){
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
 	
 	
-	TFile *f = new TFile("rootOutput/mc_output_26-11_noBSM.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("rootOutput/mc_output_28-11_ZZllll.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -162,8 +162,8 @@ void plot(string product, string histType){
 	delete f2;
 
 	//ADD LEGEND AND TITLES TO NEW HISTOGRAM
-	legend->SetHeader("Data source", "C");
-	//legend->AddEntry(re_totalHist, "Real", "l"/*).c_str()*/);
+	legend->SetHeader("ZZllll", "C");
+	legend->AddEntry(re_totalHist, "Real", "l"/*).c_str()*/);
 	legend->AddEntry(totalHist, "MC", "l"/*).c_str()*/);
 
 	totalHist->SetLineColor(kRed);
@@ -173,8 +173,8 @@ void plot(string product, string histType){
 	re_totalHist->SetDirectory(0);
 	re_totalHist->SetLineColor(kBlack);
 	re_totalHist->SetTitle(";M_{inv} /GeV; Counts/0.8GeV");
-	//re_totalHist->Draw("histsame");
-	//legend->Draw();
+	re_totalHist->Draw("histsame");
+	legend->Draw();
 	
 	Int_t upperFit{140};
 	Int_t lowerFit{50};
@@ -190,7 +190,7 @@ void plot(string product, string histType){
 	totalHist->Fit("invMassFit","+RN");
 
 	
-	TF1 *backFit = new TF1("backFit",BackFit,20,65,order+1); //hardcoded
+	TF1 *backFit = new TF1("backFit",BackFit,25,70,order+1); //hardcoded
 	backFit->SetParNames("m","c");
 	backFit->SetParameters(1,1);
 	backFit->SetParLimits(0,-2,-0.01);
@@ -204,26 +204,30 @@ void plot(string product, string histType){
 		y[i] = backFit->GetParameter(1) + backFit->GetParameter(0)*x[i];
 	}
 	TGraph *g = new TGraph(200,x,y);
-	g->SetLineColor(kGreen);
-	g->Draw("same");
+	g->SetLineColor(7);
+	g->SetLineWidth(2);
+	//legend->AddEntry(g, "Background", "l");
+	//g->Draw("same");
 	
 	//legend->AddEntry(g, "Background", "l");
 	//legend->Draw();	
 	
-
+	//TCanvas *c2 = new TCanvas("c2" , "c2");	
 	TH1D *signalHist = new TH1D("signalHist", "Signal", 200, 0, 160);
 	for(Int_t i=0; i<= totalHist->GetNbinsX(); i++){	
 		signalHist->SetBinContent(i, totalHist->GetBinContent(i) - y[i]);
 	}
 	signalHist->SetLineColor(kBlack);
 	
-	signalHist->Draw("hist");
-	TF1 *sigFit = new TF1("sigFit", Lorentz,65,105,3 );
+	//signalHist->Draw("hist");
+	TF1 *sigFit = new TF1("sigFit", Lorentz,80,100,3 );
 	sigFit->SetParNames("s#mu", "s#gamma", "sA");
-	sigFit->SetParLimits(0, 85,95);
-	sigFit->SetParLimits(1, 0,5);
-	sigFit->SetParLimits(2, 0,200);
-	signalHist->Fit("sigFit", "+R");
+	sigFit->SetParameters(91,10,8);
+	
+	//sigFit->SetParLimits(0, 85,95);
+	//sigFit->SetParLimits(1, 0,5);
+	sigFit->SetParLimits(1, 0,200);
+	signalHist->Fit("sigFit", "+RN");
 
 
 
@@ -244,8 +248,10 @@ void plot(string product, string histType){
 	}
 	TGraph *g3 = new TGraph(200,x3,y3);
 	g3->SetLineColor(kBlue);
-	g3->Draw("same");
-	
+	g3->SetLineWidth(2);
+	//legend->AddEntry(g3, "Signal", "l");
+	//g3->Draw("same");
+	//legend->Draw();
 	Double_t integral=0;
 	Double_t background=0;
 	Double_t Nrec=0;
@@ -260,13 +266,15 @@ void plot(string product, string histType){
 			backFromBackFit += backFit->GetParameter(1) + backFit->GetParameter(0)*ii;
 		}
 	}
+	Double_t error;
+	Double_t inbuiltIntegral = totalHist->IntegralAndError(80,100,error, "");
 	std::cout<<"integral-background: "<<integral-background<<std::endl;
 	std::cout << "BackFit events: " << backFromBackFit << std::endl;
 	std::cout << "integral - backFit: " << integral - backFromBackFit << std::endl;
 	
 	std::cout << "Events: " << Nrec << std::endl;
 	std::cout<<"Xsec (including Branching) ="<<(Nrec*4)/(10.064*7.6585e-5)<<std::endl;
-	std::cout<<"Xsec (other way) ="<<4*(integral-backFromBackFit)/(10.064*7.6585e-5)<<std::endl;
+	std::cout<<"Xsec (other way) ="<<4*(integral-backFromBackFit-229.185)/(2*10.064*1.68517e-5)<<std::endl;
 }
 
 

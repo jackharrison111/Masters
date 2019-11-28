@@ -1,6 +1,6 @@
 //TODO: make an if statement to check whether dataSets.json contains shortFileName
 #define main_cxx
-#include "mainMC.h" //change this for mc or real data
+#include "main.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
 #include <TH2.h>
 //#include <TROOT.h>
@@ -74,7 +74,7 @@ void mini::Run(){
 
 	
 
-	TFile output((outputName+"output_26-11_noBSM.root").c_str(),"RECREATE");
+	TFile output((outputName+"output_28-11_test.root").c_str(),"RECREATE");
 	TDirectory *TDir1 = output.mkdir("1fatjet1lep");
 	TDirectory *TDir2 = output.mkdir("1lep");
 	TDirectory *TDir3 = output.mkdir("1lep1tau");
@@ -107,6 +107,14 @@ void mini::Run(){
 	Int_t sumwRec{0};
 	Double_t sumw;
 
+	Double_t lowerBound{86};
+	Double_t upperBound{96};
+	Double_t N_sing{0};
+	Double_t N_signal{0};
+
+	string ZZllll = "mc15_13TeV.361603.PwPy8EG_CT10nloME_AZNLOCTEQ6L1_ZZllll_mll4.2lep_raw.root";
+	string ZllZll = "mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.2lep_raw.root";
+
 	Int_t fileCounter{1};
 	Bool_t newFile{true};
 	for (Long64_t i=0; i<n; i++){
@@ -115,6 +123,11 @@ void mini::Run(){
 		nb = fChain->GetEntry(i);   nbytes += nb;
 		
 		fileName = (chain->GetFile())->GetName();
+		
+		//Discard the ZZllll file
+		if(fileName == ("/data/ATLAS/2lep/MC/"+ZZllll).c_str()) continue;
+
+		//ZllZll filename : "/data/ATLAS/2lep/MC/mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.2lep_raw.root"
 
 		Double_t eventWeight = 1;
 		if(fileName!=oldFileName){ //dont want to calculate lumFactor repeatedly, only once per file/per event type
@@ -163,11 +176,8 @@ void mini::Run(){
 		}
 		if(MC){
 			eventWeight = mcWeight*scaleFactor_PILEUP*scaleFactor_ELE*scaleFactor_MUON*scaleFactor_PHOTON*scaleFactor_TAU*scaleFactor_BTAG*scaleFactor_LepTRIGGER*scaleFactor_PhotonTRIGGER*scaleFactor_TauTRIGGER*scaleFactor_DiTauTRIGGER*lumFactor;
+			if(lumFactor==0) continue; //breaks the current iteration of for loop, continues with next event?
 		}
-		if(lumFactor==0){
-			continue; //breaks the current iteration of for loop, continues with next event?
-		}
-
 
 		////2 ELECTRON EVENTS////
 		Double_t invM;
@@ -175,6 +185,7 @@ void mini::Run(){
 			invM = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])))/1000;
 			histograms["invMassZee"]->Fill(invM,eventWeight);
 		}
+
 		/////////////////////////
 		//
 		////2 MUON EVENTS////
@@ -182,9 +193,13 @@ void mini::Run(){
 			invM = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])))/1000;
 			histograms["invMassZmumu"]->Fill(invM,eventWeight);
 		}
+
+
 		/////////////////////
 		////4 LEPTON EVENTS////
 		Double_t invM1, invM2, invM3, invM4;
+		Int_t lower = 86;
+		Int_t higher = 96;
 		//Check for 2e 2mu events
 		if(Cut(2,2,0)){
 			//pair up the same type leptons
@@ -209,15 +224,24 @@ void mini::Run(){
 				invM2 = sqrt(2*(*lep_pt)[0]*(*lep_pt)[which]*(cosh((*lep_eta)[0]-(*lep_eta)[which])-cos((*lep_phi)[0]-(*lep_phi)[which])))/1000;
 				invM1 = sqrt(2*(*lep_pt)[others[0]]*(*lep_pt)[others[1]]*(cosh((*lep_eta)[others[0]]-(*lep_eta)[others[1]])-cos((*lep_phi)[others[0]]-(*lep_phi)[others[1]])))/1000;
 			}
-			//fill histograms based off the 2,2 events
-			histograms["invMass2l"]->Fill(invM1,eventWeight);
-			histograms["invMass2l"]->Fill(invM2,eventWeight);
-			histograms["invMass2D_EMu"]->Fill(invM1,invM2/*,eventWeight*/);
-		
 
-			if(sumw != 0){
-				Efficiency += eventWeight/sumw;
+			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
+				if(!((invM1<upperBound&&invM1>lowerBound)&&(invM2<upperBound&&invM2>lowerBound))){
+					N_sing+=eventWeight;
+				}else if((invM1<upperBound&&invM1>lowerBound)&&(invM2<upperBound&&invM2>lowerBound)){
+					N_signal+=eventWeight;
+					if(MC&&sumw!=0&&shortFileName==ZllZll){
+						Efficiency+=eventWeight/sumw;
+					}else{
+						Efficiency++;//=1/n;
+					}
+				}
+				histograms["invMass2l"]->Fill(invM1,eventWeight);
+				histograms["invMass2l"]->Fill(invM2,eventWeight);
+				histograms["invMass2D_EMu"]->Fill(invM1,invM2/*,eventWeight*/);
 			}
+
+
 		}else if(Cut(4,0,0)||Cut(0,4,0)){    //include 4 lepton events of all the same type
 			pair<Int_t,Int_t> pos, neg; //pai positive leptons and negative leptons
 			Bool_t posSet=false;
@@ -276,14 +300,19 @@ void mini::Run(){
 
 			}
 			*/
-			Int_t lower = 86;
-			Int_t higher = 96;
 			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
+				if(!((invM1<upperBound&&invM1>lowerBound)&&(invM2<upperBound&&invM2>lowerBound))){
+					N_sing+=eventWeight;
+				}else if((invM1<upperBound&&invM1>lowerBound)&&(invM2<upperBound&&invM2>lowerBound)){
+					N_signal+=eventWeight;
+					if(MC&&sumw!=0&&shortFileName==ZllZll){
+						Efficiency+=eventWeight/sumw;
+					}else{
+						Efficiency++;//=1/n;
+					}
+				}
 				histograms["invMass2l"]->Fill(invM1,eventWeight);
 				histograms["invMass2l"]->Fill(invM2,eventWeight);
-				if(sumw != 0){
-					Efficiency += eventWeight / sumw;
-				}
 				if((*lep_type)[0]==11){
 					histograms["invMass2D_EE"]->Fill(invM1,invM2);
 				}else{
@@ -291,17 +320,25 @@ void mini::Run(){
 				}
 			}
 		  	else if((invM3<higher&&invM3>lower)||(invM4<higher&&invM4>lower)){ //hardcoded
+				if(!((invM3<upperBound&&invM3>lowerBound)&&(invM4<upperBound&&invM4>lowerBound))){
+					N_sing+=eventWeight;
+				}else if((invM3<upperBound&&invM3>lowerBound)&&(invM4<upperBound&&invM4>lowerBound)){
+					N_signal+=eventWeight;
+					if(MC&&sumw!=0&&shortFileName==ZllZll){
+						Efficiency+=eventWeight/sumw;
+					}else{
+						Efficiency++;//=1/n;
+					}
+				}
 				histograms["invMass2l"]->Fill(invM3,eventWeight);
 				histograms["invMass2l"]->Fill(invM4,eventWeight);	
-				if(sumw != 0){
-					Efficiency += eventWeight / sumw;
-				}
 				if((*lep_type)[0]==11){
 					histograms["invMass2D_EE"]->Fill(invM3,invM4);
 				}else{
 					histograms["invMass2D_MuMu"]->Fill(invM3,invM4);
 				}
 			}
+
 		}
 
 		//Finding invariant mass of whole 4 lepton event using Equation [3] in lab book
@@ -335,17 +372,30 @@ void mini::Run(){
 				it++;
 			}
 		}
+
+		if(lep_n==4){
+			Int_t eN{0}, muN{0};
+			for(Int_t j{0}; j<4; j++){
+				if((*lep_type)[j]==11){
+					eN++;
+				}else if((*lep_type)[j]==13){
+					muN++;
+				}
+			}
+			if((eN==2&&muN==2)||(eN==0&&muN==4)||(eN==4&&muN==0)){
+				//Efficiency+=eventWeight/sumw;
+			}
+		}
+	//	Efficiency+=eventWeight/sumw;
 	}
 	//Print the time taken to run the loop (relies on startTime at beginning of loop)
 	clock_t endTime = clock();
 	std::cout<<"Run time: "<<(endTime-startTime)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
 	
-	if(MC){
-		std::cout << "Efficiency for " << outputName << " = " << Efficiency << std::endl;
-	}
-	else{
-		//std::cout << "Efficiency for " << outputName << " = " << sumwRec / sumw << std::endl;
-	}
+	//std::cout << "Efficiency for " << outputName << " = " << Efficiency << std::endl;
+	//std::cout<<"N_sing = "<<N_sing<<std::endl;
+	std::cout<<"efficiency = "<<Efficiency/n<<std::endl;
+	std::cout<<"crossSection = "<<4*N_signal*n/(1e6*Efficiency*totRealLum)<<" nb"<<std::endl;;
 
 	output.cd();
 	output.Close(); //Close the output file
