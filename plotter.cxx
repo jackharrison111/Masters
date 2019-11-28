@@ -104,7 +104,7 @@ void plot(string product, string histType){
 			std::cout << histName << std::endl;
 			for(Int_t i = 1; i <= myHist->GetNbinsX(); i++){		
 				Double_t content = myHist->GetBinContent(i);
-				std::cout << content << std::endl;
+				//std::cout << content << std::endl;
 				if(histName != (product + "_" + histType + "_" + "mc15_13TeV.307431.MGPy8EG_A14NNPDF23LO_RS_G_ZZ_llll_c10_m0200.2lep_raw.root")){
 				totalHist->SetBinContent(i,(totalHist->GetBinContent(i) + content));
 				}
@@ -196,6 +196,6 @@ void plot(string product, string histType){
 
 
 int plotter(){
-	plot("2lep","invMassZmumu");
+	plot("2lep","invMass2l");
 	return 0;
 }

@@ -213,7 +213,7 @@ public :
    virtual void     Run();
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
-   Bool_t           Cut(Int_t e, Int_t mu);
+   Bool_t           Cut(Int_t e, Int_t mu, Int_t tau);
    Int_t            numberOfType(Int_t type);
    static Double_t  Gaussian(Double_t *x, Double_t *par);
    static Double_t  Lorentz(Double_t *x, Double_t *par);
@@ -239,13 +239,13 @@ mini::mini(TTree *tree) : fChain(0)
       chain = new TChain("mini");
       //chain->Add("/data/ATLAS/1fatjet1lep/MC/*");
       //chain->Add("/data/ATLAS/1lep/MC/*");
-      //chain->Add("/data/ATLAS/1lep1tau/MC/*");
+      chain->Add("/data/ATLAS/1lep1tau/MC/*");
       //chain->Add("/data/ATLAS/1tau/MC/*");
       //chain->Add("/data/ATLAS/2lep/MC/*");
       //chain->Add("/data/ATLAS/2tau/MC/*");
       //chain->Add("/data/ATLAS/GamGam/MC/*");
       //chain->Add("/data/ATLAS/2lep/MC/mc15_13TeV.307431.MGPy8EG_A14NNPDF23LO_RS_G_ZZ_llll_c10_m0200.2lep_raw.root");
-      chain->Add("/data/ATLAS/2lep/MC/*");
+      //chain->Add("/data/ATLAS/2lep/MC/*");
       //chain->Add("/data/ATLAS/2tau/MC/*");
       //chain->Add("/data/ATLAS/GamGam/MC/*");
       //chain->Add("/data/ATLAS/2lep/MC/mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.2lep_raw.root");
