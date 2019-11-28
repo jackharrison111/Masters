@@ -30,7 +30,7 @@ Int_t mini::numberOfType(Int_t type){
 }
 
 //add cut decisions to this function
-Bool_t mini::Cut(Int_t e, Int_t mu){ //electron and muons only so far
+Bool_t mini::Cut(Int_t e, Int_t mu, Int_t tau){ //electron and muons only so far, tau=0 in mainlep.cxx
 	if(lep_n==e+mu){ //select events with number of leptons equal to function inputs
 		if(numberOfType(11)==e && numberOfType(13)==mu){ //further selection
 			Int_t charge{0};
@@ -163,14 +163,14 @@ void mini::Run(){
 
 		////2 ELECTRON EVENTS////
 		Double_t invM;
-		if(Cut(2,0)){
+		if(Cut(2,0,0)){
 			invM = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])))/1000;
 			histograms["invMassZee"]->Fill(invM,eventWeight);
 		}
 		/////////////////////////
 		//
 		////2 MUON EVENTS////
-		if(Cut(0,2)){
+		if(Cut(0,2,0)){
 			invM = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])))/1000;
 			histograms["invMassZmumu"]->Fill(invM,eventWeight);
 		}
@@ -178,7 +178,7 @@ void mini::Run(){
 		////4 LEPTON EVENTS////
 		Double_t invM1, invM2, invM3, invM4;
 		//Check for 2e 2mu events
-		if(Cut(2,2)){
+		if(Cut(2,2,0)){
 			//pair up the same type leptons
 			counter++;
 			Int_t k{0};
@@ -206,7 +206,7 @@ void mini::Run(){
 			histograms["invMass2l"]->Fill(invM2,eventWeight);
 			histograms["invMass2D_EMu"]->Fill(invM1,invM2/*,eventWeight*/);
 
-		}else if(Cut(4,0)||Cut(0,4)){    //include 4 lepton events of all the same type
+		}else if(Cut(4,0,0)||Cut(0,4,0)){    //include 4 lepton events of all the same type
 			pair<Int_t,Int_t> pos, neg; //pai positive leptons and negative leptons
 			Bool_t posSet=false;
 			Bool_t negSet=false; //check that the first of the pair hsa been assigned
@@ -332,7 +332,7 @@ void mini::Run(){
 
 
 // so we don't need to keep typing it in the terminal
-Int_t main(){
+Int_t mainlep(){
 	mini a;
 	a.Run();
 
