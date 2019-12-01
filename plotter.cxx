@@ -63,7 +63,7 @@ void plot(string product, string histType){
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
 	
 	
-	TFile *f = new TFile("rootOutput/mc_output_28-11_ZZllll.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("mc_output_1-12_temp.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -92,16 +92,17 @@ void plot(string product, string histType){
 			//std::cout<<histName << std::endl;
 			
 			string printChoice = product + "_" + histType + "_" + signalFile;
-			/*if(histName == printChoice){
+			if(histName == printChoice){
 				myHist->SetDirectory(0);
-				myHist->SetTitle(";M_{inv} /GeV; Counts");
-				myHist->SetLineColor(kRed);
-				legend->AddEntry(myHist,"Signal channel","l");
+				myHist->SetTitle(";M_{inv}/GeV; Counts/0.8GeV");
+				myHist->SetLineColor(kBlue-4);
+				myHist->SetLineWidth(1);
+				//legend->AddEntry(myHist,"Signal channel","l");
 				//myHist->SetCanExtend(TH1::kYaxis);
-				myHist->Draw("histsame");
+				myHist->Draw("hist");
 				//myHist->Draw("hist");
 				//chosenHist = myHist;	
-			}*/
+			}
 			//myHist->SetLineColor(4 - counter);
 			//myHist->SetDirectory(0);
 			
@@ -162,19 +163,19 @@ void plot(string product, string histType){
 	delete f2;
 
 	//ADD LEGEND AND TITLES TO NEW HISTOGRAM
-	legend->SetHeader("ZZllll", "C");
-	legend->AddEntry(re_totalHist, "Real", "l"/*).c_str()*/);
+	legend->SetHeader("Data source", "C");
+	//legend->AddEntry(re_totalHist, "Real", "l"/*).c_str()*/);
 	legend->AddEntry(totalHist, "MC", "l"/*).c_str()*/);
 
 	totalHist->SetLineColor(kRed);
 	totalHist->SetDirectory(0);
-	totalHist->SetTitle(";M_{inv} /GeV; Counts /0.8GeV");
-	totalHist->Draw("hist");
+	totalHist->SetTitle(";M_{inv} /GeV; Counts /0.6GeV");
+	//totalHist->Draw("hist");
 	re_totalHist->SetDirectory(0);
 	re_totalHist->SetLineColor(kBlack);
 	re_totalHist->SetTitle(";M_{inv} /GeV; Counts/0.8GeV");
-	re_totalHist->Draw("histsame");
-	legend->Draw();
+	//re_totalHist->Draw("histsame");
+	//legend->Draw();
 	
 	Int_t upperFit{140};
 	Int_t lowerFit{50};
@@ -190,7 +191,7 @@ void plot(string product, string histType){
 	totalHist->Fit("invMassFit","+RN");
 
 	
-	TF1 *backFit = new TF1("backFit",BackFit,25,70,order+1); //hardcoded
+	TF1 *backFit = new TF1("backFit",BackFit,20,65,order+1); //hardcoded
 	backFit->SetParNames("m","c");
 	backFit->SetParameters(1,1);
 	backFit->SetParLimits(0,-2,-0.01);
@@ -204,15 +205,12 @@ void plot(string product, string histType){
 		y[i] = backFit->GetParameter(1) + backFit->GetParameter(0)*x[i];
 	}
 	TGraph *g = new TGraph(200,x,y);
-	g->SetLineColor(7);
-	g->SetLineWidth(2);
-	//legend->AddEntry(g, "Background", "l");
+	g->SetLineColor(kGreen);
 	//g->Draw("same");
 	
 	//legend->AddEntry(g, "Background", "l");
 	//legend->Draw();	
 	
-	//TCanvas *c2 = new TCanvas("c2" , "c2");	
 	TH1D *signalHist = new TH1D("signalHist", "Signal", 200, 0, 160);
 	for(Int_t i=0; i<= totalHist->GetNbinsX(); i++){	
 		signalHist->SetBinContent(i, totalHist->GetBinContent(i) - y[i]);
@@ -220,14 +218,12 @@ void plot(string product, string histType){
 	signalHist->SetLineColor(kBlack);
 	
 	//signalHist->Draw("hist");
-	TF1 *sigFit = new TF1("sigFit", Lorentz,80,100,3 );
+	TF1 *sigFit = new TF1("sigFit", Lorentz,65,105,3 );
 	sigFit->SetParNames("s#mu", "s#gamma", "sA");
-	sigFit->SetParameters(91,10,8);
-	
-	//sigFit->SetParLimits(0, 85,95);
-	//sigFit->SetParLimits(1, 0,5);
-	sigFit->SetParLimits(1, 0,200);
-	signalHist->Fit("sigFit", "+RN");
+	sigFit->SetParLimits(0, 85,95);
+	sigFit->SetParLimits(1, 0,5);
+	sigFit->SetParLimits(2, 0,200);
+	//signalHist->Fit("sigFit", "+R");
 
 
 
@@ -248,10 +244,36 @@ void plot(string product, string histType){
 	}
 	TGraph *g3 = new TGraph(200,x3,y3);
 	g3->SetLineColor(kBlue);
+	//g3->Draw("same");
+	
+	//sigFit->SetParLimits(0, 85,95);
+	//sigFit->SetParLimits(1, 0,5);
+	sigFit->SetParLimits(1, 0,200);
+	signalHist->Fit("sigFit", "+RN");
+
+
+
+	/*Double_t x2[200], y2[200];
+	for(Int_t i=0; i<200; i++){
+		x2[i]=160*i/200;
+		//y2[i]=invMassFit->Eval(x2[i]);
+		y2[i] = invMassFit->GetParameter(order+3)+invMassFit->GetParameter(order+2)*x2[i];//+invMassFit->GetParameter(order+1)*pow(x2[i],2) + invMassFit->GetParameter(order)*pow(x2[i],3);
+	}
+	TGraph *g2 = new TGraph(200,x2,y2);
+	g2->SetLineColor(kOrange);
+	//g2->Draw("same");
+	*/
+	/*Double_t x3[200], y3[200];
+	for(Int_t i=0; i<200; i++){
+		x3[i]=160*i/200;
+		y3[i]=sigFit->GetParameter(1)*sigFit->GetParameter(2)/(pow(x3[i] - invMassFit->GetParameter(0),2) + pow(sigFit->GetParameter(1)/2,2));
+	}
+	TGraph *g3 = new TGraph(200,x3,y3);
+	g3->SetLineColor(kBlue);
 	g3->SetLineWidth(2);
 	//legend->AddEntry(g3, "Signal", "l");
 	//g3->Draw("same");
-	//legend->Draw();
+	//legend->Draw();*/
 	Double_t integral=0;
 	Double_t background=0;
 	Double_t Nrec=0;
@@ -274,11 +296,11 @@ void plot(string product, string histType){
 	
 	std::cout << "Events: " << Nrec << std::endl;
 	std::cout<<"Xsec (including Branching) ="<<(Nrec*4)/(10.064*7.6585e-5)<<std::endl;
-	std::cout<<"Xsec (other way) ="<<4*(integral-backFromBackFit-229.185)/(2*10.064*1.68517e-5)<<std::endl;
+	std::cout<<"Xsec (other way) ="<<4*(integral-backFromBackFit)/(10.064*7.6585e-5)<<std::endl;
 }
 
 
 int plotter(){
-	plot("2lep","invMass2l");
+	plot("2lep","invMassZee");
 	return 0;
 }
