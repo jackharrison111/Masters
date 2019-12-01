@@ -63,7 +63,7 @@ void plot(string product, string histType){
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
 	
 	
-	TFile *f = new TFile("rootOutput/mc_output_26-11_noBSM.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("mc_output_1-12_temp.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -92,16 +92,17 @@ void plot(string product, string histType){
 			//std::cout<<histName << std::endl;
 			
 			string printChoice = product + "_" + histType + "_" + signalFile;
-			/*if(histName == printChoice){
+			if(histName == printChoice){
 				myHist->SetDirectory(0);
-				myHist->SetTitle(";M_{inv} /GeV; Counts");
-				myHist->SetLineColor(kRed);
-				legend->AddEntry(myHist,"Signal channel","l");
+				myHist->SetTitle(";M_{inv}/GeV; Counts/0.8GeV");
+				myHist->SetLineColor(kBlue-4);
+				myHist->SetLineWidth(1);
+				//legend->AddEntry(myHist,"Signal channel","l");
 				//myHist->SetCanExtend(TH1::kYaxis);
-				myHist->Draw("histsame");
+				myHist->Draw("hist");
 				//myHist->Draw("hist");
 				//chosenHist = myHist;	
-			}*/
+			}
 			//myHist->SetLineColor(4 - counter);
 			//myHist->SetDirectory(0);
 			
@@ -168,8 +169,8 @@ void plot(string product, string histType){
 
 	totalHist->SetLineColor(kRed);
 	totalHist->SetDirectory(0);
-	totalHist->SetTitle(";M_{inv} /GeV; Counts /0.8GeV");
-	totalHist->Draw("hist");
+	totalHist->SetTitle(";M_{inv} /GeV; Counts /0.6GeV");
+	//totalHist->Draw("hist");
 	re_totalHist->SetDirectory(0);
 	re_totalHist->SetLineColor(kBlack);
 	re_totalHist->SetTitle(";M_{inv} /GeV; Counts/0.8GeV");
@@ -205,25 +206,24 @@ void plot(string product, string histType){
 	}
 	TGraph *g = new TGraph(200,x,y);
 	g->SetLineColor(kGreen);
-	g->Draw("same");
+	//g->Draw("same");
 	
 	//legend->AddEntry(g, "Background", "l");
 	//legend->Draw();	
 	
-
 	TH1D *signalHist = new TH1D("signalHist", "Signal", 200, 0, 160);
 	for(Int_t i=0; i<= totalHist->GetNbinsX(); i++){	
 		signalHist->SetBinContent(i, totalHist->GetBinContent(i) - y[i]);
 	}
 	signalHist->SetLineColor(kBlack);
 	
-	signalHist->Draw("hist");
+	//signalHist->Draw("hist");
 	TF1 *sigFit = new TF1("sigFit", Lorentz,65,105,3 );
 	sigFit->SetParNames("s#mu", "s#gamma", "sA");
 	sigFit->SetParLimits(0, 85,95);
 	sigFit->SetParLimits(1, 0,5);
 	sigFit->SetParLimits(2, 0,200);
-	signalHist->Fit("sigFit", "+R");
+	//signalHist->Fit("sigFit", "+R");
 
 
 
@@ -244,8 +244,36 @@ void plot(string product, string histType){
 	}
 	TGraph *g3 = new TGraph(200,x3,y3);
 	g3->SetLineColor(kBlue);
-	g3->Draw("same");
+	//g3->Draw("same");
 	
+	//sigFit->SetParLimits(0, 85,95);
+	//sigFit->SetParLimits(1, 0,5);
+	sigFit->SetParLimits(1, 0,200);
+	signalHist->Fit("sigFit", "+RN");
+
+
+
+	/*Double_t x2[200], y2[200];
+	for(Int_t i=0; i<200; i++){
+		x2[i]=160*i/200;
+		//y2[i]=invMassFit->Eval(x2[i]);
+		y2[i] = invMassFit->GetParameter(order+3)+invMassFit->GetParameter(order+2)*x2[i];//+invMassFit->GetParameter(order+1)*pow(x2[i],2) + invMassFit->GetParameter(order)*pow(x2[i],3);
+	}
+	TGraph *g2 = new TGraph(200,x2,y2);
+	g2->SetLineColor(kOrange);
+	//g2->Draw("same");
+	*/
+	/*Double_t x3[200], y3[200];
+	for(Int_t i=0; i<200; i++){
+		x3[i]=160*i/200;
+		y3[i]=sigFit->GetParameter(1)*sigFit->GetParameter(2)/(pow(x3[i] - invMassFit->GetParameter(0),2) + pow(sigFit->GetParameter(1)/2,2));
+	}
+	TGraph *g3 = new TGraph(200,x3,y3);
+	g3->SetLineColor(kBlue);
+	g3->SetLineWidth(2);
+	//legend->AddEntry(g3, "Signal", "l");
+	//g3->Draw("same");
+	//legend->Draw();*/
 	Double_t integral=0;
 	Double_t background=0;
 	Double_t Nrec=0;
@@ -260,6 +288,8 @@ void plot(string product, string histType){
 			backFromBackFit += backFit->GetParameter(1) + backFit->GetParameter(0)*ii;
 		}
 	}
+	Double_t error;
+	Double_t inbuiltIntegral = totalHist->IntegralAndError(80,100,error, "");
 	std::cout<<"integral-background: "<<integral-background<<std::endl;
 	std::cout << "BackFit events: " << backFromBackFit << std::endl;
 	std::cout << "integral - backFit: " << integral - backFromBackFit << std::endl;
@@ -271,6 +301,6 @@ void plot(string product, string histType){
 
 
 int plotter(){
-	plot("2lep","invMass2l");
+	plot("2lep","invMassZee");
 	return 0;
 }
