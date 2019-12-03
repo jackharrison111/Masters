@@ -1,6 +1,6 @@
 //TODO: make an if statement to check whether dataSets.json contains shortFileName
 #define main_cxx
-#include "mainMC.h" //change this for mc or real data
+#include "main.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
 #include <TH2.h>
 //#include <TROOT.h>
@@ -73,7 +73,7 @@ void mini::Run(){
 
 	
 
-	TFile output((outputName+"output_28-11_tau.root").c_str(),"RECREATE");
+	TFile output((outputName+"output_tau_Met_3-12.root").c_str(),"RECREATE");
 	TDirectory *TDir3 = output.mkdir("1lep1tau");
 	std::map<string,TH1*> histograms;
 	histograms["invMassZee"]=new TH1D("invMassZee","Z->ee",200,0,160);
@@ -83,6 +83,7 @@ void mini::Run(){
 	histograms["invMass2D_EMu"]=new TH2D("invMass2D_EMu","ZZ->ee&&#mu#mu",100,0,160,100,0,160);
 	histograms["invMass2D_EE"]=new TH2D("invMass2D_EE","ZZ->ee&&ee",100,0,160,100,0,160);
 	histograms["invMass2D_MuMu"]=new TH2D("invMass2D_MuMu","ZZ->#mu#mu&&#mu#mu",100,0,160,100,0,160);
+	histograms["Mt_test"]=new TH1D("Mt_test","Z1lep1tau",200,0,160);
 
 	Int_t counter{0};
 	clock_t startTime = clock();
@@ -153,10 +154,18 @@ void mini::Run(){
 
 
 
-
+		
 
 		Double_t invM1, invM2;
 		if(Cut(2,1,1)||Cut(1,2,1)){
+
+
+			
+
+			
+			//histograms["Mt_test"]->Fill(met_et);
+
+
 			Int_t totalQ = (*lep_charge)[0]+(*lep_charge)[1]+(*lep_charge)[2];
 			if(totalQ+(*tau_charge)[0]!=0) continue;
 			Int_t tauPartner;
@@ -177,11 +186,14 @@ void mini::Run(){
 				}
 				// now compare lepton - lepton pairings and oddlepton - tau pairings
 				// ......
+				
+				
+
 			}
 
 			// 2 leps same type, other not
 			else{
-				pait<Int_t, Int_t> leps;
+				pair<Int_t, Int_t> leps;
 				if((*lep_type)[0]==(*lep_type)[1]){ //pair 0&1
 					leps.first=0;
 					leps.second=1;
