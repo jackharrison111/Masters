@@ -290,6 +290,7 @@ void plot(string product, string histType){
 	}
 	Double_t error;
 	Double_t inbuiltIntegral = totalHist->IntegralAndError(80,100,error, "");
+	std::cout << error << std::endl;
 	std::cout<<"integral-background: "<<integral-background<<std::endl;
 	std::cout << "BackFit events: " << backFromBackFit << std::endl;
 	std::cout << "integral - backFit: " << integral - backFromBackFit << std::endl;
