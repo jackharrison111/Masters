@@ -44,8 +44,12 @@ Double_t BackFit(Double_t *x, Double_t *par){
 }
 
 
+Double_t Br_lep{0.03454};
+
 
 void plot(string product, string histType){
+	
+	
 	vector<string> productNames;
 	productNames.push_back("1fatjet1lep");	
 	productNames.push_back("1lep");
@@ -68,6 +72,9 @@ void plot(string product, string histType){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
 	
+	//TODO:: ADD EFFICIENCY READING FROM THE PRODUCT DIRECTORY (IE 2lep)
+
+
 	string Zlep = "invMassZmumu";
 	//for(vector<string>::iterator it = productNames.begin(); it != productNames.end(); it++){
 		f->cd((product +"/" + histType).c_str());
@@ -132,11 +139,17 @@ void plot(string product, string histType){
 	
 	TH2D *re_totalHist = new TH2D("re_totalHist", "", 100, 0, 160,100,0,160);
 	re_totalHist->SetTitle(";M_{ee_{inv}}/GeV;M_{#mu#mu_{inv}}/GeV");
-	TFile *f2 = new TFile("re_output_1-12_temp.root");
+	TFile *f2 = new TFile("re_output_3-12.root");
 	if(!f2->IsOpen()){
 		std::cout << "Couldn't open re_output.root" << std::endl;
 	}
-
+	
+	TVector *Eff_Vector= (TVector*)f2->Get((product+"/Efficiency").c_str());
+	if(Eff_Vector != NULL){	
+	Eff_Vector->Print();
+	Double_t re_Eff = (*Eff_Vector)[0];
+	std::cout << "READ IN EFFICIENCY: " <<  re_Eff << std::endl;
+	}
 	//for(vector<string>::iterator at = productNames.begin(); at != productNames.end(); at++){
 		f2->cd((product + "/" + histType).c_str());
 		//gDirectory->pwd();
@@ -169,11 +182,12 @@ void plot(string product, string histType){
 
 	totalHist->SetLineColor(kRed);
 	totalHist->SetDirectory(0);
-	totalHist->SetTitle(";M_{inv} /GeV; Counts /0.6GeV");
-	//totalHist->Draw("hist");
+	totalHist->SetTitle(";M_{inv} /GeV; Counts /0.8GeV");
+	totalHist->Draw("hist");
 	re_totalHist->SetDirectory(0);
-	re_totalHist->Draw("col");
-	//legend->Draw();
+	re_totalHist->SetZTitle("Counts/(1.6GeV)^{2}");
+	//re_totalHist->Draw("colz");
+	legend->Draw();
 	
 	Int_t upperFit{140};
 	Int_t lowerFit{50};
@@ -189,7 +203,8 @@ void plot(string product, string histType){
 	totalHist->Fit("invMassFit","+RN");
 
 	
-	TF1 *backFit = new TF1("backFit",BackFit,20,65,order+1); //hardcoded
+	
+	TF1 *backFit = new TF1("backFit",BackFit,120,160,order+1); //hardcoded
 	backFit->SetParNames("m","c");
 	backFit->SetParameters(1,1);
 	backFit->SetParLimits(0,-2,-0.01);
@@ -204,7 +219,7 @@ void plot(string product, string histType){
 	}
 	TGraph *g = new TGraph(200,x,y);
 	g->SetLineColor(kGreen);
-	//g->Draw("same");
+	g->Draw("same");
 	
 	//legend->AddEntry(g, "Background", "l");
 	//legend->Draw();	
@@ -286,20 +301,25 @@ void plot(string product, string histType){
 			backFromBackFit += backFit->GetParameter(1) + backFit->GetParameter(0)*ii;
 		}
 	}
-	Double_t error;
-	Double_t inbuiltIntegral = totalHist->IntegralAndError(80,100,error, "");
-	std::cout << error << std::endl;
-	std::cout<<"integral-background: "<<integral-background<<std::endl;
-	std::cout << "BackFit events: " << backFromBackFit << std::endl;
-	std::cout << "integral - backFit: " << integral - backFromBackFit << std::endl;
 	
-	std::cout << "Events: " << Nrec << std::endl;
-	std::cout<<"Xsec (including Branching) ="<<(Nrec*4)/(10.064*7.6585e-5)<<std::endl;
-	std::cout<<"Xsec (other way) ="<<4*(integral-backFromBackFit)/(10.064*7.6585e-5)<<std::endl;
+	
+	Double_t error;
+	Double_t inbuiltIntegral = totalHist->IntegralAndError(80/0.8,100/0.8,error, ""); //NOTE: binx, biny are the bin number.
+	
+	Double_t efficiency{7.6585e-5};   //TODO: Make sure to change this for each run
+	
+	std::cout << "Inbuilt integral: " << inbuiltIntegral << std::endl;
+	std::cout << "Error on the intergral: " <<  error << std::endl;
+
+
+	std::cout << "BackFit events: " << backFromBackFit << std::endl;
+	std::cout << "integral - backFit: " << inbuiltIntegral - backFromBackFit << std::endl;
+	
+	std::cout<<"Xsec (other way) ="<<(inbuiltIntegral-backFromBackFit)/(10.064*efficiency*2*Br_lep)<<std::endl;
 }
 
 
 int plotter(){
-	plot("2lep","invMass2D_EMu");
+	plot("2lep","invMass2l");
 	return 0;
 }
