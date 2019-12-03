@@ -130,8 +130,9 @@ void plot(string product, string histType){
 	f->Close();
 
 	
-	TH1D *re_totalHist = new TH1D("re_totalHist", "Real Totals", 200, 0, 160);
-	TFile *f2 = new TFile("rootOutput/re_output_21-11_Zmumu.root");
+	TH2D *re_totalHist = new TH2D("re_totalHist", "", 100, 0, 160,100,0,160);
+	re_totalHist->SetTitle(";M_{ee_{inv}}/GeV;M_{#mu#mu_{inv}}/GeV");
+	TFile *f2 = new TFile("re_output_1-12_temp.root");
 	if(!f2->IsOpen()){
 		std::cout << "Couldn't open re_output.root" << std::endl;
 	}
@@ -145,18 +146,17 @@ void plot(string product, string histType){
 		while((reKey = (TKey*)re_next())){
 			
 			TClass *realClass = gROOT->GetClass(reKey->GetClassName());
-			if(!realClass->InheritsFrom("TH1D")){
+			if(!realClass->InheritsFrom("TH2D")){
 			std::cout << "Skipping..." << std::endl;
 			continue;
 			}
-			TH1D *reHist = new TH1D;
-			reHist = (TH1D*)reKey->ReadObj();
+			TH2D *reHist = new TH2D;
+			reHist = (TH2D*)reKey->ReadObj();
 			string name = reHist->GetName();
 			reHist->SetDirectory(0);
 					
 			for(Int_t i = 1; i <= reHist->GetNbinsX(); i++){		
-				Double_t re_content = reHist->GetBinContent(i);
-				re_totalHist->SetBinContent(i,(re_totalHist->GetBinContent(i) + re_content));
+				re_totalHist->Add(reHist);
 			}
 		}
 	//}
@@ -172,9 +172,7 @@ void plot(string product, string histType){
 	totalHist->SetTitle(";M_{inv} /GeV; Counts /0.6GeV");
 	//totalHist->Draw("hist");
 	re_totalHist->SetDirectory(0);
-	re_totalHist->SetLineColor(kBlack);
-	re_totalHist->SetTitle(";M_{inv} /GeV; Counts/0.8GeV");
-	//re_totalHist->Draw("histsame");
+	re_totalHist->Draw("col");
 	//legend->Draw();
 	
 	Int_t upperFit{140};
@@ -301,6 +299,6 @@ void plot(string product, string histType){
 
 
 int plotter(){
-	plot("2lep","invMassZee");
+	plot("2lep","invMass2D_EMu");
 	return 0;
 }
