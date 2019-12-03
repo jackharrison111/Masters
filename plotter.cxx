@@ -144,15 +144,17 @@ void plot(string product, string histType){
 	
 	TH1D *re_totalHist = new TH1D("re_totalHist", "", 200, 0, 160);
 	re_totalHist->SetTitle(";M_{inv}/GeV;counts/0.8GeV");
-	TFile *f2 = new TFile("rootOutput/re_output_Zee_3-12.root");
+	TFile *f2 = new TFile("rootOutput/re_output_final2l_3-12.root");
 	if(!f2->IsOpen()){
 		std::cout << "Couldn't open re_output.root" << std::endl;
 	}
 		
 	TVectorD *Re_Eff_Vector= (TVectorD*)f2->Get((product+"/Efficiency/efficiency").c_str());
 	Double_t re_Eff;
+	Double_t double_counts;
 	if(Re_Eff_Vector != NULL){	
 		re_Eff = (*Re_Eff_Vector)[0];
+		double_counts = (*Re_Eff_Vector)[1];
 	}
 
 	f2->cd((product + "/" + histType).c_str());
@@ -180,7 +182,7 @@ void plot(string product, string histType){
 	delete f2;
 
 	//ADD LEGEND AND TITLES TO NEW HISTOGRAM
-	legend->SetHeader("Zee", "C");
+	legend->SetHeader("Z #rightarrow ll", "C");
 	legend->AddEntry(re_totalHist, "Real", "l"/*).c_str()*/);
 	//legend->AddEntry(totalHist, "MC", "l"/*).c_str()*/);
 
@@ -188,7 +190,7 @@ void plot(string product, string histType){
 	totalHist->SetLineColor(kRed);
 	totalHist->SetDirectory(0);
 	totalHist->SetTitle(";M_{inv} /GeV; Counts /0.8GeV");
-	//totalHist->Draw("hist");
+	totalHist->Draw("hist");
 	re_totalHist->SetDirectory(0);
 	//re_totalHist->SetZTitle("Counts/(1.6GeV)^{2}");
 	re_totalHist->Draw("hist");
@@ -213,8 +215,8 @@ void plot(string product, string histType){
 	//	Background fitting 	//
 	
 	
-	Int_t lower_range{110};
-	Int_t upper_range{140};
+	Int_t lower_range{25};
+	Int_t upper_range{60};
 	
 	
 	TF1 *backFit = new TF1("backFit",BackFit,lower_range,upper_range,order+1); //hardcoded
@@ -333,18 +335,18 @@ void plot(string product, string histType){
 	}
 	
 	Double_t backIntegral = backFit->Integral(80/0.8,100/0.8);
-	std::cout << "backInbuild integral: " <<backIntegral << std::endl;
-	
 	Double_t error;
-	Double_t inbuiltIntegral = totalHist->IntegralAndError(80/0.8,100/0.8,error, ""); //NOTE: binx, biny are the bin number.
+	Double_t inbuiltIntegral = re_totalHist->IntegralAndError(80/0.8,100/0.8,error, ""); //NOTE: binx, biny are the bin number.
 	
 	Double_t efficiency = re_Eff;   //TODO: Make sure to change this for the correct file
 
 	std::cout << "Signal region integral: " << inbuiltIntegral << " +- " << error << std::endl;
+	std::cout << "Number of double counts: " << double_counts << std::endl;
 	std::cout << "Background integral: " << backIntegral << " +- " << background_err << std::endl;
 	std::cout << "Efficiency used: " << efficiency << std::endl;
 	
-	Double_t Xsec = (inbuiltIntegral-backFromBackFit)/(10.064*efficiency*Br_lep);	
+
+	Double_t Xsec = (inbuiltIntegral-backFromBackFit-double_counts)/(10.064*efficiency*2*Br_lep);	
 	Double_t Xsec_err = Xsec * sqrt((pow(error,2) + pow(background_err,2))/pow(inbuiltIntegral - backFromBackFit,2));
 
 	std::cout<<"Xsec: "<< Xsec/1e6 << " +- " << Xsec_err/1e6 << " nb" << std::endl;
@@ -352,6 +354,6 @@ void plot(string product, string histType){
 
 
 int plotter(){
-	plot("2lep","invMassZee");
+	plot("2lep","invMass2l");
 	return 0;
 }

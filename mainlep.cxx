@@ -74,7 +74,7 @@ void mini::Run(){
 
 	
 
-	TFile output(("rootOutput/" + outputName+"output_Zee_3-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/" + outputName+"output_final2l_3-12.root").c_str(),"RECREATE");
 	TDirectory *TDir1 = output.mkdir("1lep1tau");
 	TDirectory *TDir2 = output.mkdir("2lep");
 	std::map<string,TH1*> histograms;
@@ -102,7 +102,7 @@ void mini::Run(){
 	Double_t lowerBound{86};
 	Double_t upperBound{96};
 	Double_t N_sing{0};
-	Double_t N_signal{0};
+	Double_t double_counts{0};
 
 	string ZZllll = "mc15_13TeV.361603.PwPy8EG_CT10nloME_AZNLOCTEQ6L1_ZZllll_mll4.2lep_raw.root";
 	string ZllZll = "mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.2lep_raw.root";
@@ -176,10 +176,10 @@ void mini::Run(){
 		if(Cut(2,0,0)){
 			invM = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])))/1000;
 			histograms["invMassZee"]->Fill(invM,eventWeight);
-			if(MC){Efficiency += eventWeight / sumw;}
-			else{Efficiency++;}
+			//if(MC){Efficiency += eventWeight / sumw;}
+			//else{Efficiency++;}
 		}
-	/*
+	
 		/////////////////////////
 		//
 		////2 MUON EVENTS////
@@ -220,10 +220,8 @@ void mini::Run(){
 			}
 
 			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
-				if(!((invM1<upperBound&&invM1>lowerBound)&&(invM2<upperBound&&invM2>lowerBound))){
-					N_sing+=eventWeight;
-				}else if((invM1<upperBound&&invM1>lowerBound)&&(invM2<upperBound&&invM2>lowerBound)){
-					N_signal+=eventWeight;
+				if((invM1<upperBound&&invM1>lowerBound)&&(invM2<upperBound&&invM2>lowerBound)){
+					double_counts+=eventWeight;
 					if(MC&&sumw!=0&&shortFileName==ZllZll){
 						Efficiency+=eventWeight/sumw;
 					}else{
@@ -234,7 +232,6 @@ void mini::Run(){
 				histograms["invMass2l"]->Fill(invM2,eventWeight);
 				histograms["invMass2D_EMu"]->Fill(invM1,invM2);
 			}
-
 
 		}else if(Cut(4,0,0)||Cut(0,4,0)){    //include 4 lepton events of all the same type
 			pair<Int_t,Int_t> pos, neg; //pai positive leptons and negative leptons
@@ -264,7 +261,7 @@ void mini::Run(){
 			invM3 = sqrt(2*(*lep_pt)[pos.first]*(*lep_pt)[neg.second]*(cosh((*lep_eta)[pos.first]-(*lep_eta)[neg.second])-cos((*lep_phi)[pos.first]-(*lep_phi)[neg.second])))/1000;
 			invM4 = sqrt(2*(*lep_pt)[pos.second]*(*lep_pt)[neg.first]*(cosh((*lep_eta)[pos.second]-(*lep_eta)[neg.first])-cos((*lep_phi)[pos.second]-(*lep_phi)[neg.first])))/1000;
 	
-			*//*
+			/*
 			// this finds closest reconstruction to M_Z
 			vector<Double_t> deltas;
 			deltas.push_back(abs(invM1-zMass));
@@ -293,12 +290,10 @@ void mini::Run(){
 				}
 
 			}
-			*//*
+			*/
 			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
-				if(!((invM1<upperBound&&invM1>lowerBound)&&(invM2<upperBound&&invM2>lowerBound))){
-					N_sing+=eventWeight;
-				}else if((invM1<upperBound&&invM1>lowerBound)&&(invM2<upperBound&&invM2>lowerBound)){
-					N_signal+=eventWeight;
+				if((invM1<upperBound&&invM1>lowerBound)&&(invM2<upperBound&&invM2>lowerBound)){
+					double_counts+=eventWeight;
 					if(MC&&sumw!=0&&shortFileName==ZllZll){
 						Efficiency+=eventWeight/sumw;
 					}else{
@@ -314,10 +309,8 @@ void mini::Run(){
 				}
 			}
 		  	else if((invM3<higher&&invM3>lower)||(invM4<higher&&invM4>lower)){ //hardcoded
-				if(!((invM3<upperBound&&invM3>lowerBound)&&(invM4<upperBound&&invM4>lowerBound))){
-					N_sing+=eventWeight;
-				}else if((invM3<upperBound&&invM3>lowerBound)&&(invM4<upperBound&&invM4>lowerBound)){
-					N_signal+=eventWeight;
+				if((invM3<upperBound&&invM3>lowerBound)&&(invM4<upperBound&&invM4>lowerBound)){
+					double_counts+=eventWeight;
 					if(MC&&sumw!=0&&shortFileName==ZllZll){
 						Efficiency+=eventWeight/sumw;
 					}else{
@@ -340,7 +333,6 @@ void mini::Run(){
 			histograms["invMass4l"]->Fill(sqrt(pow((*lep_pt)[0]*cosh((*lep_eta)[0])+(*lep_pt)[1]*cosh((*lep_eta)[1])+(*lep_pt)[2]*cosh((*lep_eta)[2])+(*lep_pt)[3]*cosh((*lep_eta)[3]),2)-pow((*lep_pt)[0]*cos((*lep_phi)[0])+(*lep_pt)[1]*cos((*lep_phi)[1])+(*lep_pt)[2]*cos((*lep_phi)[2])+(*lep_pt)[3]*cos((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sin((*lep_phi)[0])+(*lep_pt)[1]*sin((*lep_phi)[1])+(*lep_pt)[2]*sin((*lep_phi)[2])+(*lep_pt)[3]*sin((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sinh((*lep_eta)[0])+(*lep_pt)[1]*sinh((*lep_eta)[1])+(*lep_pt)[2]*sinh((*lep_eta)[2])+(*lep_pt)[3]*sinh((*lep_eta)[3]),2))/1000,eventWeight);
 		}
 		
-		*/
 		/////////////////////
 		
 		//to write the last files histograms (loop ends after last event in last file,
@@ -362,20 +354,6 @@ void mini::Run(){
 			}
 		}
 
-		if(lep_n==4){
-			Int_t eN{0}, muN{0};
-			for(Int_t j{0}; j<4; j++){
-				if((*lep_type)[j]==11){
-					eN++;
-				}else if((*lep_type)[j]==13){
-					muN++;
-				}
-			}
-			if((eN==2&&muN==2)||(eN==0&&muN==4)||(eN==4&&muN==0)){
-				//Efficiency+=eventWeight/sumw;
-			}
-		}
-	//	Efficiency+=eventWeight/sumw;
 	}
 	//Print the time taken to run the loop (relies on startTime at beginning of loop)
 	clock_t endTime = clock();
@@ -391,13 +369,15 @@ void mini::Run(){
 	gDirectory->cd(products.c_str());
 	gDirectory->mkdir("Efficiency");
 	gDirectory->cd("Efficiency");
-	TVectorD v(1);
+	TVectorD v(2);
 	if(MC){
 		v[0]=Efficiency;
 	}else{
 		v[0]=Efficiency/n;
 	}
+	v[1] = double_counts;
 	std::cout<<"efficiency from vector = "<<v[0]<<std::endl;
+	std::cout << "Number of double counts: " << v[1] << std::endl;
 	v.Write("efficiency");
 
 	output.cd();
