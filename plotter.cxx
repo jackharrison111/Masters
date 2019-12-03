@@ -67,7 +67,7 @@ void plot(string product, string histType){
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
 	
 	
-	TFile *f = new TFile("mc_output_1-12_temp.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("rootOutput/mc_output_Zee_3-12.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -144,7 +144,7 @@ void plot(string product, string histType){
 	
 	TH1D *re_totalHist = new TH1D("re_totalHist", "", 200, 0, 160);
 	re_totalHist->SetTitle(";M_{inv}/GeV;counts/0.8GeV");
-	TFile *f2 = new TFile("rootOutput/re_output_3-12.root");
+	TFile *f2 = new TFile("rootOutput/re_output_Zee_3-12.root");
 	if(!f2->IsOpen()){
 		std::cout << "Couldn't open re_output.root" << std::endl;
 	}
@@ -180,7 +180,7 @@ void plot(string product, string histType){
 	delete f2;
 
 	//ADD LEGEND AND TITLES TO NEW HISTOGRAM
-	legend->SetHeader("Data source", "C");
+	legend->SetHeader("Zee", "C");
 	legend->AddEntry(re_totalHist, "Real", "l"/*).c_str()*/);
 	//legend->AddEntry(totalHist, "MC", "l"/*).c_str()*/);
 
@@ -212,10 +212,16 @@ void plot(string product, string histType){
 	//////////////////////////////////
 	//	Background fitting 	//
 	
-	TF1 *backFit = new TF1("backFit",BackFit,20,60,order+1); //hardcoded
-	backFit->SetParNames("m","c");
+	
+	Int_t lower_range{110};
+	Int_t upper_range{140};
+	
+	
+	TF1 *backFit = new TF1("backFit",BackFit,lower_range,upper_range,order+1); //hardcoded
+	backFit->SetParNames("a","b");
+	//backFit->SetParameters(2,20000);
 	backFit->SetParameters(1,1);
-	backFit->SetParLimits(0,-2,-0.01);
+	backFit->SetParameters(0,-1);
 	re_totalHist->Fit("backFit", "+RN");
 
 	
@@ -228,7 +234,7 @@ void plot(string product, string histType){
 	for(Int_t i=0; i<200; i++){
 		x[i]=160*i/200;
 		//y[i]=invMassFit->GetParameter(1)*invMassFit->GetParameter(2)/(pow(x[i]-invMassFit->GetParameter(0),2)+pow(0.5*invMassFit->GetParameter(1),2));
-		y[i] = backFit->GetParameter(1) + backFit->GetParameter(0)*x[i];
+		y[i] = backFit->GetParameter(1) + backFit->GetParameter(0)*x[i];// + backFit->GetParameter(0)*pow(x[i],2);
 		if(x[i]>=80&&x[i]<=100){
 		background_err += pow(x[i]*m_err,2) + pow(c_err,2);
 		}
@@ -330,7 +336,7 @@ void plot(string product, string histType){
 	std::cout << "backInbuild integral: " <<backIntegral << std::endl;
 	
 	Double_t error;
-	Double_t inbuiltIntegral = re_totalHist->IntegralAndError(80/0.8,100/0.8,error, ""); //NOTE: binx, biny are the bin number.
+	Double_t inbuiltIntegral = totalHist->IntegralAndError(80/0.8,100/0.8,error, ""); //NOTE: binx, biny are the bin number.
 	
 	Double_t efficiency = re_Eff;   //TODO: Make sure to change this for the correct file
 
@@ -338,7 +344,7 @@ void plot(string product, string histType){
 	std::cout << "Background integral: " << backIntegral << " +- " << background_err << std::endl;
 	std::cout << "Efficiency used: " << efficiency << std::endl;
 	
-	Double_t Xsec = (inbuiltIntegral-backFromBackFit)/(10.064*efficiency*2*Br_lep);	
+	Double_t Xsec = (inbuiltIntegral-backFromBackFit)/(10.064*efficiency*Br_lep);	
 	Double_t Xsec_err = Xsec * sqrt((pow(error,2) + pow(background_err,2))/pow(inbuiltIntegral - backFromBackFit,2));
 
 	std::cout<<"Xsec: "<< Xsec/1e6 << " +- " << Xsec_err/1e6 << " nb" << std::endl;
@@ -346,6 +352,6 @@ void plot(string product, string histType){
 
 
 int plotter(){
-	plot("2lep","invMass2l");
+	plot("2lep","invMassZee");
 	return 0;
 }

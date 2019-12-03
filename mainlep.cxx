@@ -52,8 +52,8 @@ Bool_t mini::Cut(Int_t e, Int_t mu, Int_t tau){ //electron and muons only so far
 
 void mini::Run(){
 	
-	gROOT->SetStyle("ATLAS");
-	gStyle->SetOptStat(1111111);
+	//gROOT->SetStyle("ATLAS");
+	gStyle->SetOptStat(0);
 
 	if (fChain == 0) return;
 
@@ -74,7 +74,7 @@ void mini::Run(){
 
 	
 
-	TFile output((outputName+"output_3-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/" + outputName+"output_Zee_3-12.root").c_str(),"RECREATE");
 	TDirectory *TDir1 = output.mkdir("1lep1tau");
 	TDirectory *TDir2 = output.mkdir("2lep");
 	std::map<string,TH1*> histograms;
@@ -176,8 +176,10 @@ void mini::Run(){
 		if(Cut(2,0,0)){
 			invM = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])))/1000;
 			histograms["invMassZee"]->Fill(invM,eventWeight);
+			if(MC){Efficiency += eventWeight / sumw;}
+			else{Efficiency++;}
 		}
-
+	/*
 		/////////////////////////
 		//
 		////2 MUON EVENTS////
@@ -230,7 +232,7 @@ void mini::Run(){
 				}
 				histograms["invMass2l"]->Fill(invM1,eventWeight);
 				histograms["invMass2l"]->Fill(invM2,eventWeight);
-				histograms["invMass2D_EMu"]->Fill(invM1,invM2/*,eventWeight*/);
+				histograms["invMass2D_EMu"]->Fill(invM1,invM2);
 			}
 
 
@@ -262,7 +264,7 @@ void mini::Run(){
 			invM3 = sqrt(2*(*lep_pt)[pos.first]*(*lep_pt)[neg.second]*(cosh((*lep_eta)[pos.first]-(*lep_eta)[neg.second])-cos((*lep_phi)[pos.first]-(*lep_phi)[neg.second])))/1000;
 			invM4 = sqrt(2*(*lep_pt)[pos.second]*(*lep_pt)[neg.first]*(cosh((*lep_eta)[pos.second]-(*lep_eta)[neg.first])-cos((*lep_phi)[pos.second]-(*lep_phi)[neg.first])))/1000;
 	
-			/*
+			*//*
 			// this finds closest reconstruction to M_Z
 			vector<Double_t> deltas;
 			deltas.push_back(abs(invM1-zMass));
@@ -291,7 +293,7 @@ void mini::Run(){
 				}
 
 			}
-			*/
+			*//*
 			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
 				if(!((invM1<upperBound&&invM1>lowerBound)&&(invM2<upperBound&&invM2>lowerBound))){
 					N_sing+=eventWeight;
@@ -338,11 +340,6 @@ void mini::Run(){
 			histograms["invMass4l"]->Fill(sqrt(pow((*lep_pt)[0]*cosh((*lep_eta)[0])+(*lep_pt)[1]*cosh((*lep_eta)[1])+(*lep_pt)[2]*cosh((*lep_eta)[2])+(*lep_pt)[3]*cosh((*lep_eta)[3]),2)-pow((*lep_pt)[0]*cos((*lep_phi)[0])+(*lep_pt)[1]*cos((*lep_phi)[1])+(*lep_pt)[2]*cos((*lep_phi)[2])+(*lep_pt)[3]*cos((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sin((*lep_phi)[0])+(*lep_pt)[1]*sin((*lep_phi)[1])+(*lep_pt)[2]*sin((*lep_phi)[2])+(*lep_pt)[3]*sin((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sinh((*lep_eta)[0])+(*lep_pt)[1]*sinh((*lep_eta)[1])+(*lep_pt)[2]*sinh((*lep_eta)[2])+(*lep_pt)[3]*sinh((*lep_eta)[3]),2))/1000,eventWeight);
 		}
 		
-		/*
-		//Fill an invariant mass histogram of both e and mu 2 events
-		for(Int_t j=1; j<=histograms["invMassE"]->GetNbinsX(); j++){
-			histograms["invMassTot"]->SetBinContent(j,histograms["invMassE"]->GetBinContent(j)+histograms["invMassMu"]->GetBinContent(j));
-		}
 		*/
 		/////////////////////
 		
