@@ -74,20 +74,12 @@ void mini::Run(){
 
 	
 
-	TFile output((outputName+"output_28-11_test.root").c_str(),"RECREATE");
-	TDirectory *TDir1 = output.mkdir("1fatjet1lep");
-	TDirectory *TDir2 = output.mkdir("1lep");
-	TDirectory *TDir3 = output.mkdir("1lep1tau");
-	TDirectory *TDir4 = output.mkdir("1tau");
-	TDirectory *TDir5 = output.mkdir("2lep");
-	TDirectory *TDir6 = output.mkdir("2tau");
-	TDirectory *TDir7 = output.mkdir("GamGam");
+	TFile output((outputName+"output_3-12.root").c_str(),"RECREATE");
+	TDirectory *TDir1 = output.mkdir("1lep1tau");
+	TDirectory *TDir2 = output.mkdir("2lep");
 	std::map<string,TH1*> histograms;
 	histograms["invMassZee"]=new TH1D("invMassZee","Z->ee",200,0,160);
 	histograms["invMassZmumu"]=new TH1D("invMassZmumu","Z->#mu#mu",200,0,160);
-	//histograms["invMassE"]=new TH1D("invMassE","Z->ee",200,0,160);
-	//histograms["invMassMu"]=new TH1D("invMassMu","Z->#mu#mu",200,0,160);
-	//histograms["invMassTot"]=new TH1D("invMassTot","Z->ee||#mu#mu",200,0,160);
 	histograms["invMass2l"]=new TH1D("invMass2l","Z->ll",200,0,160);
 	histograms["invMass4l"]=new TH1D("invMass4l","Z'->llll",200,0,160);
 	histograms["invMass2D_EMu"]=new TH2D("invMass2D_EMu","ZZ->ee&&#mu#mu",100,0,160,100,0,160);
@@ -392,10 +384,24 @@ void mini::Run(){
 	clock_t endTime = clock();
 	std::cout<<"Run time: "<<(endTime-startTime)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
 	
-	//std::cout << "Efficiency for " << outputName << " = " << Efficiency << std::endl;
-	//std::cout<<"N_sing = "<<N_sing<<std::endl;
-	std::cout<<"efficiency = "<<Efficiency/n<<std::endl;
-	std::cout<<"crossSection = "<<4*N_signal*n/(1e6*Efficiency*totRealLum)<<" nb"<<std::endl;;
+	if(MC){
+		std::cout<<"efficiency = "<<Efficiency<<std::endl;
+	}else{
+		std::cout<<"efficiency = "<<Efficiency/n<<std::endl;
+	}
+
+	output.cd();
+	gDirectory->cd(products.c_str());
+	gDirectory->mkdir("Efficiency");
+	gDirectory->cd("Efficiency");
+	TVectorD v(1);
+	if(MC){
+		v[0]=Efficiency;
+	}else{
+		v[0]=Efficiency/n;
+	}
+	std::cout<<"efficiency from vector = "<<v[0]<<std::endl;
+	v.Write("efficiency");
 
 	output.cd();
 	output.Close(); //Close the output file
