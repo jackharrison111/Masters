@@ -74,7 +74,7 @@ void mini::Run(){
 
 	
 
-	TFile output(("rootOutput/" + outputName+"output_final2l_3-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/" + outputName+"output_4-12.root").c_str(),"RECREATE");
 	TDirectory *TDir1 = output.mkdir("1lep1tau");
 	TDirectory *TDir2 = output.mkdir("2lep");
 	std::map<string,TH1*> histograms;
@@ -102,7 +102,6 @@ void mini::Run(){
 	Double_t lowerBound{86};
 	Double_t upperBound{96};
 	Double_t N_sing{0};
-	Double_t double_counts{0};
 
 	string ZZllll = "mc15_13TeV.361603.PwPy8EG_CT10nloME_AZNLOCTEQ6L1_ZZllll_mll4.2lep_raw.root";
 	string ZllZll = "mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.2lep_raw.root";
@@ -220,13 +219,10 @@ void mini::Run(){
 			}
 
 			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
-				if((invM1<upperBound&&invM1>lowerBound)&&(invM2<upperBound&&invM2>lowerBound)){
-					double_counts+=eventWeight;
-					if(MC&&sumw!=0&&shortFileName==ZllZll){
-						Efficiency+=eventWeight/sumw;
-					}else{
-						Efficiency++;//=1/n;
-					}
+				if(MC&&sumw!=0&&shortFileName==ZllZll){
+					Efficiency+=eventWeight/sumw;
+				}else if(!MC){
+					Efficiency++;//=1/n;
 				}
 				histograms["invMass2l"]->Fill(invM1,eventWeight);
 				histograms["invMass2l"]->Fill(invM2,eventWeight);
@@ -292,13 +288,10 @@ void mini::Run(){
 			}
 			*/
 			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
-				if((invM1<upperBound&&invM1>lowerBound)&&(invM2<upperBound&&invM2>lowerBound)){
-					double_counts+=eventWeight;
-					if(MC&&sumw!=0&&shortFileName==ZllZll){
-						Efficiency+=eventWeight/sumw;
-					}else{
-						Efficiency++;//=1/n;
-					}
+				if(MC&&sumw!=0&&shortFileName==ZllZll){
+					Efficiency+=eventWeight/sumw;
+				}else if(!MC){
+					Efficiency++;//=1/n;
 				}
 				histograms["invMass2l"]->Fill(invM1,eventWeight);
 				histograms["invMass2l"]->Fill(invM2,eventWeight);
@@ -309,13 +302,10 @@ void mini::Run(){
 				}
 			}
 		  	else if((invM3<higher&&invM3>lower)||(invM4<higher&&invM4>lower)){ //hardcoded
-				if((invM3<upperBound&&invM3>lowerBound)&&(invM4<upperBound&&invM4>lowerBound)){
-					double_counts+=eventWeight;
-					if(MC&&sumw!=0&&shortFileName==ZllZll){
-						Efficiency+=eventWeight/sumw;
-					}else{
-						Efficiency++;//=1/n;
-					}
+				if(MC&&sumw!=0&&shortFileName==ZllZll){
+					Efficiency+=eventWeight/sumw;
+				}else if(!MC){
+					Efficiency++;//=1/n;
 				}
 				histograms["invMass2l"]->Fill(invM3,eventWeight);
 				histograms["invMass2l"]->Fill(invM4,eventWeight);	
@@ -369,15 +359,13 @@ void mini::Run(){
 	gDirectory->cd(products.c_str());
 	gDirectory->mkdir("Efficiency");
 	gDirectory->cd("Efficiency");
-	TVectorD v(2);
+	TVectorD v(1);
 	if(MC){
 		v[0]=Efficiency;
 	}else{
 		v[0]=Efficiency/n;
 	}
-	v[1] = double_counts;
 	std::cout<<"efficiency from vector = "<<v[0]<<std::endl;
-	std::cout << "Number of double counts: " << v[1] << std::endl;
 	v.Write("efficiency");
 
 	output.cd();
