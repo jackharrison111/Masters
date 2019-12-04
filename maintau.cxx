@@ -181,7 +181,7 @@ void mini::Run(){
 
 			// 2 leps same type, other not
 			else{
-				pait<Int_t, Int_t> leps;
+				pair<Int_t, Int_t> leps;
 				if((*lep_type)[0]==(*lep_type)[1]){ //pair 0&1
 					leps.first=0;
 					leps.second=1;
@@ -198,6 +198,11 @@ void mini::Run(){
 				}
 				// now compare lepton - lepton pairings and oddlepton - tau pairings
 				// ......
+				Double_t nu_T_lep = met_et*(sin())/()
+				Double_t A = 
+				Double_t B =
+				Double_t C =
+				Double_t D =
 			}
 		}
 
