@@ -67,7 +67,7 @@ void plot(string product, string histType){
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
 	
 	
-	TFile *f = new TFile("rootOutput/mc_output_28-11_ZllZll.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("rootOutput/mc_output_tau_4-12.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -144,7 +144,7 @@ void plot(string product, string histType){
 	
 	TH1D *re_totalHist = new TH1D("re_totalHist", "", 200, 0, 160);
 	re_totalHist->SetTitle(";M_{inv}/GeV;counts/0.8GeV");
-	TFile *f2 = new TFile("rootOutput/re_output_4-12.root");
+	TFile *f2 = new TFile("rootOutput/re_output_4-12_tau.root");
 	if(!f2->IsOpen()){
 		std::cout << "Couldn't open re_output.root" << std::endl;
 	}
@@ -193,7 +193,7 @@ void plot(string product, string histType){
 	//totalHist->Draw("hist");
 	re_totalHist->SetDirectory(0);
 	//re_totalHist->SetZTitle("Counts/(1.6GeV)^{2}");
-	re_totalHist->Draw("hist");
+	/*re_*/totalHist->Draw("hist");
 	legend->Draw();
 	
 	Int_t upperFit{140};
@@ -246,7 +246,7 @@ void plot(string product, string histType){
 	TGraph *g = new TGraph(200,x,y);
 	g->SetLineColor(kRed);
 	g->SetLineWidth(2);
-	g->Draw("same");
+	//g->Draw("same");
 	legend->AddEntry(g,"Background","l");
 	
 	
@@ -346,7 +346,7 @@ void plot(string product, string histType){
 }
 
 
-int plotter(){
-	plot("2lep","invMass2l");
+int plottertau(){
+	plot("1lep1tau","invMassleptau");
 	return 0;
 }
