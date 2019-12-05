@@ -64,10 +64,10 @@ void plot(string product, string histType){
 
 	TCanvas *c = new TCanvas("c", "c");	
 	TLegend *legend = new TLegend(1,0.5);
-	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
+	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 2*M_PI);
 	
 	
-	TFile *f = new TFile("rootOutput/mc_output_tau_4-12.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("rootOutput/mc_output_openAngle_5-12.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -181,17 +181,18 @@ void plot(string product, string histType){
 
 	delete f2;
 
-	TAxis* a = re_totalHist->GetXaxis();
+	TAxis* a = totalHist->GetXaxis();
 	a->SetNdivisions(-504);
-	a->ChangeLabel(1,-1,-1,-1,-1,-1,"-#pi");
-	a->ChangeLabel(-1,-1,-1,-1,-1,-1,"#pi");
-	a->ChangeLabel(2,-1,-1,-1,-1,-1,"-#frac{#pi}{2}");
-	a->ChangeLabel(4,-1,-1,-1,-1,-1,"#frac{#pi}{2}");
+	//a->ChangeLabel(1,-1,-1,-1,-1,-1,"");
+	a->ChangeLabel(-1,-1,-1,-1,-1,-1,"2#pi");
+	a->ChangeLabel(2,-1,-1,-1,-1,-1,"#frac{#pi}{2}");
+	a->ChangeLabel(3,-1,-1,-1,-1,-1,"#pi");
+	a->ChangeLabel(4,-1,-1,-1,-1,-1,"#frac{3#pi}{2}");
 	a->SetLabelOffset(0.015);
 	a->SetTitleOffset(1.2);
-	re_totalHist->SetTitle(";#phi_{rel}/rad; counts/[#pi/100rad]");
-	re_totalHist->SetDirectory(0);
-	re_totalHist->Draw("hist");
+	totalHist->SetTitle(";#Delta#phi/rad; counts/[#pi/100rad]");
+	totalHist->SetDirectory(0);
+	totalHist->Draw("hist");
 
 
 
@@ -203,15 +204,15 @@ void plot(string product, string histType){
 
 
 	totalHist->SetLineColor(kRed);
-	legend->AddEntry(re_totalHist, "Real", "l");
+	//legend->AddEntry(re_totalHist, "Real", "l");
 	totalHist->SetDirectory(0);
 	totalHist->SetTitle(";M_{inv} /GeV; Counts /0.8GeV");
 	//totalHist->Draw("hist");
 	re_totalHist->SetDirectory(0);
 	re_totalHist->SetZTitle("Counts/(1.6GeV)^{2}");
-	re_totalHist->Draw("hist");
-	legend->Draw();
-	*/
+	//totalHist->Draw("hist");
+	//legend->Draw();
+*/
 	Int_t upperFit{140};
 	Int_t lowerFit{50};
 	TF1 *invMassFit = new TF1("invMassFit",Fit,lowerFit,upperFit,order+4); //hardcoded

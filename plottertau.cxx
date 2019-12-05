@@ -120,7 +120,8 @@ void plot(string product, string histType){
 			
 			myHist->SetDirectory(0);
 			//std::cout << histName << std::endl;
-			totalHist->Add(myHist);
+			etDist->Add(myHist);
+			//totalHist->Add(myHist);
 				//if(histName != (product + "_" + histType + "_" + "mc15_13TeV.307431.MGPy8EG_A14NNPDF23LO_RS_G_ZZ_llll_c10_m0200.2lep_raw.root")){
 		counter++;
 		}
@@ -136,7 +137,7 @@ void plot(string product, string histType){
 	*/
 	f->Close();
 	
-	/*TAxis* a = etDist->GetXaxis();
+	TAxis* a = etDist->GetXaxis();
 	a->SetNdivisions(-504);
 	a->ChangeLabel(1,-1,-1,-1,-1,-1,"-#pi");
 	
@@ -147,10 +148,10 @@ void plot(string product, string histType){
 	a->SetTitleOffset(1.2);
 	etDist->SetTitle(";#phi_{rel}/rad; counts/[#pi/100rad]");
 	etDist->SetDirectory(0);
-	etDist->Draw("hist");*/
+	etDist->Draw("hist");
 		
-	totalHist->SetTitle(";M_{inv}/GeV; counts/0.8GeV");
-	totalHist->Draw("hist");
+	//totalHist->SetTitle(";M_{inv}/GeV; counts/0.8GeV");
+	//totalHist->Draw("hist");
 
 		
 		
@@ -362,6 +363,6 @@ void plot(string product, string histType){
 
 
 	int plottertau(){
-		plot("1lep1tau","invMassVis");
+		plot("1lep1tau","missEtDist");
 		return 0;
 	}

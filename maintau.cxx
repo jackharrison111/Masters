@@ -48,6 +48,19 @@ Bool_t mini::Cut(Int_t e, Int_t mu, Int_t tau){ //electron and muons only so far
 
 
 
+Double_t getOpeningAngle(Double_t tauPhi, Double_t lepPhi){
+
+	Double_t angle;
+	angle = tauPhi - lepPhi;
+	angle = abs(angle);
+	if(angle > pi){
+		angle = 2*pi - angle;
+	}
+
+	return angle;
+}
+
+
 void mini::Run(){
 	gStyle->SetOptStat(0);
 
@@ -208,11 +221,45 @@ void mini::Run(){
 				invM3 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
 				histograms["invMassleptau"]->Fill(invM3);
 
-				histograms["missEtDist"]->Fill(pi*met_phi/((*tau_phi)[0]-(*lep_phi)[tauPartner]));
+
+				Double_t angle;
+				Double_t phiHalf;
+				Double_t DeltaPhiTL = getOpeningAngle((*tau_phi)[0], (*lep_phi)[tauPartner]);
+				
+				if((*tau_phi)[0]>(*lep_phi)[tauPartner]){
+					phiHalf = (*lep_phi)[tauPartner] + DeltaPhiTL/2;
+				}else{
+					phiHalf = (*tau_phi)[0] + DeltaPhiTL/2;
+				}
+
+				//PHI HALF COULD BE + or - DELTA
+				Double_t deltaPhi2 = getOpeningAngle(phiHalf, met_phi);
+				if((*tau_phi)[0] > phiHalf){
+					if(met_phi>phiHalf){
+						histograms["missEtDist"]->Fill(deltaPhi2*pi/DeltaPhiTL);	
+					}else{
+						histograms["missEtDist"]->Fill(-deltaPhi2*pi/DeltaPhiTL);	
+					}
+				}else{
+					if(met_phi>phiHalf){
+						histograms["missEtDist"]->Fill(-deltaPhi2*pi/DeltaPhiTL);	
+					}
+					else{
+						histograms["missEtDist"]->Fill(deltaPhi2*pi/DeltaPhiTL);	
+					}
+				}
+
+
+
+				//histograms["missEtDist"]->Fill(pi*met_phi/((*tau_phi)[0]-(*lep_phi)[tauPartner]));
+
+
 
 				invM4 = sqrt(2*(*lep_pt)[tauPartner]*(*tau_pt)[0]*(cosh((*lep_eta)[tauPartner]-(*tau_eta)[0])-cos((*lep_phi)[tauPartner]-(*tau_phi)[0])))/1000;
 				histograms["invMassVis"]->Fill(invM4);
-			
+				
+
+
 			}
 
 			// 2 leps same type, other not
@@ -251,8 +298,41 @@ void mini::Run(){
 				invM2 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
 				histograms["invMassleptau"]->Fill(invM2);
 
-				histograms["missEtDist"]->Fill(pi*met_phi/((*tau_phi)[0]-(*lep_phi)[oddLep]));
+
+				Double_t angle;
+				Double_t phiHalf;
+				Double_t DeltaPhiTL = getOpeningAngle((*tau_phi)[0], (*lep_phi)[oddLep]);
+				
+				if((*tau_phi)[0]>(*lep_phi)[oddLep]){
+					phiHalf = (*lep_phi)[oddLep] + DeltaPhiTL/2;
+				}else{
+					phiHalf = (*tau_phi)[0] + DeltaPhiTL/2;
+				}
+
+				//PHI HALF COULD BE + or - DELTA
+				Double_t deltaPhi2 = getOpeningAngle(phiHalf, met_phi);
+				if((*tau_phi)[0] > phiHalf){
+					if(met_phi>phiHalf){
+						histograms["missEtDist"]->Fill(deltaPhi2*pi/DeltaPhiTL);	
+					}else{
+						histograms["missEtDist"]->Fill(-deltaPhi2*pi/DeltaPhiTL);	
+					}
+				}else{
+					if(met_phi>phiHalf){
+						histograms["missEtDist"]->Fill(-deltaPhi2*pi/DeltaPhiTL);	
+					}
+					else{
+						histograms["missEtDist"]->Fill(deltaPhi2*pi/DeltaPhiTL);	
+					}
+				}
+
+
+				//histograms["missEtDist"]->Fill(pi*met_phi/((*tau_phi)[0]-(*lep_phi)[oddLep]));
 			
+
+
+
+
 				invM4 = sqrt(2*(*lep_pt)[oddLep]*(*tau_pt)[0]*(cosh((*lep_eta)[oddLep]-(*tau_eta)[0])-cos((*lep_phi)[oddLep]-(*tau_phi)[0])))/1000;
 				histograms["invMassVis"]->Fill(invM4);
 			}

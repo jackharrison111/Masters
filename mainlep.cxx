@@ -1,6 +1,6 @@
 //TODO: make an if statement to check whether dataSets.json contains shortFileName
 #define main_cxx
-#include "main.h" //change this for mc or real data
+#include "mainMC.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
 #include <TH2.h>
 //#include <TROOT.h>
@@ -230,8 +230,8 @@ void mini::Run(){
 				histograms["invMass2l"]->Fill(invM2,eventWeight);
 				histograms["invMass2D_EMu"]->Fill(invM1,invM2);
 				
-				histograms["opening_Angle2lep"]->Fill(abs((*lep_phi)[0] - (*lep_phi)[which]));
-				histograms["opening_Angle2lep"]->Fill(abs((*lep_phi)[others[0]] - (*lep_phi)[others[1]]));
+				histograms["opening_Angle2lep"]->Fill(abs((*lep_phi)[0] - (*lep_phi)[which]),eventWeight);
+				histograms["opening_Angle2lep"]->Fill(abs((*lep_phi)[others[0]] - (*lep_phi)[others[1]]),eventWeight);
 			
 			}
 
@@ -318,8 +318,8 @@ void mini::Run(){
 				//Add the opening angles:
 				Double_t delta_Phi1 = abs((*lep_phi)[chosen_pair1.first]-(*lep_phi)[chosen_pair1.second]);
 				Double_t delta_Phi2 = abs((*lep_phi)[chosen_pair2.first]-(*lep_phi)[chosen_pair2.second]);
-				histograms["opening_Angle2lep"]->Fill(delta_Phi1);
-				histograms["opening_Angle2lep"]->Fill(delta_Phi2);
+				histograms["opening_Angle2lep"]->Fill(delta_Phi1,eventWeight);
+				histograms["opening_Angle2lep"]->Fill(delta_Phi2,eventWeight);
 
 
 				if((*lep_type)[0]==11){
