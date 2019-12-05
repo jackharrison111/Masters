@@ -76,8 +76,10 @@ void mini::Run(){
 	TFile output(("rootOutput/"+outputName+"output_tau_5-12.root").c_str(),"RECREATE");
 	TDirectory *TDir = output.mkdir("1lep1tau");
 	std::map<string,TH1*> histograms;
-	histograms["invMassleptau"]=new TH1D("invMassleptau","Z->l#tau",200,0,160);
-	histograms["invMass3lep1tau"]=new TH1D("invMass3lep1tau","Z'->lll#tau",200,0,160);
+	histograms["invMassleptau"]=new TH1D("invMassleptau","Z#rightarrowl#tau",200,0,160);
+	histograms["invMass3lep1tau"]=new TH1D("invMass3lep1tau","Z#rightarrowlll#tau",200,0,160);
+	histograms["invMassVis"] = new TH1D("invMassVis", "Z#rightarrowllVis",200,0,160);
+
 
 	Int_t counter{0};
 	clock_t startTime = clock();
@@ -150,7 +152,7 @@ void mini::Run(){
 
 		
 
-		Double_t invM1, invM2, invM3;
+		Double_t invM1, invM2, invM3, invM4;
 
 
 			
@@ -210,7 +212,9 @@ void mini::Run(){
 				            +(*lep_pt)[tauPartner]*sinh((*lep_eta)[tauPartner])+(*tau_pt)[0]*sinh((*tau_eta)[0]);
 				invM3 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
 				histograms["invMassleptau"]->Fill(invM3);
-			
+		
+				invM4 = sqrt(2*(*lep_pt)[tauPartner]*(*tau_pt)[0]*(cosh((*lep_eta)[tauPartner]-(*tau_eta)[0])-cos((*lep_phi)[tauPartner]-(*tau_phi)[0])))/1000;
+				histograms["invMassVis"]->Fill(invM4);
 			
 			}
 
@@ -248,6 +252,9 @@ void mini::Run(){
 				            +(*lep_pt)[oddLep]*sinh((*lep_eta)[oddLep])+(*tau_pt)[0]*sinh((*tau_eta)[0]);
 				invM2 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
 				histograms["invMassleptau"]->Fill(invM2);
+			
+				invM4 = sqrt(2*(*lep_pt)[oddLep]*(*tau_pt)[0]*(cosh((*lep_eta)[oddLep]-(*tau_eta)[0])-cos((*lep_phi)[oddLep]-(*tau_phi)[0])))/1000;
+				histograms["invMassVis"]->Fill(invM4);
 			}
 		}
 		
