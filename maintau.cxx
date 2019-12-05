@@ -1,6 +1,6 @@
 //TODO: make an if statement to check whether dataSets.json contains shortFileName
 #define main_cxx
-#include "mainMC.h" //change this for mc or real data
+#include "main.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
 #include <TH2.h>
 //#include <TROOT.h>
@@ -73,7 +73,7 @@ void mini::Run(){
 
 	
 
-	TFile output(("rootOutput/"+outputName+"output_tau_4-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/"+outputName+"output_tau_5-12.root").c_str(),"RECREATE");
 	TDirectory *TDir = output.mkdir("1lep1tau");
 	std::map<string,TH1*> histograms;
 	histograms["invMassleptau"]=new TH1D("invMassleptau","Z->l#tau",200,0,160);
@@ -148,14 +148,20 @@ void mini::Run(){
 
 
 
+		
+
+		Double_t invM1, invM2, invM3;
 
 
-		Double_t invM1, invM2;
+			
+
+			
 		if(Cut(2,1,1)||Cut(1,2,1)||Cut(3,0,1)||Cut(0,3,1)){
 			Int_t totalQ = (*lep_charge)[0]+(*lep_charge)[1]+(*lep_charge)[2];
 			if(totalQ+(*tau_charge)[0]!=0) continue;
 			Int_t tauPartner;
 			Int_t oddLep;
+			
 
 			// all 3 leps same type
 			if((*lep_type)[0]==(*lep_type)[1]&&(*lep_type)[0]==(*lep_type)[2]){
@@ -172,22 +178,40 @@ void mini::Run(){
 				}
 				// now compare lepton - lepton pairings and oddlepton - tau pairings
 				// ......
+				
+				
 				// TODO: sameLeps are leptons with same charge, need to find best pairing here
-				invM1 = sqrt(2*(*lep_pt)[sameLeps[0]]*(*lep_pt)[sameLeps[1]]*(cosh((*lep_eta)[sameLeps[0]]-(*lep_eta)[sameLeps[1]])-cos((*lep_phi)[sameLeps[0]]-(*lep_phi)[sameLeps[1]])))/1000;
-				histograms["invMassleptau"]->Fill(invM1);
-
-				Double_t nu_T_lep = met_et*(sin(met_phi)-sin((*tau_phi)[0]))/(sin((*lep_phi)[oddLep])-sin((*tau_phi)[0]));
-				Double_t nu_T_had = met_et*(sin(met_phi)-sin((*lep_phi)[oddLep]))/(sin((*tau_phi)[0])-sin((*lep_phi)[oddLep]));
-				Double_t A = nu_T_lep*cosh((*lep_eta)[oddLep])+nu_T_had*cosh((*tau_eta)[0])
-				            +(*lep_pt)[oddLep]*cosh((*lep_eta)[oddLep])+(*tau_pt)[0]*cosh((*tau_eta)[0]);
-				Double_t B = nu_T_lep*cos((*lep_phi)[oddLep])+nu_T_had*cos((*tau_phi)[0])
-				            +(*lep_pt)[oddLep]*cos((*lep_phi)[oddLep])+(*tau_pt)[0]*cos((*tau_phi)[0]);
-				Double_t C = nu_T_lep*sin((*lep_phi)[oddLep])+nu_T_had*sin((*tau_phi)[0])
-				            +(*lep_pt)[oddLep]*sin((*lep_phi)[oddLep])+(*tau_pt)[0]*sin((*tau_phi)[0]);
-				Double_t D = nu_T_lep*sinh((*lep_eta)[oddLep])+nu_T_had*sinh((*tau_eta)[0])
-				            +(*lep_pt)[oddLep]*sinh((*lep_eta)[oddLep])+(*tau_pt)[0]*sinh((*tau_eta)[0]);
-				invM2 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
-				histograms["invMassleptau"]->Fill(invM2);
+				invM1 = sqrt(2*(*lep_pt)[oddLep]*(*lep_pt)[sameLeps[0]]*(cosh((*lep_eta)[oddLep]-(*lep_eta)[sameLeps[0]])-cos((*lep_phi)[oddLep]-(*lep_phi)[sameLeps[0]])))/1000;
+				
+				invM2 = sqrt(2*(*lep_pt)[oddLep]*(*lep_pt)[sameLeps[1]]*(cosh((*lep_eta)[oddLep]-(*lep_eta)[sameLeps[1]])-cos((*lep_phi)[oddLep]-(*lep_phi)[sameLeps[1]])))/1000;
+				
+				
+				if(abs(invM1 - zMass) < abs(invM2 - zMass)){
+					histograms["invMassleptau"]->Fill(invM1);
+					tauPartner = sameLeps[1];
+					//Efficiency++;
+				}else{
+					histograms["invMassleptau"]->Fill(invM2);
+					tauPartner = sameLeps[0];
+					//Efficiency++
+				}
+				
+				
+				
+				Double_t nu_T_lep = met_et*(sin(met_phi)-sin((*tau_phi)[0]))/(sin((*lep_phi)[tauPartner])-sin((*tau_phi)[0]));
+				Double_t nu_T_had = met_et*(sin(met_phi)-sin((*lep_phi)[tauPartner]))/(sin((*tau_phi)[0])-sin((*lep_phi)[tauPartner]));
+				Double_t A = nu_T_lep*cosh((*lep_eta)[tauPartner])+nu_T_had*cosh((*tau_eta)[0])
+				            +(*lep_pt)[tauPartner]*cosh((*lep_eta)[tauPartner])+(*tau_pt)[0]*cosh((*tau_eta)[0]);
+				Double_t B = nu_T_lep*cos((*lep_phi)[tauPartner])+nu_T_had*cos((*tau_phi)[0])
+				            +(*lep_pt)[tauPartner]*cos((*lep_phi)[tauPartner])+(*tau_pt)[0]*cos((*tau_phi)[0]);
+				Double_t C = nu_T_lep*sin((*lep_phi)[tauPartner])+nu_T_had*sin((*tau_phi)[0])
+				            +(*lep_pt)[tauPartner]*sin((*lep_phi)[tauPartner])+(*tau_pt)[0]*sin((*tau_phi)[0]);
+				Double_t D = nu_T_lep*sinh((*lep_eta)[tauPartner])+nu_T_had*sinh((*tau_eta)[0])
+				            +(*lep_pt)[tauPartner]*sinh((*lep_eta)[tauPartner])+(*tau_pt)[0]*sinh((*tau_eta)[0]);
+				invM3 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
+				histograms["invMassleptau"]->Fill(invM3);
+			
+			
 			}
 
 			// 2 leps same type, other not
@@ -226,13 +250,6 @@ void mini::Run(){
 				histograms["invMassleptau"]->Fill(invM2);
 			}
 		}
-
-
-
-
-
-
-
 		
 		//to write the last files histograms (loop ends after last event in last file,
 		//but writing normally occurs at start of next loop)
