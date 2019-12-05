@@ -67,7 +67,7 @@ void plot(string product, string histType){
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
 	
 	
-	TFile *f = new TFile("rootOutput/mc_output_28-11_ZllZll.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("rootOutput/mc_output_tau_4-12.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -89,7 +89,7 @@ void plot(string product, string histType){
 
 		//TH1D *chosenHist = new TH1D;
 		
-		string signalFile = "mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.2lep_raw.root"; 
+		string signalFile = "mc15_13TeV.361106.PwPy8EG_AZNLOCTEQ6L1_Zee.2lep_raw.root"; 
 		int counter{0};
 		while((aKey = (TKey*)next())){
 			TClass *myClass = gROOT->GetClass(aKey->GetClassName());
@@ -107,8 +107,8 @@ void plot(string product, string histType){
 			//if(histName == printChoice){
 				myHist->SetDirectory(0);
 				myHist->SetTitle(";M_{inv}/GeV; Counts/0.8GeV");
-				myHist->SetLineColor(kBlue-4);
-				myHist->SetLineWidth(1);
+				//myHist->SetLineColor(kBlue-4);
+				//myHist->SetLineWidth(1);
 				//legend->AddEntry(myHist,"Signal channel","l");
 				//myHist->SetCanExtend(TH1::kYaxis);
 				//myHist->Draw("hist");
@@ -192,7 +192,7 @@ void plot(string product, string histType){
 	totalHist->SetTitle(";M_{inv} /GeV; Counts /0.8GeV");
 	//totalHist->Draw("hist");
 	re_totalHist->SetDirectory(0);
-	//re_totalHist->SetZTitle("Counts/(1.6GeV)^{2}");
+	re_totalHist->SetZTitle("Counts/(1.6GeV)^{2}");
 	re_totalHist->Draw("hist");
 	legend->Draw();
 	

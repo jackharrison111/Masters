@@ -49,10 +49,7 @@ Bool_t mini::Cut(Int_t e, Int_t mu, Int_t tau){ //electron and muons only so far
 
 
 void mini::Run(){
-	Int_t tauCounter{0};
-	
-	gROOT->SetStyle("ATLAS");
-	gStyle->SetOptStat(1111111);
+	gStyle->SetOptStat(0);
 
 	if (fChain == 0) return;
 
@@ -76,9 +73,11 @@ void mini::Run(){
 	TFile output(("rootOutput/"+outputName+"output_tau_5-12.root").c_str(),"RECREATE");
 	TDirectory *TDir = output.mkdir("1lep1tau");
 	std::map<string,TH1*> histograms;
-	histograms["invMassleptau"]=new TH1D("invMassleptau","Z#rightarrowl#tau",200,0,160);
-	histograms["invMass3lep1tau"]=new TH1D("invMass3lep1tau","Z#rightarrowlll#tau",200,0,160);
-	histograms["invMassVis"] = new TH1D("invMassVis", "Z#rightarrowllVis",200,0,160);
+
+  histograms["invMassVis"] = new TH1D("invMassVis", "Z#rightarrowllVis",200,0,160);
+	histograms["invMassleptau"] = new TH1D("invMassleptau","Z->l#tau",200,0,160);
+	histograms["invMass3lep1tau"] = new TH1D("invMass3lep1tau","Z->lll#tau",200,0,160);
+	histograms["missEtDist"] = new TH1D("missEtDist","Distribution of missing transverse momentum",200,-1*pi,pi);
 
 
 	Int_t counter{0};
@@ -167,9 +166,12 @@ void mini::Run(){
 
 			// all 3 leps same type
 			if((*lep_type)[0]==(*lep_type)[1]&&(*lep_type)[0]==(*lep_type)[2]){
-				vector<Int_t> sameLeps;
+				vector<Int_t> sameLeps; //stores the indices of the leptons which have the same charge eg 2 electrons
 				for(Int_t j=0; j<3; j++){
 					if((*lep_charge)[j]==-totalQ){
+					//eg if totalQ is -1 then there are 2 electrons and 1 positron
+					//then the odd lepton is the positron
+					//ie the odd lepton has opposite charge to totalQ
 						oddLep=j;
 					}
 				}
@@ -180,13 +182,8 @@ void mini::Run(){
 				}
 				// now compare lepton - lepton pairings and oddlepton - tau pairings
 				// ......
-				
-				
-				// TODO: sameLeps are leptons with same charge, need to find best pairing here
 				invM1 = sqrt(2*(*lep_pt)[oddLep]*(*lep_pt)[sameLeps[0]]*(cosh((*lep_eta)[oddLep]-(*lep_eta)[sameLeps[0]])-cos((*lep_phi)[oddLep]-(*lep_phi)[sameLeps[0]])))/1000;
-				
 				invM2 = sqrt(2*(*lep_pt)[oddLep]*(*lep_pt)[sameLeps[1]]*(cosh((*lep_eta)[oddLep]-(*lep_eta)[sameLeps[1]])-cos((*lep_phi)[oddLep]-(*lep_phi)[sameLeps[1]])))/1000;
-				
 				
 				if(abs(invM1 - zMass) < abs(invM2 - zMass)){
 					histograms["invMassleptau"]->Fill(invM1);
@@ -197,8 +194,6 @@ void mini::Run(){
 					tauPartner = sameLeps[0];
 					//Efficiency++
 				}
-				
-				
 				
 				Double_t nu_T_lep = met_et*(sin(met_phi)-sin((*tau_phi)[0]))/(sin((*lep_phi)[tauPartner])-sin((*tau_phi)[0]));
 				Double_t nu_T_had = met_et*(sin(met_phi)-sin((*lep_phi)[tauPartner]))/(sin((*tau_phi)[0])-sin((*lep_phi)[tauPartner]));
@@ -212,7 +207,9 @@ void mini::Run(){
 				            +(*lep_pt)[tauPartner]*sinh((*lep_eta)[tauPartner])+(*tau_pt)[0]*sinh((*tau_eta)[0]);
 				invM3 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
 				histograms["invMassleptau"]->Fill(invM3);
-		
+
+				histograms["missEtDist"]->Fill(pi*met_phi/((*tau_phi)[0]-(*lep_phi)[tauPartner]));
+
 				invM4 = sqrt(2*(*lep_pt)[tauPartner]*(*tau_pt)[0]*(cosh((*lep_eta)[tauPartner]-(*tau_eta)[0])-cos((*lep_phi)[tauPartner]-(*tau_phi)[0])))/1000;
 				histograms["invMassVis"]->Fill(invM4);
 			
@@ -233,7 +230,8 @@ void mini::Run(){
 				}
 				for(Int_t j=0; j<3; j++){
 					if(j==leps.first||j==leps.second) continue;
-					oddLep=j; //lep which doesnt have a broder
+					//the odd lepton in this case is the one which is not the same type as the other two
+					oddLep=j;
 				}
 				// now compare lepton - lepton pairings and oddlepton - tau pairings
 				// ......
@@ -252,6 +250,8 @@ void mini::Run(){
 				            +(*lep_pt)[oddLep]*sinh((*lep_eta)[oddLep])+(*tau_pt)[0]*sinh((*tau_eta)[0]);
 				invM2 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
 				histograms["invMassleptau"]->Fill(invM2);
+
+				histograms["missEtDist"]->Fill(pi*met_phi/((*tau_phi)[0]-(*lep_phi)[oddLep]));
 			
 				invM4 = sqrt(2*(*lep_pt)[oddLep]*(*tau_pt)[0]*(cosh((*lep_eta)[oddLep]-(*tau_eta)[0])-cos((*lep_phi)[oddLep]-(*tau_phi)[0])))/1000;
 				histograms["invMassVis"]->Fill(invM4);
@@ -283,8 +283,6 @@ void mini::Run(){
 
 	output.cd();
 	output.Close(); //Close the output file
-	
-	std::cout<<tauCounter<<std::endl;
 } 
 
 
