@@ -74,7 +74,7 @@ void mini::Run(){
 
 	
 
-	TFile output(("rootOutput/" + outputName+"output_4-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/" + outputName+"output_openAngle_5-12.root").c_str(),"RECREATE");
 	TDirectory *TDir1 = output.mkdir("1lep1tau");
 	TDirectory *TDir2 = output.mkdir("2lep");
 	std::map<string,TH1*> histograms;
@@ -85,6 +85,8 @@ void mini::Run(){
 	histograms["invMass2D_EMu"]=new TH2D("invMass2D_EMu","ZZ->ee&&#mu#mu",100,0,160,100,0,160);
 	histograms["invMass2D_EE"]=new TH2D("invMass2D_EE","ZZ->ee&&ee",100,0,160,100,0,160);
 	histograms["invMass2D_MuMu"]=new TH2D("invMass2D_MuMu","ZZ->#mu#mu&&#mu#mu",100,0,160,100,0,160);
+	histograms["opening_Angle2lep"] = new TH1D("opening_Angle2lep", "2Z #rightarrow 4l", 200,0,2*pi);
+
 
 	Int_t counter{0};
 	clock_t startTime = clock();
@@ -207,8 +209,8 @@ void mini::Run(){
 					others[k]=j;
 					k++;
 				}
-		}
-
+			}
+			
 			//Find the electron/muon invariant mass from the correct pairings
 			if((*lep_type)[0]==11){
 				invM1 = sqrt(2*(*lep_pt)[0]*(*lep_pt)[which]*(cosh((*lep_eta)[0]-(*lep_eta)[which])-cos((*lep_phi)[0]-(*lep_phi)[which])))/1000;
@@ -227,6 +229,10 @@ void mini::Run(){
 				histograms["invMass2l"]->Fill(invM1,eventWeight);
 				histograms["invMass2l"]->Fill(invM2,eventWeight);
 				histograms["invMass2D_EMu"]->Fill(invM1,invM2);
+				
+				histograms["opening_Angle2lep"]->Fill(abs((*lep_phi)[0] - (*lep_phi)[which]));
+				histograms["opening_Angle2lep"]->Fill(abs((*lep_phi)[others[0]] - (*lep_phi)[others[1]]));
+			
 			}
 
 		}else if(Cut(4,0,0)||Cut(0,4,0)){    //include 4 lepton events of all the same type
@@ -257,7 +263,7 @@ void mini::Run(){
 			invM3 = sqrt(2*(*lep_pt)[pos.first]*(*lep_pt)[neg.second]*(cosh((*lep_eta)[pos.first]-(*lep_eta)[neg.second])-cos((*lep_phi)[pos.first]-(*lep_phi)[neg.second])))/1000;
 			invM4 = sqrt(2*(*lep_pt)[pos.second]*(*lep_pt)[neg.first]*(cosh((*lep_eta)[pos.second]-(*lep_eta)[neg.first])-cos((*lep_phi)[pos.second]-(*lep_phi)[neg.first])))/1000;
 	
-			/*
+			
 			// this finds closest reconstruction to M_Z
 			vector<Double_t> deltas;
 			deltas.push_back(abs(invM1-zMass));
@@ -272,21 +278,34 @@ void mini::Run(){
 			masses.push_back(invM4);
 			pair<Double_t, Double_t> pair1(invM1, invM2);
 			pair<Double_t, Double_t> pair2(invM3, invM4);
+			//Track the pairing numbers used for each invMass
+			pair<Int_t, Int_t> pair_num1 (pos.first, neg.first);
+			pair<Int_t, Int_t> pair_num2 (pos.second, neg.second);
+			pair<Int_t, Int_t> pair_num3 (pos.first, neg.second);
+			pair<Int_t, Int_t> pair_num4 (pos.second, neg.first);
+			//Store the minimum pairings
+			pair<Int_t, Int_t> chosen_pair1;
+			pair<Int_t, Int_t> chosen_pair2;
+			
+
 			for(vector<Double_t>::iterator it = masses.begin(); it != masses.end(); it++){
 				Double_t diff = abs(*it - zMass);
 				if(diff == deltas[0]){
 					if((*it == pair1.first)||(*it == pair1.second)){
-						//test->Fill(pair1.first);
-						//test->Fill(pair1.second);
+						chosen_pair1 = pair_num1;
+						chosen_pair2 = pair_num2;
+						
 					}else{
-						//test->Fill(pair2.first);
-						//test->Fill(pair2.second);
+						chosen_pair1 = pair_num3;
+						chosen_pair2 = pair_num4;
+						
+						//Reuse M1 and M2 for bants
+						invM1 = invM3;
+						invM2 = invM4;
 					}
-
 				}
-
 			}
-			*/
+			
 			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
 				if(MC&&sumw!=0&&shortFileName==ZllZll){
 					Efficiency+=eventWeight/sumw;
@@ -295,16 +314,24 @@ void mini::Run(){
 				}
 				histograms["invMass2l"]->Fill(invM1,eventWeight);
 				histograms["invMass2l"]->Fill(invM2,eventWeight);
+				
+				//Add the opening angles:
+				Double_t delta_Phi1 = abs((*lep_phi)[chosen_pair1.first]-(*lep_phi)[chosen_pair1.second]);
+				Double_t delta_Phi2 = abs((*lep_phi)[chosen_pair2.first]-(*lep_phi)[chosen_pair2.second]);
+				histograms["opening_Angle2lep"]->Fill(delta_Phi1);
+				histograms["opening_Angle2lep"]->Fill(delta_Phi2);
+
+
 				if((*lep_type)[0]==11){
 					histograms["invMass2D_EE"]->Fill(invM1,invM2);
 				}else{
 					histograms["invMass2D_MuMu"]->Fill(invM1,invM2);
 				}
 			}
-		  	else if((invM3<higher&&invM3>lower)||(invM4<higher&&invM4>lower)){ //hardcoded
+		  	/*else if((invM3<higher&&invM3>lower)||(invM4<higher&&invM4>lower)){ //hardcoded
 				if(MC&&sumw!=0&&shortFileName==ZllZll){
 					Efficiency+=eventWeight/sumw;
-				}else if(!MC){
+			}else if(!MC){
 					Efficiency++;//=1/n;
 				}
 				histograms["invMass2l"]->Fill(invM3,eventWeight);
@@ -314,7 +341,7 @@ void mini::Run(){
 				}else{
 					histograms["invMass2D_MuMu"]->Fill(invM3,invM4);
 				}
-			}
+			}*/
 
 		}
 
