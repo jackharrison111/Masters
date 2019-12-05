@@ -73,9 +73,12 @@ void mini::Run(){
 	TFile output(("rootOutput/"+outputName+"output_tau_5-12.root").c_str(),"RECREATE");
 	TDirectory *TDir = output.mkdir("1lep1tau");
 	std::map<string,TH1*> histograms;
+
+  histograms["invMassVis"] = new TH1D("invMassVis", "Z#rightarrowllVis",200,0,160);
 	histograms["invMassleptau"] = new TH1D("invMassleptau","Z->l#tau",200,0,160);
 	histograms["invMass3lep1tau"] = new TH1D("invMass3lep1tau","Z->lll#tau",200,0,160);
 	histograms["missEtDist"] = new TH1D("missEtDist","Distribution of missing transverse momentum",200,-1*pi,pi);
+
 
 	Int_t counter{0};
 	clock_t startTime = clock();
@@ -148,7 +151,7 @@ void mini::Run(){
 
 		
 
-		Double_t invM1, invM2, invM3;
+		Double_t invM1, invM2, invM3, invM4;
 
 
 			
@@ -206,6 +209,10 @@ void mini::Run(){
 				histograms["invMassleptau"]->Fill(invM3);
 
 				histograms["missEtDist"]->Fill(pi*met_phi/((*tau_phi)[0]-(*lep_phi)[tauPartner]));
+
+				invM4 = sqrt(2*(*lep_pt)[tauPartner]*(*tau_pt)[0]*(cosh((*lep_eta)[tauPartner]-(*tau_eta)[0])-cos((*lep_phi)[tauPartner]-(*tau_phi)[0])))/1000;
+				histograms["invMassVis"]->Fill(invM4);
+			
 			}
 
 			// 2 leps same type, other not
@@ -245,6 +252,9 @@ void mini::Run(){
 				histograms["invMassleptau"]->Fill(invM2);
 
 				histograms["missEtDist"]->Fill(pi*met_phi/((*tau_phi)[0]-(*lep_phi)[oddLep]));
+			
+				invM4 = sqrt(2*(*lep_pt)[oddLep]*(*tau_pt)[0]*(cosh((*lep_eta)[oddLep]-(*tau_eta)[0])-cos((*lep_phi)[oddLep]-(*tau_phi)[0])))/1000;
+				histograms["invMassVis"]->Fill(invM4);
 			}
 		}
 		
