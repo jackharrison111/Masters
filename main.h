@@ -232,8 +232,8 @@ mini::mini(TTree *tree) : fChain(0)
 // used to generate this class and read the Tree.
    if (tree == 0) {
       chain = new TChain("mini");
-      chain->Add("/data/ATLAS/1lep1tau/Data/*");
-      //chain->Add("/data/ATLAS/2lep/Data/*");
+      //chain->Add("/data/ATLAS/1lep1tau/Data/*");
+      chain->Add("/data/ATLAS/2lep/Data/*");
    }
    Init(chain);
 }

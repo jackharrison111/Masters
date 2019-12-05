@@ -142,9 +142,9 @@ void plot(string product, string histType){
 	f->Close();
 
 	
-	TH1D *re_totalHist = new TH1D("re_totalHist", "", 200, 0, 160);
-	re_totalHist->SetTitle(";M_{inv}/GeV;counts/0.8GeV");
-	TFile *f2 = new TFile("rootOutput/re_output_4-12.root");
+	TH1D *re_totalHist = new TH1D("re_totalHist", "", 200, 0, 2*M_PI);
+	//re_totalHist->SetTitle(";M_{inv}/GeV;counts/0.8GeV");
+	TFile *f2 = new TFile("rootOutput/re_output_openAngle_5-12.root");
 	if(!f2->IsOpen()){
 		std::cout << "Couldn't open re_output.root" << std::endl;
 	}
@@ -181,13 +181,29 @@ void plot(string product, string histType){
 
 	delete f2;
 
+	TAxis* a = re_totalHist->GetXaxis();
+	a->SetNdivisions(-504);
+	a->ChangeLabel(1,-1,-1,-1,-1,-1,"-#pi");
+	a->ChangeLabel(-1,-1,-1,-1,-1,-1,"#pi");
+	a->ChangeLabel(2,-1,-1,-1,-1,-1,"-#frac{#pi}{2}");
+	a->ChangeLabel(4,-1,-1,-1,-1,-1,"#frac{#pi}{2}");
+	a->SetLabelOffset(0.015);
+	a->SetTitleOffset(1.2);
+	re_totalHist->SetTitle(";#phi_{rel}/rad; counts/[#pi/100rad]");
+	re_totalHist->SetDirectory(0);
+	re_totalHist->Draw("hist");
+
+
+
+	/*
+
 	//ADD LEGEND AND TITLES TO NEW HISTOGRAM
 	legend->SetHeader("ZZ#rightarrow4l", "C");
-	//legend->AddEntry(totalHist, "MC", "l"/*).c_str()*/);
+	//legend->AddEntry(totalHist, "MC", "l");
 
 
 	totalHist->SetLineColor(kRed);
-	legend->AddEntry(re_totalHist, "Real", "l"/*).c_str()*/);
+	legend->AddEntry(re_totalHist, "Real", "l");
 	totalHist->SetDirectory(0);
 	totalHist->SetTitle(";M_{inv} /GeV; Counts /0.8GeV");
 	//totalHist->Draw("hist");
@@ -195,7 +211,7 @@ void plot(string product, string histType){
 	re_totalHist->SetZTitle("Counts/(1.6GeV)^{2}");
 	re_totalHist->Draw("hist");
 	legend->Draw();
-	
+	*/
 	Int_t upperFit{140};
 	Int_t lowerFit{50};
 	TF1 *invMassFit = new TF1("invMassFit",Fit,lowerFit,upperFit,order+4); //hardcoded
@@ -209,7 +225,7 @@ void plot(string product, string histType){
 	invMassFit->SetLineColor(kRed);
 	re_totalHist->Fit("invMassFit","+RN");
 
-
+	
 
 	//////////////////////////////////
 	//	Background fitting 	//
@@ -297,7 +313,7 @@ void plot(string product, string histType){
 	//g3->Draw("same");
 	//g->Draw("same");
 	//legend->AddEntry(g3,"Lorentzian","l");
-	legend->Draw();
+	//legend->Draw();
 	
 	//sigFit->SetParLimits(0, 85,95);
 	//sigFit->SetParLimits(1, 0,5);
@@ -347,6 +363,6 @@ void plot(string product, string histType){
 
 
 int plotterlep(){
-	plot("2lep","invMass2l");
+	plot("2lep","opening_Angle2lep");
 	return 0;
 }
