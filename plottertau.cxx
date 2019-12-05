@@ -43,7 +43,7 @@ Double_t BackFit(Double_t *x, Double_t *par){
 
 }
 
-
+Double_t L_int{10.064}; //fb
 Double_t Br_lep{0.03454};
 
 
@@ -59,7 +59,7 @@ void plot(string product, string histType){
 	productNames.push_back("2tau");
 	productNames.push_back("GamGam");
 
-	gROOT->SetStyle("ATLAS");
+	//gROOT->SetStyle("ATLAS");
 	gStyle->SetOptStat(0);
 
 	TCanvas *c = new TCanvas("c", "c");	
@@ -67,13 +67,18 @@ void plot(string product, string histType){
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
 	
 	
-	TFile *f = new TFile("mc_output_3-12_Zee.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("rootOutput/mc_output_tau_4-12.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
 	
 	//TODO:: ADD EFFICIENCY READING FROM THE PRODUCT DIRECTORY (IE 2lep)
 
+	TVectorD *Eff_Vector= (TVectorD*)f->Get((product+"/Efficiency/efficiency").c_str());
+	Double_t mc_Eff;
+	if(Eff_Vector != NULL){	
+		mc_Eff = (*Eff_Vector)[0];
+	}
 
 	string Zlep = "invMassZmumu";
 	//for(vector<string>::iterator it = productNames.begin(); it != productNames.end(); it++){
@@ -84,7 +89,7 @@ void plot(string product, string histType){
 
 		//TH1D *chosenHist = new TH1D;
 		
-		string signalFile = "mc15_13TeV.361106.PwPy8EG_AZNLOCTEQ6L1_Zee.2lep_raw.root"; 
+		string signalFile = "mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.2lep_raw.root"; 
 		int counter{0};
 		while((aKey = (TKey*)next())){
 			TClass *myClass = gROOT->GetClass(aKey->GetClassName());
@@ -99,17 +104,17 @@ void plot(string product, string histType){
 			//std::cout<<histName << std::endl;
 			
 			string printChoice = product + "_" + histType + "_" + signalFile;
-			if(histName == printChoice){
+			//if(histName == printChoice){
 				myHist->SetDirectory(0);
 				myHist->SetTitle(";M_{inv}/GeV; Counts/0.8GeV");
-				//myHist->SetLineColor(kBlue-4);
-				//myHist->SetLineWidth(1);
+				myHist->SetLineColor(kBlue-4);
+				myHist->SetLineWidth(1);
 				//legend->AddEntry(myHist,"Signal channel","l");
 				//myHist->SetCanExtend(TH1::kYaxis);
-				myHist->Draw("hist");
+				//myHist->Draw("hist");
 				//myHist->Draw("hist");
 				//chosenHist = myHist;	
-			}
+			//}
 			//myHist->SetLineColor(4 - counter);
 			//myHist->SetDirectory(0);
 			
@@ -137,57 +142,59 @@ void plot(string product, string histType){
 	f->Close();
 
 	
-	TH2D *re_totalHist = new TH2D("re_totalHist", "", 100, 0, 160,100,0,160);
-	re_totalHist->SetTitle(";M_{ee_{inv}}/GeV;M_{#mu#mu_{inv}}/GeV");
-	TFile *f2 = new TFile("rootOutput/re_output_3-12.root");
+	TH1D *re_totalHist = new TH1D("re_totalHist", "", 200, 0, 160);
+	re_totalHist->SetTitle(";M_{inv}/GeV;counts/0.8GeV");
+	TFile *f2 = new TFile("rootOutput/re_output_4-12_tau.root");
 	if(!f2->IsOpen()){
 		std::cout << "Couldn't open re_output.root" << std::endl;
 	}
-	
-	TVector *Eff_Vector= (TVector*)f2->Get((product+"/Efficiency").c_str());
-	if(Eff_Vector != NULL){	
-	Eff_Vector->Print();
-	Double_t re_Eff = (*Eff_Vector)[0];
-	std::cout << "READ IN EFFICIENCY: " <<  re_Eff << std::endl;
+		
+	TVectorD *Re_Eff_Vector= (TVectorD*)f2->Get((product+"/Efficiency/efficiency").c_str());
+	Double_t re_Eff;
+	Double_t double_counts;
+	if(Re_Eff_Vector != NULL){	
+		re_Eff = (*Re_Eff_Vector)[0];
+		double_counts = (*Re_Eff_Vector)[1];
 	}
-	//for(vector<string>::iterator at = productNames.begin(); at != productNames.end(); at++){
-		f2->cd((product + "/" + histType).c_str());
-		//gDirectory->pwd();
-		TIter re_next(gDirectory->GetListOfKeys());
-		TKey *reKey;
 
-		while((reKey = (TKey*)re_next())){
-			
-			TClass *realClass = gROOT->GetClass(reKey->GetClassName());
-			if(!realClass->InheritsFrom("TH2D")){
-			std::cout << "Skipping..." << std::endl;
-			continue;
-			}
-			TH2D *reHist = new TH2D;
-			reHist = (TH2D*)reKey->ReadObj();
-			string name = reHist->GetName();
-			reHist->SetDirectory(0);
-					
-			for(Int_t i = 1; i <= reHist->GetNbinsX(); i++){		
-				re_totalHist->Add(reHist);
-			}
+	f2->cd((product + "/" + histType).c_str());
+	TIter re_next(gDirectory->GetListOfKeys());
+	TKey *reKey;
+
+	while((reKey = (TKey*)re_next())){
+		
+		TClass *realClass = gROOT->GetClass(reKey->GetClassName());
+		if(!realClass->InheritsFrom("TH1D")){
+		std::cout << "Skipping..." << std::endl;
+		continue;
 		}
-	//}
+		TH1D *reHist = new TH1D;
+		reHist = (TH1D*)reKey->ReadObj();
+		string name = reHist->GetName();
+		reHist->SetDirectory(0);
+				
+		re_totalHist->Add(reHist);
+		/*for(Int_t i = 1; i <= reHist->GetNbinsX(); i++){		
+			re_totalHist->Add(reHist);
+		}*/
+	}
+
 	delete f2;
 
 	//ADD LEGEND AND TITLES TO NEW HISTOGRAM
-	legend->SetHeader("Data source", "C");
-	//legend->AddEntry(re_totalHist, "Real", "l"/*).c_str()*/);
-	legend->AddEntry(totalHist, "MC", "l"/*).c_str()*/);
+	legend->SetHeader("ZZ#rightarrow4l", "C");
+	//legend->AddEntry(totalHist, "MC", "l"/*).c_str()*/);
+
 
 	totalHist->SetLineColor(kRed);
+	legend->AddEntry(re_totalHist, "Real", "l"/*).c_str()*/);
 	totalHist->SetDirectory(0);
 	totalHist->SetTitle(";M_{inv} /GeV; Counts /0.8GeV");
 	//totalHist->Draw("hist");
 	re_totalHist->SetDirectory(0);
-	re_totalHist->SetZTitle("Counts/(1.6GeV)^{2}");
-	//re_totalHist->Draw("colz");
-	//legend->Draw();
+	//re_totalHist->SetZTitle("Counts/(1.6GeV)^{2}");
+	/*re_*/totalHist->Draw("hist");
+	legend->Draw();
 	
 	Int_t upperFit{140};
 	Int_t lowerFit{50};
@@ -200,46 +207,74 @@ void plot(string product, string histType){
 	//invMassFit->SetParLimits(3,-2,-0.01);
 	invMassFit->SetParLimits(4,-160*invMassFit->GetParameter(3),10);
 	invMassFit->SetLineColor(kRed);
-	totalHist->Fit("invMassFit","+RN");
+	re_totalHist->Fit("invMassFit","+RN");
 
+
+
+	//////////////////////////////////
+	//	Background fitting 	//
 	
 	
-	TF1 *backFit = new TF1("backFit",BackFit,120,160,order+1); //hardcoded
-	backFit->SetParNames("m","c");
+	Double_t lower_range{15/0.8};
+	Double_t upper_range{60/0.8};
+	
+	
+	TF1 *backFit = new TF1("backFit",BackFit,lower_range,upper_range,order+1); //hardcoded
+	backFit->SetParNames("a","b");
+	//backFit->SetParameters(2,20000);
 	backFit->SetParameters(1,1);
-	backFit->SetParLimits(0,-2,-0.01);
-	totalHist->Fit("backFit", "+RN");
+	backFit->SetParameters(0,-1);
+	re_totalHist->Fit("backFit", "+RN");
 
 	
+	Double_t m_err = backFit->GetParError(0);
+	Double_t c_err = backFit->GetParError(1);
+
+
 	Double_t x[200], y[200];
+	Double_t background_err{0};
 	for(Int_t i=0; i<200; i++){
 		x[i]=160*i/200;
 		//y[i]=invMassFit->GetParameter(1)*invMassFit->GetParameter(2)/(pow(x[i]-invMassFit->GetParameter(0),2)+pow(0.5*invMassFit->GetParameter(1),2));
-		y[i] = backFit->GetParameter(1) + backFit->GetParameter(0)*x[i];
+		y[i] = backFit->GetParameter(1) + backFit->GetParameter(0)*x[i];// + backFit->GetParameter(0)*pow(x[i],2);
+		if(x[i]>=80&&x[i]<=100){
+			background_err += pow(x[i]*m_err,2) + pow(c_err,2);
+		}
 	}
+	background_err = sqrt(background_err);
+
 	TGraph *g = new TGraph(200,x,y);
-	g->SetLineColor(kGreen);
+	g->SetLineColor(kRed);
+	g->SetLineWidth(2);
 	//g->Draw("same");
+	legend->AddEntry(g,"Background","l");
 	
-	//legend->AddEntry(g, "Background", "l");
-	//legend->Draw();	
+	
+	
+	
+	
+	
+	////////////////////////////
+	//	Signal fitting    //
 	
 	TH1D *signalHist = new TH1D("signalHist", "Signal", 200, 0, 160);
 	for(Int_t i=0; i<= totalHist->GetNbinsX(); i++){	
 		signalHist->SetBinContent(i, totalHist->GetBinContent(i) - y[i]);
 	}
-	signalHist->SetLineColor(kBlack);
+	signalHist->SetLineColor(kRed);
 	
 	//signalHist->Draw("hist");
-	TF1 *sigFit = new TF1("sigFit", Lorentz,65,105,3 );
+	TF1 *sigFit = new TF1("sigFit", Lorentz,80,103,3 );
 	sigFit->SetParNames("s#mu", "s#gamma", "sA");
+	sigFit->SetParameters(90,2,10);
 	sigFit->SetParLimits(0, 85,95);
 	sigFit->SetParLimits(1, 0,5);
 	sigFit->SetParLimits(2, 0,200);
-	//signalHist->Fit("sigFit", "+R");
+	signalHist->SetTitle(";M_{inv}/GeV;counts/0.8GeV");
+	signalHist->Fit("sigFit", "+RN");
 
 
-
+	//OVERALL FITTING::
 	/*Double_t x2[200], y2[200];
 	for(Int_t i=0; i<200; i++){
 		x2[i]=160*i/200;
@@ -257,7 +292,12 @@ void plot(string product, string histType){
 	}
 	TGraph *g3 = new TGraph(200,x3,y3);
 	g3->SetLineColor(kBlue);
+	g3->SetLineWidth(2);
+	//totalHist->Draw("hist");
 	//g3->Draw("same");
+	//g->Draw("same");
+	//legend->AddEntry(g3,"Lorentzian","l");
+	legend->Draw();
 	
 	//sigFit->SetParLimits(0, 85,95);
 	//sigFit->SetParLimits(1, 0,5);
@@ -287,39 +327,26 @@ void plot(string product, string histType){
 	//legend->AddEntry(g3, "Signal", "l");
 	//g3->Draw("same");
 	//legend->Draw();*/
-	Double_t integral=0;
-	Double_t background=0;
-	Double_t Nrec=0;
-	Double_t backFromBackFit{0};
-	for(Int_t i=0;i<200;i++){
-		if(160*i/200>=80&&160*i/200<=100){
-			Double_t ii=160*i/200;
-			integral+=invMassFit->Eval(ii);
-			background+=invMassFit->GetParameter(order+3)+invMassFit->GetParameter(order+2)*ii;// + invMassFit->GetParameter(order+1)*pow(i,2) + invMassFit->GetParameter(order)*pow(i,3);
-			Nrec+=invMassFit->GetParameter(1)*invMassFit->GetParameter(2)/(pow(ii-invMassFit->GetParameter(0),2)+pow(invMassFit->GetParameter(1)/2,2));
+	//}
+	
+	Double_t backIntegral = backFit->Integral(80/0.8,100/0.8);
+	Double_t efficiency = re_Eff;   //TODO: Make sure to change this for the correct file
+	std::cout << "Background integral: " << backIntegral << " +- " << background_err << std::endl;
+	std::cout << "Efficiency used: " << efficiency << std::endl;
+	
 
-			backFromBackFit += backFit->GetParameter(1) + backFit->GetParameter(0)*ii;
-		}
-	}
-	
-	
-	Double_t error;
-	Double_t inbuiltIntegral = totalHist->IntegralAndError(80/0.8,100/0.8,error, ""); //NOTE: binx, biny are the bin number.
-	
-	Double_t efficiency{7.6585e-5};   //TODO: Make sure to change this for each run
-	
-	std::cout << "Inbuilt integral: " << inbuiltIntegral << std::endl;
-	std::cout << "Error on the intergral: " <<  error << std::endl;
-
-
-	std::cout << "BackFit events: " << backFromBackFit << std::endl;
-	std::cout << "integral - backFit: " << inbuiltIntegral - backFromBackFit << std::endl;
-	
-	std::cout<<"Xsec (other way) ="<<(inbuiltIntegral-backFromBackFit)/(10.064*efficiency*2*Br_lep)<<std::endl;
+	Double_t err;
+	Double_t I = re_totalHist->IntegralAndError(80/0.8,100/0.8,err,"");
+	Double_t err_tot;
+	Double_t I_tot = re_totalHist->IntegralAndError(0,200,err_tot,"");
+	Double_t N_sig = (2*I-I_tot)/2;
+	Double_t sigma = pow(2*Br_lep,2)*(N_sig-backIntegral)/(efficiency*L_int);
+	Double_t sigma_sigma = sigma*sqrt((pow(err,2)+pow(err_tot,2)/4+pow(background_err,2))/pow(N_sig-backIntegral,2));
+	std::cout<<"sigma = "<<sigma/1e3<<" +- "<<sigma_sigma/1e3<<" pb"<<std::endl;
 }
 
 
-int plotter(){
-	plot("2lep","invMassZee");
+int plottertau(){
+	plot("1lep1tau","invMassleptau");
 	return 0;
 }
