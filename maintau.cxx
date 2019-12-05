@@ -49,10 +49,7 @@ Bool_t mini::Cut(Int_t e, Int_t mu, Int_t tau){ //electron and muons only so far
 
 
 void mini::Run(){
-	Int_t tauCounter{0};
-	
-	gROOT->SetStyle("ATLAS");
-	gStyle->SetOptStat(1111111);
+	gStyle->SetOptStat(0);
 
 	if (fChain == 0) return;
 
@@ -73,16 +70,11 @@ void mini::Run(){
 
 	
 
-	TFile output((outputName+"output_28-11_tau.root").c_str(),"RECREATE");
-	TDirectory *TDir3 = output.mkdir("1lep1tau");
+	TFile output(("rootOutput/"+outputName+"output_3-12_tau.root").c_str(),"RECREATE");
+	TDirectory *TDir = output.mkdir("1lep1tau");
 	std::map<string,TH1*> histograms;
-	histograms["invMassZee"]=new TH1D("invMassZee","Z->ee",200,0,160);
-	histograms["invMassZmumu"]=new TH1D("invMassZmumu","Z->#mu#mu",200,0,160);
 	histograms["invMass2l"]=new TH1D("invMass2l","Z->ll",200,0,160);
-	histograms["invMass4l"]=new TH1D("invMass4l","Z'->llll",200,0,160);
-	histograms["invMass2D_EMu"]=new TH2D("invMass2D_EMu","ZZ->ee&&#mu#mu",100,0,160,100,0,160);
-	histograms["invMass2D_EE"]=new TH2D("invMass2D_EE","ZZ->ee&&ee",100,0,160,100,0,160);
-	histograms["invMass2D_MuMu"]=new TH2D("invMass2D_MuMu","ZZ->#mu#mu&&#mu#mu",100,0,160,100,0,160);
+	//histograms["invMass4l"]=new TH1D("invMass4l","Z'->llll",200,0,160);
 
 	Int_t counter{0};
 	clock_t startTime = clock();
@@ -155,7 +147,7 @@ void mini::Run(){
 
 
 
-		Double_t invM1, invM2;
+		Double_t invM1, invM2, invM3, invM4;
 		if(Cut(2,1,1)||Cut(1,2,1)){
 			Int_t totalQ = (*lep_charge)[0]+(*lep_charge)[1]+(*lep_charge)[2];
 			if(totalQ+(*tau_charge)[0]!=0) continue;
@@ -164,9 +156,12 @@ void mini::Run(){
 
 			// all 3 leps same type
 			if((*lep_type)[0]==(*lep_type)[1]&&(*lep_type)[0]==(*lep_type)[2]){
-				vector<Int_t> sameLeps;
+				vector<Int_t> sameLeps; //stores the indices of the leptons which have the same charge eg 2 electrons
 				for(Int_t j=0; j<3; j++){
 					if((*lep_charge)[j]==-totalQ){
+					//eg if totalQ is -1 then there are 2 electrons and 1 positron
+					//then the odd lepton is the positron
+					//ie the odd lepton has opposite charge to totalQ
 						oddLep=j;
 					}
 				}
@@ -181,7 +176,7 @@ void mini::Run(){
 
 			// 2 leps same type, other not
 			else{
-				pait<Int_t, Int_t> leps;
+				pair<Int_t, Int_t> leps;
 				if((*lep_type)[0]==(*lep_type)[1]){ //pair 0&1
 					leps.first=0;
 					leps.second=1;
@@ -194,10 +189,13 @@ void mini::Run(){
 				}
 				for(Int_t j=0; j<3; j++){
 					if(j==leps.first||j==leps.second) continue;
-					oddLep=j; //lep which doesnt have a broder
+					//the odd lepton in this case is the one which is not the same type as the other two
+					oddLep=j;
 				}
 				// now compare lepton - lepton pairings and oddlepton - tau pairings
 				// ......
+				invM1=sqrt(2*(*lep_pt)[leps.first]*(*lep_pt)[leps.second]*(cosh((*lep_eta)[leps.first]-(*lep_eta)[leps.second])-cos((*lep_phi)[leps.first]-(*lep_phi)[leps.second])))/1000; //invM1 is for alike leptons
+				histograms["invMass2l"]->Fill(invM1,eventWeight);
 			}
 		}
 
@@ -233,8 +231,6 @@ void mini::Run(){
 
 	output.cd();
 	output.Close(); //Close the output file
-	
-	std::cout<<tauCounter<<std::endl;
 } 
 
 

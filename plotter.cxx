@@ -67,7 +67,7 @@ void plot(string product, string histType){
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
 	
 	
-	TFile *f = new TFile("mc_output_1-12_temp.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("mc_output_3-12_Zee.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -84,7 +84,7 @@ void plot(string product, string histType){
 
 		//TH1D *chosenHist = new TH1D;
 		
-		string signalFile = "mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.2lep_raw.root"; 
+		string signalFile = "mc15_13TeV.361106.PwPy8EG_AZNLOCTEQ6L1_Zee.2lep_raw.root"; 
 		int counter{0};
 		while((aKey = (TKey*)next())){
 			TClass *myClass = gROOT->GetClass(aKey->GetClassName());
@@ -102,8 +102,8 @@ void plot(string product, string histType){
 			if(histName == printChoice){
 				myHist->SetDirectory(0);
 				myHist->SetTitle(";M_{inv}/GeV; Counts/0.8GeV");
-				myHist->SetLineColor(kBlue-4);
-				myHist->SetLineWidth(1);
+				//myHist->SetLineColor(kBlue-4);
+				//myHist->SetLineWidth(1);
 				//legend->AddEntry(myHist,"Signal channel","l");
 				//myHist->SetCanExtend(TH1::kYaxis);
 				myHist->Draw("hist");
@@ -139,7 +139,7 @@ void plot(string product, string histType){
 	
 	TH2D *re_totalHist = new TH2D("re_totalHist", "", 100, 0, 160,100,0,160);
 	re_totalHist->SetTitle(";M_{ee_{inv}}/GeV;M_{#mu#mu_{inv}}/GeV");
-	TFile *f2 = new TFile("re_output_3-12.root");
+	TFile *f2 = new TFile("rootOutput/re_output_3-12.root");
 	if(!f2->IsOpen()){
 		std::cout << "Couldn't open re_output.root" << std::endl;
 	}
@@ -183,11 +183,11 @@ void plot(string product, string histType){
 	totalHist->SetLineColor(kRed);
 	totalHist->SetDirectory(0);
 	totalHist->SetTitle(";M_{inv} /GeV; Counts /0.8GeV");
-	totalHist->Draw("hist");
+	//totalHist->Draw("hist");
 	re_totalHist->SetDirectory(0);
 	re_totalHist->SetZTitle("Counts/(1.6GeV)^{2}");
 	//re_totalHist->Draw("colz");
-	legend->Draw();
+	//legend->Draw();
 	
 	Int_t upperFit{140};
 	Int_t lowerFit{50};
@@ -219,7 +219,7 @@ void plot(string product, string histType){
 	}
 	TGraph *g = new TGraph(200,x,y);
 	g->SetLineColor(kGreen);
-	g->Draw("same");
+	//g->Draw("same");
 	
 	//legend->AddEntry(g, "Background", "l");
 	//legend->Draw();	
@@ -320,6 +320,6 @@ void plot(string product, string histType){
 
 
 int plotter(){
-	plot("2lep","invMass2l");
+	plot("2lep","invMassZee");
 	return 0;
 }
