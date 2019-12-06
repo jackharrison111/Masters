@@ -83,11 +83,11 @@ void mini::Run(){
 
 	
 
-	TFile output(("rootOutput/"+outputName+"output_tau_5-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/"+outputName+"output_tau_6-12.root").c_str(),"RECREATE");
 	TDirectory *TDir = output.mkdir("1lep1tau");
 	std::map<string,TH1*> histograms;
 
-  histograms["invMassVis"] = new TH1D("invMassVis", "Z#rightarrowllVis",200,0,160);
+  	histograms["invMassVis"] = new TH1D("invMassVis", "Z#rightarrowllVis",200,0,160);
 	histograms["invMassleptau"] = new TH1D("invMassleptau","Z->l#tau",200,0,160);
 	histograms["invMass3lep1tau"] = new TH1D("invMass3lep1tau","Z->lll#tau",200,0,160);
 	histograms["missEtDist"] = new TH1D("missEtDist","Distribution of missing transverse momentum",200,-1*pi,pi);
@@ -226,14 +226,105 @@ void mini::Run(){
 				Double_t phiHalf;
 				Double_t DeltaPhiTL = getOpeningAngle((*tau_phi)[0], (*lep_phi)[tauPartner]);
 				
-				if((*tau_phi)[0]>(*lep_phi)[tauPartner]){
-					phiHalf = (*lep_phi)[tauPartner] + DeltaPhiTL/2;
-				}else{
-					phiHalf = (*tau_phi)[0] + DeltaPhiTL/2;
+				Double_t tauPhi = (*tau_phi)[0];
+				Double_t lepPhi = (*lep_phi)[tauPartner];
+				
+				Double_t tauSubtracted, tauAdded, lepSubtracted, lepAdded;
+				tauSubtracted = tauPhi - DeltaPhiTL/2;
+				lepAdded = lepPhi + DeltaPhiTL/2;
+				tauAdded = tauPhi + DeltaPhiTL/2;
+				lepSubtracted = lepPhi - DeltaPhiTL/2;
+					
+				if(tauAdded > pi){tauAdded - 2*pi;}
+				if(tauSubtracted < -pi){tauSubtracted + 2*pi;}
+				if(lepAdded > pi){lepAdded - 2*pi;}
+				if(lepSubtracted < -pi){lepSubtracted + 2*pi;}
+				
+				//std::cout << tauSubtracted << "  " << tauAdded << "  ,  " << lepSubtracted << "  " <<  lepAdded << std::endl;
+				if(tauSubtracted == lepSubtracted){phiHalf = tauSubtracted;}
+				if(tauAdded == lepSubtracted){phiHalf = tauAdded;}
+				if(tauSubtracted == lepSubtracted){phiHalf = tauSubtracted;}
+				if(tauAdded == lepAdded){phiHalf = tauAdded;}
+				
+				
+				/*
+				if(((tauPhi>pi/2)&&(lepPhi<-pi/2))||((tauPhi<-pi/2)&&(lepPhi>pi/2))){
+					//CAN DO WHICHEVER IS CLOSEST TO THE AXIS AND ALTER THE OTHER ONE APPROPRIATELY?
+					if(pi-abs(tauPhi)>pi-abs(lepPhi)){
+						if(tauPhi > 0){
+							phiHalf = tauAdded;
+						}else{
+							phiHalf = tauSubtracted;
+						}		
+					}else{
+						if(lepPhi > 0){
+							phiHalf = lepAdded;
+						}else{
+							phiHalf = lepSubtracted;
+						}
+					}
 				}
+				else if((tauPhi>0)&&(lepPhi>0)){
+					if(tauPhi > lepPhi){
+						phiHalf = tauSubtracted;
+					}else{
+						phiHalf = lepSubtracted;
+					}
+				}else if((tauPhi<0)&&(lepPhi<0)){
+					if(lepPhi < tauPhi){
+						phiHalf = lepAdded;
+					}else{
+						phiHalf = tauAdded;
+					}
+				}
+				
+				
+				//Now need if one is quad 3,4 and other isnt 
+				//
 
+				else if((tauPhi < pi/2)&&(lepPhi<-pi/2)){
+					
+						phiHalf = tauAdded;
+					}else if(tauAdded == lepSubtracted){
+						phiHalf = tauAdded;
+					}else if(tauSubtracted == lepAdded){
+						phiHalf = tauSubtracted;
+					}
+					else if(tauSubtracted == lepSubtracted){
+						phiHalf = tauSubtracted;
+					}
+						
+					
+				
+
+				*/
+				//if(phiHalf == phiHalf){std::cout <<"YEO" << std::endl;}
+				//else{std::cout << "NOO" << std::endl;}
+				if((phiHalf > pi)||(phiHalf < -pi)){		
+				std::cout << "Tau angle: " << (*tau_phi)[0] << " Lep angle: " << (*lep_phi)[tauPartner] << " phiHalf:  " << phiHalf  << "  half size: " << DeltaPhiTL/2 << std::endl;
+				}
 				//PHI HALF COULD BE + or - DELTA
 				Double_t deltaPhi2 = getOpeningAngle(phiHalf, met_phi);
+				if((deltaPhi2 > pi ) || (deltaPhi2 < -pi)){
+					std::cout << deltaPhi2 << std:: endl;
+				}
+				//NOW have right delta phi , fill with 
+				
+				if(getOpeningAngle(lepPhi, met_phi) > getOpeningAngle(tauPhi, met_phi)){
+					histograms["missEtDist"]->Fill(deltaPhi2*pi/DeltaPhiTL);
+				}else{
+					histograms["missEtDist"]->Fill(-deltaPhi2*pi/DeltaPhiTL);
+				}
+
+				/*
+				if((tauPhi>-pi/2)&&(tauPhi<pi/2))&&{{
+					if(tauPhi - phiHalf>0)&&(
+				}
+
+				if((phiHalf>-pi/2)&&(phiHalf<pi/2)){
+					
+				}
+				
 				if((*tau_phi)[0] > phiHalf){
 					if(met_phi>phiHalf){
 						histograms["missEtDist"]->Fill(deltaPhi2*pi/DeltaPhiTL);	
@@ -249,11 +340,11 @@ void mini::Run(){
 					}
 				}
 
-
-
+				
+				
 				//histograms["missEtDist"]->Fill(pi*met_phi/((*tau_phi)[0]-(*lep_phi)[tauPartner]));
 
-
+				*/
 
 				invM4 = sqrt(2*(*lep_pt)[tauPartner]*(*tau_pt)[0]*(cosh((*lep_eta)[tauPartner]-(*tau_eta)[0])-cos((*lep_phi)[tauPartner]-(*tau_phi)[0])))/1000;
 				histograms["invMassVis"]->Fill(invM4);
@@ -301,29 +392,42 @@ void mini::Run(){
 
 				Double_t angle;
 				Double_t phiHalf;
+				
+				
 				Double_t DeltaPhiTL = getOpeningAngle((*tau_phi)[0], (*lep_phi)[oddLep]);
 				
-				if((*tau_phi)[0]>(*lep_phi)[oddLep]){
-					phiHalf = (*lep_phi)[oddLep] + DeltaPhiTL/2;
-				}else{
-					phiHalf = (*tau_phi)[0] + DeltaPhiTL/2;
+				Double_t tauPhi = (*tau_phi)[0];
+				Double_t lepPhi = (*lep_phi)[oddLep];
+				
+				Double_t tauSubtracted, tauAdded, lepSubtracted, lepAdded;
+				tauSubtracted = tauPhi - DeltaPhiTL/2;
+				lepAdded = lepPhi + DeltaPhiTL/2;
+				tauAdded = tauPhi + DeltaPhiTL/2;
+				lepSubtracted = lepPhi - DeltaPhiTL/2;
+					
+				if(tauAdded > pi){tauAdded - 2*pi;}
+				if(tauSubtracted < -pi){tauSubtracted + 2*pi;}
+				if(lepAdded > pi){lepAdded - 2*pi;}
+				if(lepSubtracted < -pi){lepSubtracted + 2*pi;}
+				
+				if(tauSubtracted == lepSubtracted){phiHalf = tauSubtracted;}
+				if(tauAdded == lepSubtracted){phiHalf = tauAdded;}
+				if(tauSubtracted == lepSubtracted){phiHalf = tauSubtracted;}
+				if(tauAdded == lepAdded){phiHalf = tauAdded;}
+				
+				
+				if((phiHalf > pi)||(phiHalf < -pi)){		
+				std::cout << "Tau angle: " << (*tau_phi)[0] << " Lep angle: " << (*lep_phi)[tauPartner] << " phiHalf:  " << phiHalf  << "  half size: " << DeltaPhiTL/2 << std::endl;
 				}
-
-				//PHI HALF COULD BE + or - DELTA
 				Double_t deltaPhi2 = getOpeningAngle(phiHalf, met_phi);
-				if((*tau_phi)[0] > phiHalf){
-					if(met_phi>phiHalf){
-						histograms["missEtDist"]->Fill(deltaPhi2*pi/DeltaPhiTL);	
-					}else{
-						histograms["missEtDist"]->Fill(-deltaPhi2*pi/DeltaPhiTL);	
-					}
+				if((deltaPhi2 > pi ) || (deltaPhi2 < -pi)){
+					std::cout << deltaPhi2 << std:: endl;
+				}
+				
+				if(getOpeningAngle(lepPhi, met_phi) > getOpeningAngle(tauPhi, met_phi)){
+					histograms["missEtDist"]->Fill(deltaPhi2*pi/DeltaPhiTL);
 				}else{
-					if(met_phi>phiHalf){
-						histograms["missEtDist"]->Fill(-deltaPhi2*pi/DeltaPhiTL);	
-					}
-					else{
-						histograms["missEtDist"]->Fill(deltaPhi2*pi/DeltaPhiTL);	
-					}
+					histograms["missEtDist"]->Fill(-deltaPhi2*pi/DeltaPhiTL);
 				}
 
 

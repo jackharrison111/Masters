@@ -60,14 +60,14 @@ void plot(string product, string histType){
 	productNames.push_back("GamGam");
 
 	//gROOT->SetStyle("ATLAS");
-	gStyle->SetOptStat(0);
+	gStyle->SetOptStat(1111111);
 
 	TCanvas *c = new TCanvas("c", "c");	
 	TLegend *legend = new TLegend(1,0.5);
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
 	TH1D *etDist = new TH1D("missEtDist", "EtDist", 200, -1*M_PI, M_PI);
 	
-	TFile *f = new TFile("rootOutput/mc_output_tau_5-12.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("rootOutput/mc_output_tau_6-12.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -158,7 +158,7 @@ void plot(string product, string histType){
 		
 		
 		
-		/*
+	/*
 		TH1D *re_totalHist = new TH1D("re_totalHist", "", 200, 0, 160);
 		re_totalHist->SetTitle(";M_{inv}/GeV;counts/0.8GeV");
 		TFile *f2 = new TFile("rootOutput/re_output_4-12_tau.root");
