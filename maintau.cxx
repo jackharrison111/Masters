@@ -75,14 +75,14 @@ void mini::Run(){
 
 	
 
-	TFile output(("rootOutput/"+outputName+"output_tau_ETDist_5-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/"+outputName+"output_tau_ETDist_7-12.root").c_str(),"RECREATE");
 	TDirectory *TDir = output.mkdir("1lep1tau");
 	std::map<string,TH1*> histograms;
 
 	histograms["invMassVis"] = new TH1D("invMassVis", "Z#rightarrowllVis",200,0,160);
 	histograms["invMassleptau"] = new TH1D("invMassleptau","Z->l#tau",200,0,160);
 	histograms["invMass3lep1tau"] = new TH1D("invMass3lep1tau","Z->lll#tau",200,0,160);
-	histograms["missEtDist"] = new TH1D("missEtDist","Distribution of missing transverse momentum",200,-1*pi,pi);
+	histograms["missEtDist"] = new TH1D("missEtDist","Distribution of missing transverse momentum",100,-1*pi,pi);
 
 
 	Int_t counter{0};
@@ -163,9 +163,10 @@ void mini::Run(){
 			Int_t tauPartner;
 			Int_t oddLep;
 			
-
-			Double_t rotateLepTo;
-			Double_t rotateTauTo;
+			
+			Double_t t = (*tau_phi)[0];
+			Double_t l;
+			Double_t rotationAngle;
 			Double_t phi_rel;
 			// all 3 leps same type
 			if((*lep_type)[0]==(*lep_type)[1]&&(*lep_type)[0]==(*lep_type)[2]){
@@ -211,96 +212,10 @@ void mini::Run(){
 				invM3 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
 				histograms["invMassleptau"]->Fill(invM3);
 				
-				
-				
-				//find which is closest to + or -pi/2
-				Double_t lep = -pi/2-(*lep_phi)[tauPartner];
-				if(abs(pi/2-(*lep_phi)[tauPartner])<abs(lep)){
-					lep=pi/2-(*lep_phi)[tauPartner];
-					rotateLepTo = pi/2;
-				}else{
-					rotateLepTo = -pi/2;
-				}
-				Double_t tau = -pi/2-(*tau_phi)[0];
-				if(abs(pi/2-(*tau_phi)[0])<abs(tau)){
-					tau=pi/2-(*tau_phi)[0];
-					rotateTauTo = pi/2;
-				}else{
-					rotateTauTo = -pi/2;
-				}
-				
-				if(abs(lep)<abs(tau)){
-					//want to rotate lep ideally, but not if it means tau cuts the +-pi axis
-					if(lep<0){//rotating clockwise
-						if(abs(lep)<(-pi-(*tau_phi)[0])){//tau doesnt cross -pi
-							//rotate lep to rotateLepTo
-							phi_rel = (met_phi+lep-rotateLepTo)*pi/GetOpenAngle((*lep_phi)[tauPartner],(*tau_phi)[0]);
-							if(rotateLepTo==+pi/2){//Fill with -1						
-								histograms["missEtDist"]->Fill(-phi_rel);
-							}else{
-								histograms["missEtDist"]->Fill(phi_rel);
-							}
-						}else{//tau would cross -pi
-							//rotate tau to -pi/2
-							phi_rel = (met_phi-(*tau_phi)[0])*pi/GetOpenAngle((*lep_phi)[tauPartner],(*tau_phi)[0]);
-							//Fill with -1
-							histograms["missEtDist"]->Fill(-phi_rel);
-						}
-					}else{//rotating anticlockwise
-						if(abs(lep)<(pi-(*tau_phi)[0])){//tau doesnt cross +pi
-							//rotate lep to rotateLepTo
-							phi_rel = (met_phi+lep-rotateLepTo)*pi/GetOpenAngle((*lep_phi)[tauPartner],(*tau_phi)[0]);
-							if(rotateLepTo==+pi/2){//Fill with -1
-								histograms["missEtDist"]->Fill(-phi_rel);
-							}else{
-								histograms["missEtDist"]->Fill(phi_rel);
-							}
-						}else{//tau would cross +pi
-							//rotate tau to +pi/i2
-							phi_rel = (met_phi-(*tau_phi)[0])*pi/GetOpenAngle((*lep_phi)[tauPartner],(*tau_phi)[0]);
-							//Fill
-							histograms["missEtDist"]->Fill(phi_rel);
-						}
-					}
-				}else{//are this else and the previous if even needed??
-					//want to rotate tau ideally, but not if it means lep cuts the +-pi axis
-					if(tau<0){//rotating clockwise
-						if(abs(tau)<(-pi-(*lep_phi)[tauPartner])){//lep doesnt cross -pi
-							//rotate tau to rotateTauTo
-							phi_rel = (met_phi+tau-rotateTauTo)*pi/GetOpenAngle((*lep_phi)[tauPartner],(*tau_phi)[0]);
-							if(rotateTauTo==-pi/2){//Fill with -1						
-								histograms["missEtDist"]->Fill(-phi_rel);
-							}else{
-								histograms["missEtDist"]->Fill(phi_rel);
-							}
-						}else{//lep would cross -pi
-							//rotate lep to -pi/2
-							phi_rel = (met_phi-(*lep_phi)[0])*pi/GetOpenAngle((*lep_phi)[tauPartner],(*tau_phi)[0]);
-							//Fill
-							histograms["missEtDist"]->Fill(phi_rel);
-						}
-					}else{//rotating anticlockwise
-						if(abs(tau)<(pi-(*lep_phi)[tauPartner])){//lep doesnt cross +pi
-							//rotate tau to rotateTauTo
-							phi_rel = (met_phi+tau-rotateTauTo)*pi/GetOpenAngle((*lep_phi)[tauPartner],(*tau_phi)[0]);
-							//if rotateTauTo==-pi/2 Fill with -1
-							if(rotateTauTo==-pi/2){//Fill with -1						
-								histograms["missEtDist"]->Fill(-phi_rel);
-							}else{
-								histograms["missEtDist"]->Fill(phi_rel);
-							}
-						}else{//lep would cross +pi
-							//rotate lep to +pi/2
-							phi_rel = (met_phi-(*lep_phi)[0])*pi/GetOpenAngle((*lep_phi)[tauPartner],(*tau_phi)[0]);
-							//Fill with -1
-							histograms["missEtDist"]->Fill(-phi_rel);
-						}
-					}
-				}
+				l = (*lep_phi)[tauPartner];
 
 				invM4 = sqrt(2*(*lep_pt)[tauPartner]*(*tau_pt)[0]*(cosh((*lep_eta)[tauPartner]-(*tau_eta)[0])-cos((*lep_phi)[tauPartner]-(*tau_phi)[0])))/1000;
 				histograms["invMassVis"]->Fill(invM4);
-			
 			}
 
 			// 2 leps same type, other not
@@ -338,93 +253,77 @@ void mini::Run(){
 				            +(*lep_pt)[oddLep]*sinh((*lep_eta)[oddLep])+(*tau_pt)[0]*sinh((*tau_eta)[0]);
 				invM2 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
 				histograms["invMassleptau"]->Fill(invM2);
-
-				//find which is closest to + or -pi/2
-				Double_t lep = -pi/2-(*lep_phi)[oddLep];
-				if(abs(pi/2-(*lep_phi)[oddLep])<abs(lep)){
-					lep=pi/2-(*lep_phi)[oddLep];
-					rotateLepTo = pi/2;
-				}else{
-					rotateLepTo = -pi/2;
-				}
-				Double_t tau = -pi/2-(*tau_phi)[0];
-				if(abs(pi/2-(*tau_phi)[0])<abs(tau)){
-					tau=pi/2-(*tau_phi)[0];
-					rotateTauTo = pi/2;
-				}else{
-					rotateTauTo = -pi/2;
-				}
 				
-				if(abs(lep)<abs(tau)){
-					//want to rotate lep ideally, but not if it means tau cuts the +-pi axis
-					if(lep<0){//rotating clockwise
-						if(abs(lep)<(-pi-(*tau_phi)[0])){//tau doesnt cross -pi
-							//rotate lep to rotateLepTo
-							phi_rel = (met_phi+lep-rotateLepTo)*pi/GetOpenAngle((*lep_phi)[oddLep],(*tau_phi)[0]);
-							if(rotateLepTo==+pi/2){//Fill with -1						
-								histograms["missEtDist"]->Fill(-phi_rel);
-							}else{
-								histograms["missEtDist"]->Fill(phi_rel);
-							}
-						}else{//tau would cross -pi
-							//rotate tau to -pi/2
-							phi_rel = (met_phi-(*tau_phi)[0])*pi/GetOpenAngle((*lep_phi)[oddLep],(*tau_phi)[0]);
-							//Fill with -1
-							histograms["missEtDist"]->Fill(-phi_rel);
-						}
-					}else{//rotating anticlockwise
-						if(abs(lep)<(pi-(*tau_phi)[0])){//tau doesnt cross +pi
-							//rotate lep to rotateLepTo
-							phi_rel = (met_phi+lep-rotateLepTo)*pi/GetOpenAngle((*lep_phi)[oddLep],(*tau_phi)[0]);
-							if(rotateLepTo==+pi/2){//Fill with -1
-								histograms["missEtDist"]->Fill(-phi_rel);
-							}else{
-								histograms["missEtDist"]->Fill(phi_rel);
-							}
-						}else{//tau would cross +pi
-							//rotate tau to +pi/i2
-							phi_rel = (met_phi-(*tau_phi)[0])*pi/GetOpenAngle((*lep_phi)[oddLep],(*tau_phi)[0]);
-							//Fill
-							histograms["missEtDist"]->Fill(phi_rel);
-						}
-					}
-				}else{//are this else and the previous if even needed??
-					//want to rotate tau ideally, but not if it means lep cuts the +-pi axis
-					if(tau<0){//rotating clockwise
-						if(abs(tau)<(-pi-(*lep_phi)[oddLep])){//lep doesnt cross -pi
-							//rotate tau to rotateTauTo
-							phi_rel = (met_phi+tau-rotateTauTo)*pi/GetOpenAngle((*lep_phi)[oddLep],(*tau_phi)[0]);
-							if(rotateTauTo==-pi/2){//Fill with -1						
-								histograms["missEtDist"]->Fill(-phi_rel);
-							}else{
-								histograms["missEtDist"]->Fill(phi_rel);
-							}
-						}else{//lep would cross -pi
-							//rotate lep to -pi/2
-							phi_rel = (met_phi-(*lep_phi)[0])*pi/GetOpenAngle((*lep_phi)[oddLep],(*tau_phi)[0]);
-							//Fill
-							histograms["missEtDist"]->Fill(phi_rel);
-						}
-					}else{//rotating anticlockwise
-						if(abs(tau)<(pi-(*lep_phi)[oddLep])){//lep doesnt cross +pi
-							//rotate tau to rotateTauTo
-							phi_rel = (met_phi+tau-rotateTauTo)*pi/GetOpenAngle((*lep_phi)[oddLep],(*tau_phi)[0]);
-							if(rotateTauTo==-pi/2){//Fill with -1						
-								histograms["missEtDist"]->Fill(-phi_rel);
-							}else{
-								histograms["missEtDist"]->Fill(phi_rel);
-							}
-						}else{//lep would cross +pi
-							//rotate lep to +pi/2
-							phi_rel = (met_phi-(*lep_phi)[0])*pi/GetOpenAngle((*lep_phi)[oddLep],(*tau_phi)[0]);
-							//Fill with -1
-							histograms["missEtDist"]->Fill(-phi_rel);
-						}
-					}
-				}
-			
+				l = (*lep_phi)[oddLep];
+				
 				invM4 = sqrt(2*(*lep_pt)[oddLep]*(*tau_pt)[0]*(cosh((*lep_eta)[oddLep]-(*tau_eta)[0])-cos((*lep_phi)[oddLep]-(*tau_phi)[0])))/1000;
 				histograms["invMassVis"]->Fill(invM4);
+			}
+
+			//rotate most negative between lep and tau to 0
+			if(t<l){
+				rotationAngle = -t;
+			}else{
+				rotationAngle = -l;
+			}
+			t += rotationAngle;
+			l += rotationAngle;
+			met_phi += rotationAngle;
+			//if met_phi still negative need to add 2pi
+			if(met_phi<0) met_phi += 2*pi;
+			
+			/*NONE OF THEM COULD POSSIBLY BE GREATER THAN 2PI//if any are greater than 2pi then take 2pi off
+			if(t>2*pi) t -= 2*pi;
+			if(l>2*pi) l -= 2*pi;
+			if(met_phi>2*pi) std::cout<<"test"<<std::endl;//met_phi -= 2*pi;*/
+			//std::cout<<"l, t and met_phi should be between 0 and 2pi, ";
+			//if(t<0||t>2*pi||l<0||l>2*pi||met_phi<0||met_phi>2*pi) std::cout<<"they arent!!"<<std::endl;
+			//else std::cout<<"they are."<<std::endl;
+			
+			//want the halfway point between t and l to be centred on zero
+			//min since taking 2*pi off may have put t or l between 0 and pi/2
+			Double_t halfAng = abs(t-l)/2;
+			t -= halfAng;
+			l -= halfAng;
+			met_phi -= halfAng;
+			//std::cout<<"t and l shold be negatives of each other:\nt="<<t<<", l="<<l<<std::endl;
+			//if(l<-pi||l>pi||t<-pi||t>pi) std:cout<<"l or t is too large or too small"<<std::endl;
+			if(met_phi>pi) met_phi -= 2*pi;
+			//if(met_phi<-pi||met_phi>pi) std::cout<<"met_phi too large or too small"<<std::endl;
+			
+			//if the opening angle contains +-pi -> need to invert
+			if(abs(t)>pi/2){//the opening angle contains +-pi -> need to invert
+				if(t>0){
+					t -= pi;
+					l += pi;
+				}else{
+					t += pi;
+					l -= pi;
+				}
+				if(met_phi>0) met_phi -= pi;
+				else if(met_phi<0) met_phi += pi;
+			}
+			//if(met_phi<-pi||met_phi>pi) std::cout<<"met_phi too large or too small"<<std::endl;
+			
+			//scaling factor depends on sign of met_phi and size of t(=size of l)!!
+			if(met_phi>abs(t)){
+				phi_rel = met_phi + (met_phi-pi)*(pi/2-abs(t))/(abs(t)-pi);
+			}else if(met_phi<abs(t)){
+				phi_rel = met_phi + (met_phi+pi)*(abs(t)-pi/2)/(pi-abs(t));
+			}else{
+				phi_rel = met_phi*pi/(2*abs(t));
+			}
+			
+			//std::cout<<"phi_rel="<<phi_rel<<std::endl;
+			//if(phi_rel<-pi||phi_rel>pi) std::cout<<"phi_rel too large or too small"<<std::endl;
+
+			//+-1
+			if(t>l){
+				histograms["missEtDist"]->Fill(phi_rel);
+				//std::cout<<"filling with +1"<<std::endl<<std::endl;
+			}else{
+				histograms["missEtDist"]->Fill(-1*phi_rel);
+				//std::cout<<"filling with -1"<<std::endl<<std::endl;
 			}
 		}
 		
@@ -461,6 +360,5 @@ void mini::Run(){
 Int_t maintau(){
 	mini a;
 	a.Run();
-
 	return 0;
 }
