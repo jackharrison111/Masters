@@ -2,6 +2,7 @@
 #define main_cxx
 #include "mainMC.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
+#include "plottertau.cxx"
 #include <TH2.h>
 //#include <TROOT.h>
 //#include <TRint.h>
@@ -9,7 +10,6 @@
 #include <TCanvas.h>
 #include <math.h>
 #include <map>
-const Double_t pi = M_PI;
 
 //MeV:
 Double_t eMass = 0.511;
@@ -47,8 +47,8 @@ Bool_t mini::Cut(Int_t e, Int_t mu, Int_t tau){ //electron and muons only so far
 
 Double_t mini::GetOpenAngle(Double_t ang1, Double_t ang2){
 	Double_t openAngle = abs(ang1-ang2);
-	if(openAngle>pi){
-		openAngle = 2*pi-openAngle;//TODO: *-1 ?
+	if(openAngle>M_PI){
+		openAngle = 2*M_PI-openAngle;//TODO: *-1 ?
 	}
 	return openAngle;
 }
@@ -82,7 +82,7 @@ void mini::Run(){
 	histograms["invMassVis"] = new TH1D("invMassVis", "Z#rightarrowllVis",200,0,160);
 	histograms["invMassleptau"] = new TH1D("invMassleptau","Z->l#tau",200,0,160);
 	histograms["invMass3lep1tau"] = new TH1D("invMass3lep1tau","Z->lll#tau",200,0,160);
-	histograms["missEtDist"] = new TH1D("missEtDist","Distribution of missing transverse momentum",100,-1*pi,pi);
+	histograms["missEtDist"] = new TH1D("missEtDist","Distribution of missing transverse momentum",500,-5*M_PI,5*M_PI);
 
 
 	Int_t counter{0};
@@ -96,6 +96,8 @@ void mini::Run(){
 
 	Int_t fileCounter{1};
 	Bool_t newFile{true};
+	Double_t etCounter{0};
+	Double_t sigEvCounter{0};
 	for (Long64_t i=0; i<n; i++){
 		Long64_t ientry = LoadTree(i);
 		if(ientry < 0) break;
@@ -160,6 +162,7 @@ void mini::Run(){
 		if(Cut(2,1,1)||Cut(1,2,1)||Cut(3,0,1)||Cut(0,3,1)){
 			Int_t totalQ = (*lep_charge)[0]+(*lep_charge)[1]+(*lep_charge)[2];
 			if(totalQ+(*tau_charge)[0]!=0) continue;
+			sigEvCounter++;
 			Int_t tauPartner;
 			Int_t oddLep;
 			
@@ -261,6 +264,7 @@ void mini::Run(){
 			}
 
 			//rotate most negative between lep and tau to 0
+			Double_t halfAng = GetOpenAngle(t,l)/2;
 			if(t<l){
 				rotationAngle = -t;
 			}else{
@@ -269,50 +273,49 @@ void mini::Run(){
 			t += rotationAngle;
 			l += rotationAngle;
 			met_phi += rotationAngle;
-			//if met_phi still negative need to add 2pi
-			if(met_phi<0) met_phi += 2*pi;
 			
-			/*NONE OF THEM COULD POSSIBLY BE GREATER THAN 2PI//if any are greater than 2pi then take 2pi off
-			if(t>2*pi) t -= 2*pi;
-			if(l>2*pi) l -= 2*pi;
-			if(met_phi>2*pi) std::cout<<"test"<<std::endl;//met_phi -= 2*pi;*/
-			//std::cout<<"l, t and met_phi should be between 0 and 2pi, ";
-			//if(t<0||t>2*pi||l<0||l>2*pi||met_phi<0||met_phi>2*pi) std::cout<<"they arent!!"<<std::endl;
-			//else std::cout<<"they are."<<std::endl;
-			
-			//want the halfway point between t and l to be centred on zero
-			//min since taking 2*pi off may have put t or l between 0 and pi/2
-			Double_t halfAng = abs(t-l)/2;
-			t -= halfAng;
-			l -= halfAng;
-			met_phi -= halfAng;
-			//std::cout<<"t and l shold be negatives of each other:\nt="<<t<<", l="<<l<<std::endl;
-			//if(l<-pi||l>pi||t<-pi||t>pi) std:cout<<"l or t is too large or too small"<<std::endl;
-			if(met_phi>pi) met_phi -= 2*pi;
-			//if(met_phi<-pi||met_phi>pi) std::cout<<"met_phi too large or too small"<<std::endl;
-			
-			//if the opening angle contains +-pi -> need to invert
-			if(abs(t)>pi/2){//the opening angle contains +-pi -> need to invert
-				if(t>0){
-					t -= pi;
-					l += pi;
-				}else{
-					t += pi;
-					l -= pi;
-				}
-				if(met_phi>0) met_phi -= pi;
-				else if(met_phi<0) met_phi += pi;
+			if(t>M_PI) t-=2*M_PI;
+			if(l>M_PI) l-=2*M_PI;
+			if(t<0||l<0){
+				t += halfAng;
+				l += halfAng;
+				met_phi += halfAng;
+			}else{
+				t -= halfAng;
+				l -= halfAng;
+				met_phi -= halfAng;
 			}
-			//if(met_phi<-pi||met_phi>pi) std::cout<<"met_phi too large or too small"<<std::endl;
+
+			if(abs(t)>M_PI/2){//the opening angle contains +-pi -> need to invert
+				cout<<"problem"<<endl;
+				if(t>0){
+					t -= M_PI;
+					l += M_PI;
+				}else{
+					t += M_PI;
+					l -= M_PI;
+				}
+				if(met_phi>0) met_phi -= M_PI;
+				else if(met_phi<0) met_phi += M_PI;
+			}
+			if(met_phi>M_PI) met_phi-=2*M_PI;
+			else if(met_phi<-M_PI) met_phi+=2*M_PI;
 			
 			//scaling factor depends on sign of met_phi and size of t(=size of l)!!
-			if(met_phi>abs(t)){
-				phi_rel = met_phi + (met_phi-pi)*(pi/2-abs(t))/(abs(t)-pi);
-			}else if(met_phi<abs(t)){
-				phi_rel = met_phi + (met_phi+pi)*(abs(t)-pi/2)/(pi-abs(t));
-			}else{
-				phi_rel = met_phi*pi/(2*abs(t));
-			}
+			//if(met_phi>halfAng){
+			//	phi_rel = met_phi + (met_phi-M_PI)*(M_PI/2-halfAng)/(halfAng-M_PI);
+			//}else if(met_phi<-halfAng){
+			//	phi_rel = met_phi + (met_phi+M_PI)*(halfAng-M_PI/2)/(M_PI-halfAng);
+			//}else{
+				etCounter++;
+				phi_rel = met_phi*M_PI/(2*halfAng);
+			//}
+			/*Double_t a = (2*pow(pi,2)*(abs(t)-pi/2)/(pow(abs(t),3)-pow(pi,2)*abs(t))-1)/(4*pow(pi,4)-2*pow(pi,2)*(pow(abs(t),5)-pow(pi,4)*abs(t))/(pow(abs(t),3)-pow(pi,2)*abs(t)));
+			Double_t b = (pi/2-abs(t)-(pow(abs(t),5)-pow(pi,4)*abs(t))*a)/(pow(abs(t),3)-pow(pi,2)*abs(t));
+			Double_t c = 1-pow(pi,4)*a-pow(pi,2)*b;
+			phi_rel = a*pow(met_phi,5) + b*pow(met_phi,3) + c*met_phi;
+			if(abs(phi_rel)>pi) continue;*/
+
 			
 			//std::cout<<"phi_rel="<<phi_rel<<std::endl;
 			//if(phi_rel<-pi||phi_rel>pi) std::cout<<"phi_rel too large or too small"<<std::endl;
@@ -349,6 +352,7 @@ void mini::Run(){
 	//Print the time taken to run the loop (relies on startTime at beginning of loop)
 	clock_t endTime = clock();
 	std::cout<<"Run time: "<<(endTime-startTime)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
+	std::cout<<"fraction="<<etCounter/sigEvCounter*100<<"%"<<std::endl;
 
 	output.cd();
 	output.Close(); //Close the output file
@@ -360,5 +364,19 @@ void mini::Run(){
 Int_t maintau(){
 	mini a;
 	a.Run();
+	plottertau();
+	/*Double_t t=0.5;
+	Double_t a = (2*pow(pi,2)*(abs(t)-pi/2)/(pow(abs(t),3)-pow(pi,2)*abs(t))-1)/(4*pow(pi,4)-2*pow(pi,2)*(pow(abs(t),5)-pow(pi,4)*abs(t))/(pow(abs(t),3)-pow(pi,2)*abs(t)));
+	Double_t b = (pi/2-abs(t)-(pow(abs(t),5)-pow(pi,4)*abs(t))*a)/(pow(abs(t),3)-pow(pi,2)*abs(t));
+	Double_t c = 1-pow(pi,4)*a-pow(pi,2)*b;
+	std::cout<<"a="<<a<<", b="<<b<<", c="<<c<<std::endl;
+	Int_t n=100;
+	Double_t x[n], y[n];
+	for(Int_t i=0; i<n; i++){
+		x[i]=i/(n-1)*pi;
+		y[i]=a*pow(x[i],5)+b*pow(x[i],3)+c*x[i];
+	}
+	TGraph *g = new TGraph(n,x,y);
+	g->Draw();*/
 	return 0;
 }
