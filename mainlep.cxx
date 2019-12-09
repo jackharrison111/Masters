@@ -74,7 +74,7 @@ void mini::Run(){
 
 	
 
-	TFile output(("rootOutput/" + outputName+"output_openAngle_5-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/" + outputName+"output_5-12.root").c_str(),"RECREATE");
 	TDirectory *TDir1 = output.mkdir("1lep1tau");
 	TDirectory *TDir2 = output.mkdir("2lep");
 	std::map<string,TH1*> histograms;
