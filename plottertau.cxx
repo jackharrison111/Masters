@@ -65,7 +65,7 @@ void plot(string product, string histType){
 	TCanvas *c = new TCanvas("c", "c");	
 	TLegend *legend = new TLegend(1,0.5);
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
-	TH1D *etDist = new TH1D("missEtDist", "EtDist", 500, -5*M_PI, 5*M_PI);
+	TH1D *etDist = new TH1D("missEtDist", "EtDist", 100, -M_PI, M_PI);
 	
 
 	TFile *f = new TFile("rootOutput/mc_output_tau_ETDist_7-12.root");	//("rootOutput/mc_output.root");
@@ -145,7 +145,7 @@ void plot(string product, string histType){
 	a->ChangeLabel(2,-1,-1,-1,-1,-1,"-#frac{#pi}{2} (l)");
 	a->ChangeLabel(4,-1,-1,-1,-1,-1,"#frac{#pi}{2} (#tau)");
 	a->SetLabelOffset(0.015);
-	a->SetTitleOffset(1.2);*/
+	a->SetTitleOffset(1.2);
 	etDist->SetTitle(";#phi_{rel}/rad; counts/[2#pi/100rad]");
 	etDist->SetDirectory(0);
 	etDist->Draw("hist");

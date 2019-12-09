@@ -82,7 +82,7 @@ void mini::Run(){
 	histograms["invMassVis"] = new TH1D("invMassVis", "Z#rightarrowllVis",200,0,160);
 	histograms["invMassleptau"] = new TH1D("invMassleptau","Z->l#tau",200,0,160);
 	histograms["invMass3lep1tau"] = new TH1D("invMass3lep1tau","Z->lll#tau",200,0,160);
-	histograms["missEtDist"] = new TH1D("missEtDist","Distribution of missing transverse momentum",500,-5*M_PI,5*M_PI);
+	histograms["missEtDist"] = new TH1D("missEtDist","Distribution of missing transverse momentum",100,-M_PI,M_PI);
 
 
 	Int_t counter{0};
@@ -307,9 +307,9 @@ void mini::Run(){
 			//}else if(met_phi<-halfAng){
 			//	phi_rel = met_phi + (met_phi+M_PI)*(halfAng-M_PI/2)/(M_PI-halfAng);
 			//}else{
-				etCounter++;
-				phi_rel = met_phi*M_PI/(2*halfAng);
 			//}
+			if(abs(met_phi)<halfAng) etCounter++;
+			phi_rel = met_phi*M_PI/(2*halfAng);
 			/*Double_t a = (2*pow(pi,2)*(abs(t)-pi/2)/(pow(abs(t),3)-pow(pi,2)*abs(t))-1)/(4*pow(pi,4)-2*pow(pi,2)*(pow(abs(t),5)-pow(pi,4)*abs(t))/(pow(abs(t),3)-pow(pi,2)*abs(t)));
 			Double_t b = (pi/2-abs(t)-(pow(abs(t),5)-pow(pi,4)*abs(t))*a)/(pow(abs(t),3)-pow(pi,2)*abs(t));
 			Double_t c = 1-pow(pi,4)*a-pow(pi,2)*b;
