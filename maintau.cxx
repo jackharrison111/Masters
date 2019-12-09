@@ -45,8 +45,13 @@ Bool_t mini::Cut(Int_t e, Int_t mu, Int_t tau){ //electron and muons only so far
 	return false;
 }
 
-
-
+Double_t mini::GetOpenAngle(Double_t lepAng, Double_t tauAng){
+	Double_t openAngle = abs(lepAng-tauAng);
+	if(openAngle>pi){
+		openAngle = 2*pi-openAngle;
+	}
+	return openAngle;
+}
 
 void mini::Run(){
 	gStyle->SetOptStat(0);
@@ -70,7 +75,7 @@ void mini::Run(){
 
 	
 
-	TFile output(("rootOutput/"+outputName+"output_tau_5-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/"+outputName+"output_tau_piMinus_5-12.root").c_str(),"RECREATE");
 	TDirectory *TDir = output.mkdir("1lep1tau");
 	std::map<string,TH1*> histograms;
 
@@ -152,11 +157,6 @@ void mini::Run(){
 		
 
 		Double_t invM1, invM2, invM3, invM4;
-
-
-			
-
-			
 		if(Cut(2,1,1)||Cut(1,2,1)||Cut(3,0,1)||Cut(0,3,1)){
 			Int_t totalQ = (*lep_charge)[0]+(*lep_charge)[1]+(*lep_charge)[2];
 			if(totalQ+(*tau_charge)[0]!=0) continue;
@@ -208,7 +208,13 @@ void mini::Run(){
 				invM3 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
 				histograms["invMassleptau"]->Fill(invM3);
 
-				histograms["missEtDist"]->Fill(pi*met_phi/((*tau_phi)[0]-(*lep_phi)[tauPartner]));
+				Double_t t = (*tau_phi)[0];
+				Double_t l = (*lep_phi)[tauPartner];
+				if(t>l){
+					histograms["missEtDist"]->Fill((met_phi/*-pi/2*/-(*lep_phi)[tauPartner])*pi/(t-l));//GetOpenAngle(t,l));
+				}else{
+					histograms["missEtDist"]->Fill(-1*(met_phi/*-pi/2*/-(*tau_phi)[0])*pi/(l-t));//GetOpenAngle(t,l));
+				}
 
 				invM4 = sqrt(2*(*lep_pt)[tauPartner]*(*tau_pt)[0]*(cosh((*lep_eta)[tauPartner]-(*tau_eta)[0])-cos((*lep_phi)[tauPartner]-(*tau_phi)[0])))/1000;
 				histograms["invMassVis"]->Fill(invM4);
@@ -250,6 +256,14 @@ void mini::Run(){
 				            +(*lep_pt)[oddLep]*sinh((*lep_eta)[oddLep])+(*tau_pt)[0]*sinh((*tau_eta)[0]);
 				invM2 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
 				histograms["invMassleptau"]->Fill(invM2);
+
+				Double_t t = (*tau_phi)[0];
+				Double_t l = (*lep_phi)[oddLep];
+				if(t>l){
+					histograms["missEtDist"]->Fill((met_phi/*-pi/2*/-(*lep_phi)[oddLep])*pi/(t-l));//GetOpenAngle(t,l));
+				}else{
+					histograms["missEtDist"]->Fill(-1*(met_phi/*-pi/2*/-(*tau_phi)[0])*pi/(l-t));//GetOpenAngle(t,l));
+				}
 
 				histograms["missEtDist"]->Fill(pi*met_phi/((*tau_phi)[0]-(*lep_phi)[oddLep]));
 			
