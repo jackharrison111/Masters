@@ -1,6 +1,6 @@
 //TODO: make an if statement to check whether dataSets.json contains shortFileName
 #define main_cxx
-#include "mainMCtau.h" //change this for mc or real data
+#include "mainMC.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
 #include "plottertau.cxx"
 #include <TH2.h>
@@ -164,7 +164,6 @@ void mini::Run(){
 
 
 
-
 		
 
 		Double_t invM1, invM2, invM3, invM4;
@@ -222,11 +221,12 @@ void mini::Run(){
 				Double_t D = nu_T_lep*sinh((*lep_eta)[tauPartner])+nu_T_had*sinh((*tau_eta)[0])
 				            +(*lep_pt)[tauPartner]*sinh((*lep_eta)[tauPartner])+(*tau_pt)[0]*sinh((*tau_eta)[0]);
 				invM3 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
-				histograms["invMassleptau"]->Fill(invM3);
-				
-				l = (*lep_phi)[tauPartner];
 
 				invM4 = sqrt(2*(*lep_pt)[tauPartner]*(*tau_pt)[0]*(cosh((*lep_eta)[tauPartner]-(*tau_eta)[0])-cos((*lep_phi)[tauPartner]-(*tau_phi)[0])))/1000;
+
+				l = (*lep_phi)[tauPartner];
+
+				if(invM4<80 && GetOpenAngle(t,l)>=1 && GetOpenAngle(t,l)<=2.5) histograms["invMassleptau"]->Fill(invM3);
 				histograms["invMassVis"]->Fill(invM4);
 			}
 
@@ -251,7 +251,6 @@ void mini::Run(){
 				// now compare lepton - lepton pairings and oddlepton - tau pairings
 				// ......
 				invM1 = sqrt(2*(*lep_pt)[leps.first]*(*lep_pt)[leps.second]*(cosh((*lep_eta)[leps.first]-(*lep_eta)[leps.second])-cos((*lep_phi)[leps.first]-(*lep_phi)[leps.second])))/1000;
-				histograms["invMassleptau"]->Fill(invM1);
 
 				Double_t nu_T_lep = met_et*(sin(met_phi)-sin((*tau_phi)[0]))/(sin((*lep_phi)[oddLep])-sin((*tau_phi)[0]));
 				Double_t nu_T_had = met_et*(sin(met_phi)-sin((*lep_phi)[oddLep]))/(sin((*tau_phi)[0])-sin((*lep_phi)[oddLep]));
@@ -264,11 +263,13 @@ void mini::Run(){
 				Double_t D = nu_T_lep*sinh((*lep_eta)[oddLep])+nu_T_had*sinh((*tau_eta)[0])
 				            +(*lep_pt)[oddLep]*sinh((*lep_eta)[oddLep])+(*tau_pt)[0]*sinh((*tau_eta)[0]);
 				invM2 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
-				histograms["invMassleptau"]->Fill(invM2);
+				
+				invM4 = sqrt(2*(*lep_pt)[oddLep]*(*tau_pt)[0]*(cosh((*lep_eta)[oddLep]-(*tau_eta)[0])-cos((*lep_phi)[oddLep]-(*tau_phi)[0])))/1000;
 				
 				l = (*lep_phi)[oddLep];
 				
-				invM4 = sqrt(2*(*lep_pt)[oddLep]*(*tau_pt)[0]*(cosh((*lep_eta)[oddLep]-(*tau_eta)[0])-cos((*lep_phi)[oddLep]-(*tau_phi)[0])))/1000;
+				histograms["invMassleptau"]->Fill(invM1);
+				if(invM4<80 && GetOpenAngle(t,l)>=1 && GetOpenAngle(t,l)<=2.5) histograms["invMassleptau"]->Fill(invM2);
 				histograms["invMassVis"]->Fill(invM4);
 			}
 
