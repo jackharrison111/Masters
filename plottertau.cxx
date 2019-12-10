@@ -73,9 +73,10 @@ void plot(string product, string histType){
 	TCanvas *c = new TCanvas("c", "c");	
 	TLegend *legend = new TLegend(1,0.5);
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
-	TH1D *etDist = new TH1D("missEtDist", "EtDist", 100, -M_PI, M_PI);
+	TH1D *etDist = new TH1D("missEtDist", "EtDist", 100, 0, M_PI);
 	
-	TFile *f = new TFile("rootOutput/mc_output_tau_ETDist_7-12.root");	//("rootOutput/mc_output.root");
+
+	TFile *f = new TFile("rootOutput/mc_output_10-12.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -97,7 +98,7 @@ void plot(string product, string histType){
 
 		//TH1D *chosenHist = new TH1D;
 		
-		string signalFile = "mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.2lep_raw.root"; 
+		string signalFile = "mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.1lep1tau_raw.root"; 
 		int counter{0};
 		while((aKey = (TKey*)next())){
 			TClass *myClass = gROOT->GetClass(aKey->GetClassName());
@@ -114,21 +115,21 @@ void plot(string product, string histType){
 			string printChoice = product + "_" + histType + "_" + signalFile;
 			//if(histName == printChoice){
 				myHist->SetDirectory(0);
-				myHist->SetTitle(";M_{inv}/GeV; Counts/0.8GeV");
-				myHist->SetLineColor(kBlue-4);
+				//myHist->SetTitle(";M_{inv}/GeV; Counts/0.8GeV");
+				//myHist->SetLineColor(kBlue-4);
 				myHist->SetLineWidth(1);
 				//legend->AddEntry(myHist,"Signal channel","l");
 				//myHist->SetCanExtend(TH1::kYaxis);
 				//myHist->Draw("hist");
-				//myHist->Draw("hist");
+				etDist->Add(myHist);
 				//chosenHist = myHist;	
 			//}
-			//myHist->SetLineColor(4 - counter);
-			//myHist->SetDirectory(0);
+				//myHist->SetLineColor(4 - counter);
+				//myHist->SetDirectory(0);
 			
-			myHist->SetDirectory(0);
-			//std::cout << histName << std::endl;
-			totalHist->Add(myHist);
+				myHist->SetDirectory(0);
+				//std::cout << histName << std::endl;
+				//etDist->Add(myHist);
 				//if(histName != (product + "_" + histType + "_" + "mc15_13TeV.307431.MGPy8EG_A14NNPDF23LO_RS_G_ZZ_llll_c10_m0200.2lep_raw.root")){
 		counter++;
 		}
@@ -145,18 +146,18 @@ void plot(string product, string histType){
 	f->Close();
 	
 	TAxis* a = etDist->GetXaxis();
-	a->SetNdivisions(-504);
-	a->ChangeLabel(1,-1,-1,-1,-1,-1,"-#pi");
-	
+	a->SetNdivisions(-502);
+	a->ChangeLabel(1,-1,-1,-1,-1,-1,"0");
+	a->ChangeLabel(2,-1,-1,-1,-1,-1,"#frac{#pi}{2}");
 	a->ChangeLabel(-1,-1,-1,-1,-1,-1,"#pi");
-	a->ChangeLabel(2,-1,-1,-1,-1,-1,"-#frac{#pi}{2} (l)");
-	a->ChangeLabel(4,-1,-1,-1,-1,-1,"#frac{#pi}{2} (#tau)");
+	//a->ChangeLabel(2,-1,-1,-1,-1,-1,"-#frac{#pi}{2} (l)");
+	//a->ChangeLabel(4,-1,-1,-1,-1,-1,"#frac{#pi}{2} (#tau)");
 	a->SetLabelOffset(0.015);
 	a->SetTitleOffset(1.2);
-	etDist->SetTitle(";#phi_{rel}/rad; counts/[2#pi/100rad]");
+	etDist->SetTitle(";#Delta/rad; counts/[#pi/100rad]");
 	etDist->SetDirectory(0);
-	/*etDist->Draw("hist");
-	Double_t gx[2] = {-M_PI/2,-M_PI/2};
+	etDist->Draw("hist");
+	/*Double_t gx[2] = {-M_PI/2,-M_PI/2};
 	Double_t hx[2] = {M_PI/2,M_PI/2};
 	Double_t y[2] = {0,etDist->GetMaximum()};
 	TGraph *g = new TGraph(2,gx,y);
@@ -167,7 +168,7 @@ void plot(string product, string histType){
 	h->Draw("same");*/
 	TF1 *fit = new TF1("fit",CrystalBall,40,140,5);
 	fit->SetParameters(1,1,90,1,1000000);
-	totalHist->Fit("fit","+R");
+	//totalHist->Fit("fit","+R");
 	//totalHist->Draw("hist");i
 		
 	//totalHist->SetTitle(";M_{inv}/GeV; counts/0.8GeV");
@@ -383,6 +384,6 @@ void plot(string product, string histType){
 
 
 	int plottertau(){
-		plot("1lep1tau","invMassleptau");
+		plot("2lep","opAngDist");
 		return 0;
 	}
