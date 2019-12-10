@@ -1,6 +1,6 @@
 //TODO: make an if statement to check whether dataSets.json contains shortFileName
 #define main_cxx
-#include "mainMC.h" //change this for mc or real data
+#include "mainMCtau.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
 #include "plottertau.cxx"
 #include <TH2.h>
@@ -54,7 +54,7 @@ Double_t mini::GetOpenAngle(Double_t ang1, Double_t ang2){
 }
 
 void mini::Run(){
-	gStyle->SetOptStat(1111111);
+	gStyle->SetOptStat(0);
 
 	if (fChain == 0) return;
 
@@ -80,7 +80,8 @@ void mini::Run(){
 	histograms["invMassVis"] = new TH1D("invMassVis", "Z#rightarrowllVis",200,0,160);
 	histograms["invMassleptau"] = new TH1D("invMassleptau","Z->l#tau",200,0,160);
 	histograms["invMass3lep1tau"] = new TH1D("invMass3lep1tau","Z->lll#tau",200,0,160);
-	histograms["missEtDist"] = new TH1D("missEtDist","Distribution of missing transverse momentum",1000,-10*M_PI,10*M_PI);
+	histograms["missEtDist"] = new TH1D("missEtDist","Distribution of missing transverse momentum",100,-M_PI,M_PI);
+	histograms["opAngDist"] = new TH1D("opAngDist","Opening angle distribution",100,0,M_PI);
 	Double_t nIntervals=50;
 	histograms["etContainedFrac"] = new TH1D("etContainedFrac","Fraction of missing transverse momentum as a function of opening angle",nIntervals,0,M_PI);
 
@@ -273,6 +274,7 @@ void mini::Run(){
 
 			//rotate most negative between lep and tau to 0
 			Double_t halfAng = GetOpenAngle(t,l)/2;
+			histograms["opAngDist"]->Fill(2*halfAng);
 			if(t<l){
 				rotationAngle = -t;
 			}else{
@@ -302,7 +304,7 @@ void mini::Run(){
 			Bool_t found = false;
 			Int_t index = 0;
 			for(vector<Double_t>::iterator it=openingAngle.begin(); it!=openingAngle.end(); it++){
-				if(2*halfAng<*it && !found){//use this or previous instance of *it
+				if(2*halfAng<*it && !found && invM4<80){//use this or previous instance of *it
 					found = true;
 					if(abs(*it-2*halfAng)<abs(*(it-1)-2*halfAng) || index==0){//use index
 						openingAngleCounter[index]++; //counts how many events have this opening angle
@@ -357,7 +359,7 @@ void mini::Run(){
 	std::cout<<100-histograms["etContainedFrac"]->GetBinContent(histograms["etContainedFrac"]->GetNbinsX())<<std::endl;
 			
 	output.cd();
-	histograms["etContainedFrac"]->SetTitle(";Opening Angle / rad;Percentage of events where #phi_{missing} is contained");
+	histograms["etContainedFrac"]->SetTitle(";#Delta / rad;\% events with #phi_{missing} within #Delta");
 	histograms["etContainedFrac"]->Write("etContainedFrac");
 	output.Close(); //Close the output file
 } 

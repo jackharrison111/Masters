@@ -1,6 +1,6 @@
 //TODO: make an if statement to check whether dataSets.json contains shortFileName
 #define main_cxx
-#include "main.h" //change this for mc or real data
+#include "mainMC.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
 #include <TH2.h>
 //#include <TROOT.h>
@@ -47,8 +47,13 @@ Bool_t mini::Cut(Int_t e, Int_t mu, Int_t tau){ //electron and muons only so far
 	return false;
 }
 
-
-
+Double_t mini::GetOpenAngle(Double_t ang1, Double_t ang2){
+	Double_t openAngle = abs(ang1-ang2);
+	if(openAngle>M_PI){
+		openAngle = 2*M_PI-openAngle;//TODO: *-1 ?
+	}
+	return openAngle;
+}
 
 void mini::Run(){
 	
@@ -74,7 +79,7 @@ void mini::Run(){
 
 	
 
-	TFile output(("rootOutput/" + outputName+"output_5-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/" + outputName+"output_10-12.root").c_str(),"RECREATE");
 	TDirectory *TDir1 = output.mkdir("1lep1tau");
 	TDirectory *TDir2 = output.mkdir("2lep");
 	std::map<string,TH1*> histograms;
@@ -85,7 +90,7 @@ void mini::Run(){
 	histograms["invMass2D_EMu"]=new TH2D("invMass2D_EMu","ZZ->ee&&#mu#mu",100,0,160,100,0,160);
 	histograms["invMass2D_EE"]=new TH2D("invMass2D_EE","ZZ->ee&&ee",100,0,160,100,0,160);
 	histograms["invMass2D_MuMu"]=new TH2D("invMass2D_MuMu","ZZ->#mu#mu&&#mu#mu",100,0,160,100,0,160);
-	histograms["opening_Angle2lep"] = new TH1D("opening_Angle2lep", "2Z #rightarrow 4l", 200,0,2*pi);
+	histograms["opAngDist"] = new TH1D("opAngDist", "Opening angle distribution",100,0,M_PI);
 
 
 	Int_t counter{0};
@@ -230,9 +235,8 @@ void mini::Run(){
 				histograms["invMass2l"]->Fill(invM2,eventWeight);
 				histograms["invMass2D_EMu"]->Fill(invM1,invM2);
 				
-				histograms["opening_Angle2lep"]->Fill(abs((*lep_phi)[0] - (*lep_phi)[which]));
-				histograms["opening_Angle2lep"]->Fill(abs((*lep_phi)[others[0]] - (*lep_phi)[others[1]]));
-			
+				histograms["opAngDist"]->Fill(GetOpenAngle((*lep_phi)[0],(*lep_phi)[which]));
+				histograms["opAngDist"]->Fill(GetOpenAngle((*lep_phi)[others[0]],(*lep_phi)[others[1]]));
 			}
 
 		}else if(Cut(4,0,0)||Cut(0,4,0)){    //include 4 lepton events of all the same type
@@ -316,10 +320,8 @@ void mini::Run(){
 				histograms["invMass2l"]->Fill(invM2,eventWeight);
 				
 				//Add the opening angles:
-				Double_t delta_Phi1 = abs((*lep_phi)[chosen_pair1.first]-(*lep_phi)[chosen_pair1.second]);
-				Double_t delta_Phi2 = abs((*lep_phi)[chosen_pair2.first]-(*lep_phi)[chosen_pair2.second]);
-				histograms["opening_Angle2lep"]->Fill(delta_Phi1);
-				histograms["opening_Angle2lep"]->Fill(delta_Phi2);
+				histograms["opAngDist"]->Fill(GetOpenAngle((*lep_phi)[chosen_pair1.first],(*lep_phi)[chosen_pair1.second]));
+				histograms["opAngDist"]->Fill(GetOpenAngle((*lep_phi)[chosen_pair2.first],(*lep_phi)[chosen_pair2.second]));
 
 
 				if((*lep_type)[0]==11){
