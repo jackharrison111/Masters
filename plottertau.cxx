@@ -4,7 +4,20 @@
 #include <vector>
 #include <math.h>
 
-
+Double_t CrystalBall(Double_t *x, Double_t *par){
+	Double_t f, A, B, C, D, N;
+	A = pow((par[1]/abs(par[0])),par[1])*exp(-pow(abs(par[0]),2)/2);
+	B = par[1]/abs(par[0])-abs(par[0]);
+	C = par[1]/abs(par[0])*1/(par[1]-1)*exp(-pow(abs(par[0]),2)/2);
+	D = sqrt(M_PI/2)*(1+erf(abs(par[0])/sqrt(2)));
+	N = 1/(par[3]*(C+D));
+	if((x[0]-par[2])/par[3]>-par[0]){
+		f = par[4]*N*exp(-(pow(x[0]-par[2],2))/(2*pow(par[3],2)));
+	}else{
+		f = par[4]*N*A*pow(B-(x[0]-par[2])/par[3],-par[1]);
+	}
+	return f;
+}
 
 Double_t Gaussian(Double_t *x, Double_t *par){
 	Double_t g = par[2]*exp(-pow(((x[0]-par[0])/par[1]),2)/2);
@@ -51,13 +64,8 @@ void plot(string product, string histType){
 	
 	
 	vector<string> productNames;
-	productNames.push_back("1fatjet1lep");	
-	productNames.push_back("1lep");
 	productNames.push_back("1lep1tau");
-	productNames.push_back("1tau");
 	productNames.push_back("2lep");
-	productNames.push_back("2tau");
-	productNames.push_back("GamGam");
 
 	//gROOT->SetStyle("ATLAS");
 	gStyle->SetOptStat(0);
@@ -90,7 +98,7 @@ void plot(string product, string histType){
 
 		//TH1D *chosenHist = new TH1D;
 		
-		string signalFile = "mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.2lep_raw.root"; 
+		string signalFile = "mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.1lep1tau_raw.root"; 
 		int counter{0};
 		while((aKey = (TKey*)next())){
 			TClass *myClass = gROOT->GetClass(aKey->GetClassName());
@@ -105,23 +113,22 @@ void plot(string product, string histType){
 			//std::cout<<histName << std::endl;
 			
 			string printChoice = product + "_" + histType + "_" + signalFile;
-			//if(histName == printChoice){
+			if(histName == printChoice){
 				myHist->SetDirectory(0);
-				myHist->SetTitle(";M_{inv}/GeV; Counts/0.8GeV");
-				myHist->SetLineColor(kBlue-4);
+				//myHist->SetTitle(";M_{inv}/GeV; Counts/0.8GeV");
+				//myHist->SetLineColor(kBlue-4);
 				myHist->SetLineWidth(1);
 				//legend->AddEntry(myHist,"Signal channel","l");
 				//myHist->SetCanExtend(TH1::kYaxis);
-				//myHist->Draw("hist");
-				//myHist->Draw("hist");
+				myHist->Draw("hist");
 				//chosenHist = myHist;	
-			//}
+			}
 				//myHist->SetLineColor(4 - counter);
 				//myHist->SetDirectory(0);
 			
 				myHist->SetDirectory(0);
 				//std::cout << histName << std::endl;
-				etDist->Add(myHist);
+				//etDist->Add(myHist);
 				//if(histName != (product + "_" + histType + "_" + "mc15_13TeV.307431.MGPy8EG_A14NNPDF23LO_RS_G_ZZ_llll_c10_m0200.2lep_raw.root")){
 		counter++;
 		}
@@ -148,7 +155,7 @@ void plot(string product, string histType){
 	a->SetTitleOffset(1.2);
 	etDist->SetTitle(";#phi_{rel}/rad; counts/[2#pi/100rad]");
 	etDist->SetDirectory(0);
-	etDist->Draw("hist");
+	/*etDist->Draw("hist");
 	Double_t gx[2] = {-M_PI/2,-M_PI/2};
 	Double_t hx[2] = {M_PI/2,M_PI/2};
 	Double_t y[2] = {0,etDist->GetMaximum()};
@@ -157,7 +164,11 @@ void plot(string product, string histType){
 	g->SetLineColor(kRed);
 	h->SetLineColor(kRed);
 	g->Draw("same");
-	h->Draw("same");
+	h->Draw("same");*/
+	TF1 *fit = new TF1("fit",CrystalBall,40,140,5);
+	fit->SetParameters(1,1,90,1,1000000);
+	//totalHist->Fit("fit","+R");
+	//totalHist->Draw("hist");i
 		
 	//totalHist->SetTitle(";M_{inv}/GeV; counts/0.8GeV");
 	//totalHist->Draw("hist");
@@ -372,6 +383,6 @@ void plot(string product, string histType){
 
 
 	int plottertau(){
-		plot("1lep1tau","missEtDist");
+		plot("1lep1tau","etContainedFrac");
 		return 0;
 	}

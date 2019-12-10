@@ -54,7 +54,7 @@ Double_t mini::GetOpenAngle(Double_t ang1, Double_t ang2){
 }
 
 void mini::Run(){
-	gStyle->SetOptStat(0);
+	gStyle->SetOptStat(1111111);
 
 	if (fChain == 0) return;
 
@@ -73,16 +73,16 @@ void mini::Run(){
 		outputName="re_";
 	}
 
-	
-
-	TFile output(("rootOutput/"+outputName+"output_tau_ETDist_7-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/"+outputName+"output_tau_10-12.root").c_str(),"RECREATE");
 	TDirectory *TDir = output.mkdir("1lep1tau");
 	std::map<string,TH1*> histograms;
 
 	histograms["invMassVis"] = new TH1D("invMassVis", "Z#rightarrowllVis",200,0,160);
 	histograms["invMassleptau"] = new TH1D("invMassleptau","Z->l#tau",200,0,160);
 	histograms["invMass3lep1tau"] = new TH1D("invMass3lep1tau","Z->lll#tau",200,0,160);
-	histograms["missEtDist"] = new TH1D("missEtDist","Distribution of missing transverse momentum",100,-M_PI,M_PI);
+	histograms["missEtDist"] = new TH1D("missEtDist","Distribution of missing transverse momentum",1000,-10*M_PI,10*M_PI);
+	Double_t nIntervals=50;
+	histograms["etContainedFrac"] = new TH1D("etContainedFrac","Fraction of missing transverse momentum as a function of opening angle",nIntervals,0,M_PI);
 
 
 	Int_t counter{0};
@@ -96,8 +96,16 @@ void mini::Run(){
 
 	Int_t fileCounter{1};
 	Bool_t newFile{true};
-	Double_t etCounter{0};
+	
 	Double_t sigEvCounter{0};
+	Double_t temporaryCounter{0};
+	vector<Double_t> openingAngle;
+	for(Double_t i=0; i<nIntervals; i++){
+		openingAngle.push_back(i/nIntervals*M_PI);
+	}
+	vector<Double_t> fractionContained(nIntervals,0);
+	vector<Double_t> openingAngleCounter(nIntervals,0);
+	
 	for (Long64_t i=0; i<n; i++){
 		Long64_t ientry = LoadTree(i);
 		if(ientry < 0) break;
@@ -286,47 +294,34 @@ void mini::Run(){
 				met_phi -= halfAng;
 			}
 
-			if(abs(t)>M_PI/2){//the opening angle contains +-pi -> need to invert
-				cout<<"problem"<<endl;
-				if(t>0){
-					t -= M_PI;
-					l += M_PI;
-				}else{
-					t += M_PI;
-					l -= M_PI;
-				}
-				if(met_phi>0) met_phi -= M_PI;
-				else if(met_phi<0) met_phi += M_PI;
-			}
 			if(met_phi>M_PI) met_phi-=2*M_PI;
 			else if(met_phi<-M_PI) met_phi+=2*M_PI;
 			
-			//scaling factor depends on sign of met_phi and size of t(=size of l)!!
-			//if(met_phi>halfAng){
-			//	phi_rel = met_phi + (met_phi-M_PI)*(M_PI/2-halfAng)/(halfAng-M_PI);
-			//}else if(met_phi<-halfAng){
-			//	phi_rel = met_phi + (met_phi+M_PI)*(halfAng-M_PI/2)/(M_PI-halfAng);
-			//}else{
-			//}
-			if(abs(met_phi)<halfAng) etCounter++;
-			phi_rel = met_phi*M_PI/(2*halfAng);
-			/*Double_t a = (2*pow(pi,2)*(abs(t)-pi/2)/(pow(abs(t),3)-pow(pi,2)*abs(t))-1)/(4*pow(pi,4)-2*pow(pi,2)*(pow(abs(t),5)-pow(pi,4)*abs(t))/(pow(abs(t),3)-pow(pi,2)*abs(t)));
-			Double_t b = (pi/2-abs(t)-(pow(abs(t),5)-pow(pi,4)*abs(t))*a)/(pow(abs(t),3)-pow(pi,2)*abs(t));
-			Double_t c = 1-pow(pi,4)*a-pow(pi,2)*b;
-			phi_rel = a*pow(met_phi,5) + b*pow(met_phi,3) + c*met_phi;
-			if(abs(phi_rel)>pi) continue;*/
+			if(abs(met_phi)>openingAngle[openingAngle.size()-1]/2) temporaryCounter++;	
 
-			
-			//std::cout<<"phi_rel="<<phi_rel<<std::endl;
-			//if(phi_rel<-pi||phi_rel>pi) std::cout<<"phi_rel too large or too small"<<std::endl;
+			Bool_t found = false;
+			Int_t index = 0;
+			for(vector<Double_t>::iterator it=openingAngle.begin(); it!=openingAngle.end(); it++){
+				if(2*halfAng<*it && !found){//use this or previous instance of *it
+					found = true;
+					if(abs(*it-2*halfAng)<abs(*(it-1)-2*halfAng) || index==0){//use index
+						openingAngleCounter[index]++; //counts how many events have this opening angle
+						if(abs(met_phi)<=abs(halfAng)) fractionContained[index]++; //counts how many events havethis opening angle AND met_phi contained
+					}else{//use (index-1)
+						openingAngleCounter[index-1]++;
+						if(abs(met_phi)<=abs(halfAng)) fractionContained[index-1]++;
+					}
+				}
+				index++;
+			}
+
+			phi_rel = met_phi*M_PI/(2*halfAng);
 
 			//+-1
 			if(t>l){
 				histograms["missEtDist"]->Fill(phi_rel);
-				//std::cout<<"filling with +1"<<std::endl<<std::endl;
 			}else{
 				histograms["missEtDist"]->Fill(-1*phi_rel);
-				//std::cout<<"filling with -1"<<std::endl<<std::endl;
 			}
 		}
 		
@@ -352,9 +347,18 @@ void mini::Run(){
 	//Print the time taken to run the loop (relies on startTime at beginning of loop)
 	clock_t endTime = clock();
 	std::cout<<"Run time: "<<(endTime-startTime)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
-	std::cout<<"fraction="<<etCounter/sigEvCounter*100<<"%"<<std::endl;
+	std::cout<<temporaryCounter*100/sigEvCounter<<std::endl;
 
+	Int_t index = 0;
+	for(vector<Double_t>::iterator it=fractionContained.begin(); it!=fractionContained.end(); it++){
+		index++;
+		histograms["etContainedFrac"]->SetBinContent(index,*it/openingAngleCounter[index-1]*100);
+	}
+	std::cout<<100-histograms["etContainedFrac"]->GetBinContent(histograms["etContainedFrac"]->GetNbinsX())<<std::endl;
+			
 	output.cd();
+	histograms["etContainedFrac"]->SetTitle(";Opening Angle / rad;Percentage of events where #phi_{missing} is contained");
+	histograms["etContainedFrac"]->Write("etContainedFrac");
 	output.Close(); //Close the output file
 } 
 
@@ -364,7 +368,7 @@ void mini::Run(){
 Int_t maintau(){
 	mini a;
 	a.Run();
-	plottertau();
+	//plottertau();
 	/*Double_t t=0.5;
 	Double_t a = (2*pow(pi,2)*(abs(t)-pi/2)/(pow(abs(t),3)-pow(pi,2)*abs(t))-1)/(4*pow(pi,4)-2*pow(pi,2)*(pow(abs(t),5)-pow(pi,4)*abs(t))/(pow(abs(t),3)-pow(pi,2)*abs(t)));
 	Double_t b = (pi/2-abs(t)-(pow(abs(t),5)-pow(pi,4)*abs(t))*a)/(pow(abs(t),3)-pow(pi,2)*abs(t));
