@@ -15,7 +15,7 @@
 Double_t eMass = 0.511;
 Double_t pMass = 938.28;
 Double_t sqrtS = 13e6;
-Double_t zMass = 91.2;
+//Double_t zMass = 91.2;
 Double_t totRealLum = 10.064; //inv fb - open data set
 
 //function to return number of chosen lepton type in an event
@@ -73,10 +73,11 @@ void mini::Run(){
 		outputName="re_";
 	}
 
-	TFile output(("rootOutput/"+outputName+"output_tau_10-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/"+outputName+"output_tau_11-12.root").c_str(),"RECREATE");
 	TDirectory *TDir = output.mkdir("1lep1tau");
 	std::map<string,TH1*> histograms;
 
+	histograms["missingET"] = new TH1D("missingET", "Z#rightarrowllVis",200,0,160);
 	histograms["invMassVis"] = new TH1D("invMassVis", "Z#rightarrowllVis",200,0,160);
 	histograms["invMassleptau"] = new TH1D("invMassleptau","Z->l#tau",200,0,160);
 	histograms["invMass3lep1tau"] = new TH1D("invMass3lep1tau","Z->lll#tau",200,0,160);
@@ -94,6 +95,9 @@ void mini::Run(){
 	string shortFileName;
 	string products;
 	Double_t lumFactor;
+
+	Double_t Efficiency{0};
+	Double_t sumw;
 
 	Int_t fileCounter{1};
 	Bool_t newFile{true};
@@ -147,6 +151,7 @@ void mini::Run(){
 				if(i.infos[shortFileName]["sumw"]==0){
 					lumFactor=0;
 				}
+				sumw = i.infos[shortFileName]["sumw"];
 				//std::cout << i.infos[shortFileName]["xsec"] << " / (" << i.infos[shortFileName]["sumw"] << " * " << i.infos[shortFileName]["red_eff"] << std::endl; 
 			}
 			
@@ -164,12 +169,12 @@ void mini::Run(){
 
 
 
-		
 
 		Double_t invM1, invM2, invM3, invM4;
 		if(Cut(2,1,1)||Cut(1,2,1)||Cut(3,0,1)||Cut(0,3,1)){
 			Int_t totalQ = (*lep_charge)[0]+(*lep_charge)[1]+(*lep_charge)[2];
 			if(totalQ+(*tau_charge)[0]!=0) continue;
+
 			sigEvCounter++;
 			Int_t tauPartner;
 			Int_t oddLep;
@@ -201,13 +206,10 @@ void mini::Run(){
 				invM2 = sqrt(2*(*lep_pt)[oddLep]*(*lep_pt)[sameLeps[1]]*(cosh((*lep_eta)[oddLep]-(*lep_eta)[sameLeps[1]])-cos((*lep_phi)[oddLep]-(*lep_phi)[sameLeps[1]])))/1000;
 				
 				if(abs(invM1 - zMass) < abs(invM2 - zMass)){
-					histograms["invMassleptau"]->Fill(invM1);
 					tauPartner = sameLeps[1];
-					//Efficiency++;
 				}else{
-					histograms["invMassleptau"]->Fill(invM2);
 					tauPartner = sameLeps[0];
-					//Efficiency++
+					invM1 = invM2;
 				}
 				
 				Double_t nu_T_lep = met_et*(sin(met_phi)-sin((*tau_phi)[0]))/(sin((*lep_phi)[tauPartner])-sin((*tau_phi)[0]));
@@ -226,7 +228,6 @@ void mini::Run(){
 
 				l = (*lep_phi)[tauPartner];
 
-				if(invM4<80 && GetOpenAngle(t,l)>=1 && GetOpenAngle(t,l)<=2.5) histograms["invMassleptau"]->Fill(invM3);
 				histograms["invMassVis"]->Fill(invM4);
 			}
 
@@ -262,19 +263,20 @@ void mini::Run(){
 				            +(*lep_pt)[oddLep]*sin((*lep_phi)[oddLep])+(*tau_pt)[0]*sin((*tau_phi)[0]);
 				Double_t D = nu_T_lep*sinh((*lep_eta)[oddLep])+nu_T_had*sinh((*tau_eta)[0])
 				            +(*lep_pt)[oddLep]*sinh((*lep_eta)[oddLep])+(*tau_pt)[0]*sinh((*tau_eta)[0]);
-				invM2 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
+				invM3 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
 				
 				invM4 = sqrt(2*(*lep_pt)[oddLep]*(*tau_pt)[0]*(cosh((*lep_eta)[oddLep]-(*tau_eta)[0])-cos((*lep_phi)[oddLep]-(*tau_phi)[0])))/1000;
 				
 				l = (*lep_phi)[oddLep];
 				
-				histograms["invMassleptau"]->Fill(invM1);
-				if(invM4<80 && GetOpenAngle(t,l)>=1 && GetOpenAngle(t,l)<=2.5) histograms["invMassleptau"]->Fill(invM2);
 				histograms["invMassVis"]->Fill(invM4);
 			}
 
 			//rotate most negative between lep and tau to 0
 			Double_t halfAng = GetOpenAngle(t,l)/2;
+			if(2*halfAng<=M_PI/2){
+				histograms["missingET"]->Fill(met_et/1000);
+			}
 			histograms["opAngDist"]->Fill(2*halfAng);
 			if(t<l){
 				rotationAngle = -t;
@@ -326,7 +328,20 @@ void mini::Run(){
 			}else{
 				histograms["missEtDist"]->Fill(-1*phi_rel);
 			}
-		}
+
+//			if((invM1<96&&invM1>86)/*||(invM3<96&&invM3>86)*/){ //hardcoded
+				if(invM4<80 && 2*halfAng<M_PI/2 && 2*halfAng>=0.5/*&& phi_rel<=3*M_PI/5 && phi_rel>=-7*M_PI/10 && abs(met_phi)<halfAn*/){
+					histograms["invMassleptau"]->Fill(invM1);
+					histograms["invMassleptau"]->Fill(invM3);
+					if(MC){
+						if(sumw!=0) Efficiency+=eventWeight/sumw;
+						else std::cout<<"ERROR: sumw=0"<<std::endl;
+					}else if(!MC){
+						Efficiency++;//=1/n;
+					}
+				}
+			}
+//		}
 		
 		//to write the last files histograms (loop ends after last event in last file,
 		//but writing normally occurs at start of next loop)
@@ -350,18 +365,30 @@ void mini::Run(){
 	//Print the time taken to run the loop (relies on startTime at beginning of loop)
 	clock_t endTime = clock();
 	std::cout<<"Run time: "<<(endTime-startTime)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
-	std::cout<<temporaryCounter*100/sigEvCounter<<std::endl;
+	//std::cout<<temporaryCounter*100/sigEvCounter<<std::endl;
 
 	Int_t index = 0;
 	for(vector<Double_t>::iterator it=fractionContained.begin(); it!=fractionContained.end(); it++){
 		index++;
 		histograms["etContainedFrac"]->SetBinContent(index,*it/openingAngleCounter[index-1]*100);
 	}
-	std::cout<<100-histograms["etContainedFrac"]->GetBinContent(histograms["etContainedFrac"]->GetNbinsX())<<std::endl;
+	//std::cout<<100-histograms["etContainedFrac"]->GetBinContent(histograms["etContainedFrac"]->GetNbinsX())<<std::endl;
 			
 	output.cd();
 	histograms["etContainedFrac"]->SetTitle(";#Delta / rad;\% events with #phi_{missing} within #Delta");
 	histograms["etContainedFrac"]->Write("etContainedFrac");
+	
+	gDirectory->cd(products.c_str());
+	gDirectory->mkdir("Efficiency");
+	gDirectory->cd("Efficiency");
+	TVectorD v(1);
+	if(MC){
+		v[0]=Efficiency;
+	}else{
+		v[0]=Efficiency/n;
+	}
+	std::cout<<"efficiency from vector = "<<v[0]<<std::endl;
+	v.Write("efficiency");
 	output.Close(); //Close the output file
 } 
 
@@ -371,19 +398,7 @@ void mini::Run(){
 Int_t maintau(){
 	mini a;
 	a.Run();
-	//plottertau();
-	/*Double_t t=0.5;
-	Double_t a = (2*pow(pi,2)*(abs(t)-pi/2)/(pow(abs(t),3)-pow(pi,2)*abs(t))-1)/(4*pow(pi,4)-2*pow(pi,2)*(pow(abs(t),5)-pow(pi,4)*abs(t))/(pow(abs(t),3)-pow(pi,2)*abs(t)));
-	Double_t b = (pi/2-abs(t)-(pow(abs(t),5)-pow(pi,4)*abs(t))*a)/(pow(abs(t),3)-pow(pi,2)*abs(t));
-	Double_t c = 1-pow(pi,4)*a-pow(pi,2)*b;
-	std::cout<<"a="<<a<<", b="<<b<<", c="<<c<<std::endl;
-	Int_t n=100;
-	Double_t x[n], y[n];
-	for(Int_t i=0; i<n; i++){
-		x[i]=i/(n-1)*pi;
-		y[i]=a*pow(x[i],5)+b*pow(x[i],3)+c*x[i];
-	}
-	TGraph *g = new TGraph(n,x,y);
-	g->Draw();*/
+	plottertau();
+	
 	return 0;
 }
