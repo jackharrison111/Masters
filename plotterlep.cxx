@@ -359,6 +359,7 @@ void plot(string product, string histType){
 	Double_t sigma = pow(2*Br_lep,2)*(N_sig-backIntegral)/(efficiency*L_int);
 	Double_t sigma_sigma = sigma*sqrt((pow(err,2)+pow(err_tot,2)/4+pow(background_err,2))/pow(N_sig-backIntegral,2));
 	std::cout<<"sigma = "<<sigma/1e3<<" +- "<<sigma_sigma/1e3<<" pb"<<std::endl;
+	std::cout<<"eff="<<efficiency<<std::endl;
 }
 
 
