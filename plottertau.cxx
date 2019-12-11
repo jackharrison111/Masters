@@ -65,7 +65,7 @@ void plot(string product, string histType){
 	TCanvas *c = new TCanvas("c", "c");	
 	TLegend *legend = new TLegend(1,0.5);
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
-	TH1D *etDist = new TH1D("missEtDist", "EtDist", 200, -1*M_PI, M_PI);
+	TH1D *etDist = new TH1D("missEtDist", "EtDist", 200, -2*M_PI, +2*M_PI);
 	
 	TFile *f = new TFile("rootOutput/mc_output_tau_6-12.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
@@ -136,8 +136,9 @@ void plot(string product, string histType){
 	std::cout << chosenHist->GetMinimum() << std::endl;
 	*/
 	f->Close();
-	
+	/*
 	TAxis* a = etDist->GetXaxis();
+	
 	a->SetNdivisions(-504);
 	a->ChangeLabel(1,-1,-1,-1,-1,-1,"-#pi");
 	
@@ -146,6 +147,7 @@ void plot(string product, string histType){
 	a->ChangeLabel(4,-1,-1,-1,-1,-1,"#frac{#pi}{2}");
 	a->SetLabelOffset(0.015);
 	a->SetTitleOffset(1.2);
+	*/
 	etDist->SetTitle(";#phi_{rel}/rad; counts/[#pi/100rad]");
 	etDist->SetDirectory(0);
 	etDist->Draw("hist");
