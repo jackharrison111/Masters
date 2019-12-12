@@ -79,7 +79,7 @@ void plot(string product, string histType){
 	TH1D *etDist = new TH1D("missEtDist", "EtDist", 100, 0, M_PI);
 	
 
-	TFile *f = new TFile("rootOutput/mc_output_tau_DeltaR_12-12.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("rootOutput/mc_output_tau_temp_12-12.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}

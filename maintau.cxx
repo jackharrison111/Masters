@@ -331,6 +331,16 @@ void mini::Run(){
 				Double_t l_theta = 2*atan(exp(-(*lep_eta)[oddLep]));
 				Double_t t_theta = 2*atan(exp(-(*tau_eta)[0]));
 
+
+				for(phi 1 in range):
+					for(phi 2 in range):
+
+
+
+
+
+
+
 				Double_t etaMiss = asinh((-(*lep_pt)[oddLep] - (*tau_pt)[0])/ met_et);
 				Double_t phiVis = atan( (l_pt*sin(l) + t_pt*sin(t))/(l_pt*cos(l) + t_pt*cos(t)));
 				Double_t ptVis = (l_pt*cos(l) + t_pt*cos(t))/cos(phiVis);

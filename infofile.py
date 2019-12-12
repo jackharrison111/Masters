@@ -1017,6 +1017,12 @@ infos = {
              'sumw'             : 7538705.8077,
              'xsec'             : 1.2578},
 
+'ZllZll_tau' : {'DSID':363490,
+	    'events':17825300,
+            'red_eff'          : 1, 
+	    'sumw'             : 7538705.8077,
+            'xsec'             : 1.2578},
+
  'WlvZll' : {'DSID':363491,
              'events':15772084,
              'red_eff'          : 1,
