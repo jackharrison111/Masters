@@ -2,6 +2,7 @@
 #define main_cxx
 #include "mainMC.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
+#include "plottertau.cxx"
 #include <TH2.h>
 //#include <TROOT.h>
 //#include <TRint.h>
@@ -9,7 +10,6 @@
 #include <TCanvas.h>
 #include <math.h>
 #include <map>
-const Double_t pi = M_PI;
 
 //MeV:
 Double_t eMass = 0.511;
@@ -45,16 +45,21 @@ Bool_t mini::Cut(Int_t e, Int_t mu, Int_t tau){ //electron and muons only so far
 	return false;
 }
 
-
-
+Double_t mini::GetOpenAngle(Double_t ang1, Double_t ang2){
+	Double_t openAngle = abs(ang1-ang2);
+	if(openAngle>M_PI){
+		openAngle = 2*M_PI-openAngle;//TODO: *-1 ?
+	}
+	return openAngle;
+}
 
 Double_t getOpeningAngle(Double_t tauPhi, Double_t lepPhi){
 
 	Double_t angle;
 	angle = tauPhi - lepPhi;
 	angle = abs(angle);
-	if(angle > pi){
-		angle = 2*pi - angle;
+	if(angle > M_PI){
+		angle = 2*M_PI - angle;
 	}
 
 	return angle;
@@ -81,16 +86,17 @@ void mini::Run(){
 		outputName="re_";
 	}
 
-	
-
-	TFile output(("rootOutput/"+outputName+"output_tau_5-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/"+outputName+"output_tau_deleteme_10-12.root").c_str(),"RECREATE");
 	TDirectory *TDir = output.mkdir("1lep1tau");
 	std::map<string,TH1*> histograms;
 
-  histograms["invMassVis"] = new TH1D("invMassVis", "Z#rightarrowllVis",200,0,160);
+	histograms["invMassVis"] = new TH1D("invMassVis", "Z#rightarrowllVis",200,0,160);
 	histograms["invMassleptau"] = new TH1D("invMassleptau","Z->l#tau",200,0,160);
 	histograms["invMass3lep1tau"] = new TH1D("invMass3lep1tau","Z->lll#tau",200,0,160);
-	histograms["missEtDist"] = new TH1D("missEtDist","Distribution of missing transverse momentum",200,-1*pi,pi);
+	histograms["missEtDist"] = new TH1D("missEtDist","Distribution of missing transverse momentum",100,-M_PI,M_PI);
+	histograms["opAngDist"] = new TH1D("opAngDist","Opening angle distribution",100,0,M_PI);
+	Double_t nIntervals=50;
+	histograms["etContainedFrac"] = new TH1D("etContainedFrac","Fraction of missing transverse momentum as a function of opening angle",nIntervals,0,M_PI);
 
 
 	Int_t counter{0};
@@ -104,6 +110,16 @@ void mini::Run(){
 
 	Int_t fileCounter{1};
 	Bool_t newFile{true};
+	
+	Double_t sigEvCounter{0};
+	Double_t temporaryCounter{0};
+	vector<Double_t> openingAngle;
+	for(Double_t i=0; i<nIntervals; i++){
+		openingAngle.push_back(i/nIntervals*M_PI);
+	}
+	vector<Double_t> fractionContained(nIntervals,0);
+	vector<Double_t> openingAngleCounter(nIntervals,0);
+	
 	for (Long64_t i=0; i<n; i++){
 		Long64_t ientry = LoadTree(i);
 		if(ientry < 0) break;
@@ -165,18 +181,20 @@ void mini::Run(){
 		
 
 		Double_t invM1, invM2, invM3, invM4;
-
-
-			
-
-			
 		if(Cut(2,1,1)||Cut(1,2,1)||Cut(3,0,1)||Cut(0,3,1)){
+			
+			std::cout << (*lep_truthMatched)[0] << " , " << (*lep_truthMatched)[1] << " , " << (*lep_truthMatched)[2] << "  ,  " << (*lep_truthMatched)[3] << ","<<(*lep_truthMatched)[4]<< " - " << (*lep_truthMatched).size() << std::endl;
 			Int_t totalQ = (*lep_charge)[0]+(*lep_charge)[1]+(*lep_charge)[2];
 			if(totalQ+(*tau_charge)[0]!=0) continue;
+			sigEvCounter++;
 			Int_t tauPartner;
 			Int_t oddLep;
 			
-
+			
+			Double_t t = (*tau_phi)[0];
+			Double_t l;
+			Double_t rotationAngle;
+			Double_t phi_rel;
 			// all 3 leps same type
 			if((*lep_type)[0]==(*lep_type)[1]&&(*lep_type)[0]==(*lep_type)[2]){
 				vector<Int_t> sameLeps; //stores the indices of the leptons which have the same charge eg 2 electrons
@@ -222,35 +240,6 @@ void mini::Run(){
 				histograms["invMassleptau"]->Fill(invM3);
 
 
-				Double_t angle;
-				Double_t phiHalf;
-				Double_t DeltaPhiTL = getOpeningAngle((*tau_phi)[0], (*lep_phi)[tauPartner]);
-				
-				if((*tau_phi)[0]>(*lep_phi)[tauPartner]){
-					phiHalf = (*lep_phi)[tauPartner] + DeltaPhiTL/2;
-				}else{
-					phiHalf = (*tau_phi)[0] + DeltaPhiTL/2;
-				}
-
-				//PHI HALF COULD BE + or - DELTA
-				Double_t deltaPhi2 = getOpeningAngle(phiHalf, met_phi);
-				if((*tau_phi)[0] > phiHalf){
-					if(met_phi>phiHalf){
-						histograms["missEtDist"]->Fill(deltaPhi2*pi/DeltaPhiTL);	
-					}else{
-						histograms["missEtDist"]->Fill(-deltaPhi2*pi/DeltaPhiTL);	
-					}
-				}else{
-					if(met_phi>phiHalf){
-						histograms["missEtDist"]->Fill(-deltaPhi2*pi/DeltaPhiTL);	
-					}
-					else{
-						histograms["missEtDist"]->Fill(deltaPhi2*pi/DeltaPhiTL);	
-					}
-				}
-
-
-
 				//histograms["missEtDist"]->Fill(pi*met_phi/((*tau_phi)[0]-(*lep_phi)[tauPartner]));
 
 
@@ -258,8 +247,11 @@ void mini::Run(){
 				invM4 = sqrt(2*(*lep_pt)[tauPartner]*(*tau_pt)[0]*(cosh((*lep_eta)[tauPartner]-(*tau_eta)[0])-cos((*lep_phi)[tauPartner]-(*tau_phi)[0])))/1000;
 				histograms["invMassVis"]->Fill(invM4);
 				
+				
+				l = (*lep_phi)[tauPartner];
 
-
+				invM4 = sqrt(2*(*lep_pt)[tauPartner]*(*tau_pt)[0]*(cosh((*lep_eta)[tauPartner]-(*tau_eta)[0])-cos((*lep_phi)[tauPartner]-(*tau_phi)[0])))/1000;
+				histograms["invMassVis"]->Fill(invM4);
 			}
 
 			// 2 leps same type, other not
@@ -297,44 +289,71 @@ void mini::Run(){
 				            +(*lep_pt)[oddLep]*sinh((*lep_eta)[oddLep])+(*tau_pt)[0]*sinh((*tau_eta)[0]);
 				invM2 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
 				histograms["invMassleptau"]->Fill(invM2);
-
-
-				Double_t angle;
-				Double_t phiHalf;
-				Double_t DeltaPhiTL = getOpeningAngle((*tau_phi)[0], (*lep_phi)[oddLep]);
 				
-				if((*tau_phi)[0]>(*lep_phi)[oddLep]){
-					phiHalf = (*lep_phi)[oddLep] + DeltaPhiTL/2;
-				}else{
-					phiHalf = (*tau_phi)[0] + DeltaPhiTL/2;
-				}
-
-				//PHI HALF COULD BE + or - DELTA
-				Double_t deltaPhi2 = getOpeningAngle(phiHalf, met_phi);
-				if((*tau_phi)[0] > phiHalf){
-					if(met_phi>phiHalf){
-						histograms["missEtDist"]->Fill(deltaPhi2*pi/DeltaPhiTL);	
-					}else{
-						histograms["missEtDist"]->Fill(-deltaPhi2*pi/DeltaPhiTL);	
-					}
-				}else{
-					if(met_phi>phiHalf){
-						histograms["missEtDist"]->Fill(-deltaPhi2*pi/DeltaPhiTL);	
-					}
-					else{
-						histograms["missEtDist"]->Fill(deltaPhi2*pi/DeltaPhiTL);	
-					}
-				}
-
-
-				//histograms["missEtDist"]->Fill(pi*met_phi/((*tau_phi)[0]-(*lep_phi)[oddLep]));
 			
 
 
 
 
+				
+				l = (*lep_phi)[oddLep];
+				
 				invM4 = sqrt(2*(*lep_pt)[oddLep]*(*tau_pt)[0]*(cosh((*lep_eta)[oddLep]-(*tau_eta)[0])-cos((*lep_phi)[oddLep]-(*tau_phi)[0])))/1000;
 				histograms["invMassVis"]->Fill(invM4);
+			}
+
+			//rotate most negative between lep and tau to 0
+			Double_t halfAng = GetOpenAngle(t,l)/2;
+			histograms["opAngDist"]->Fill(2*halfAng);
+			if(t<l){
+				rotationAngle = -t;
+			}else{
+				rotationAngle = -l;
+			}
+			t += rotationAngle;
+			l += rotationAngle;
+			met_phi += rotationAngle;
+			
+			if(t>M_PI) t-=2*M_PI;
+			if(l>M_PI) l-=2*M_PI;
+			if(t<0||l<0){
+				t += halfAng;
+				l += halfAng;
+				met_phi += halfAng;
+			}else{
+				t -= halfAng;
+				l -= halfAng;
+				met_phi -= halfAng;
+			}
+
+			if(met_phi>M_PI) met_phi-=2*M_PI;
+			else if(met_phi<-M_PI) met_phi+=2*M_PI;
+			
+			if(abs(met_phi)>openingAngle[openingAngle.size()-1]/2) temporaryCounter++;	
+
+			Bool_t found = false;
+			Int_t index = 0;
+			for(vector<Double_t>::iterator it=openingAngle.begin(); it!=openingAngle.end(); it++){
+				if(2*halfAng<*it && !found && invM4<80){//use this or previous instance of *it
+					found = true;
+					if(abs(*it-2*halfAng)<abs(*(it-1)-2*halfAng) || index==0){//use index
+						openingAngleCounter[index]++; //counts how many events have this opening angle
+						if(abs(met_phi)<=abs(halfAng)) fractionContained[index]++; //counts how many events havethis opening angle AND met_phi contained
+					}else{//use (index-1)
+						openingAngleCounter[index-1]++;
+						if(abs(met_phi)<=abs(halfAng)) fractionContained[index-1]++;
+					}
+				}
+				index++;
+			}
+
+			phi_rel = met_phi*M_PI/(2*halfAng);
+
+			//+-1
+			if(t>l){
+				histograms["missEtDist"]->Fill(phi_rel);
+			}else{
+				histograms["missEtDist"]->Fill(-1*phi_rel);
 			}
 		}
 		
@@ -360,8 +379,18 @@ void mini::Run(){
 	//Print the time taken to run the loop (relies on startTime at beginning of loop)
 	clock_t endTime = clock();
 	std::cout<<"Run time: "<<(endTime-startTime)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
+	std::cout<<temporaryCounter*100/sigEvCounter<<std::endl;
 
+	Int_t index = 0;
+	for(vector<Double_t>::iterator it=fractionContained.begin(); it!=fractionContained.end(); it++){
+		index++;
+		histograms["etContainedFrac"]->SetBinContent(index,*it/openingAngleCounter[index-1]*100);
+	}
+	std::cout<<100-histograms["etContainedFrac"]->GetBinContent(histograms["etContainedFrac"]->GetNbinsX())<<std::endl;
+			
 	output.cd();
+	histograms["etContainedFrac"]->SetTitle(";#Delta / rad;\% events with #phi_{missing} within #Delta");
+	histograms["etContainedFrac"]->Write("etContainedFrac");
 	output.Close(); //Close the output file
 } 
 
@@ -371,6 +400,19 @@ void mini::Run(){
 Int_t maintau(){
 	mini a;
 	a.Run();
-
+	//plottertau();
+	/*Double_t t=0.5;
+	Double_t a = (2*pow(pi,2)*(abs(t)-pi/2)/(pow(abs(t),3)-pow(pi,2)*abs(t))-1)/(4*pow(pi,4)-2*pow(pi,2)*(pow(abs(t),5)-pow(pi,4)*abs(t))/(pow(abs(t),3)-pow(pi,2)*abs(t)));
+	Double_t b = (pi/2-abs(t)-(pow(abs(t),5)-pow(pi,4)*abs(t))*a)/(pow(abs(t),3)-pow(pi,2)*abs(t));
+	Double_t c = 1-pow(pi,4)*a-pow(pi,2)*b;
+	std::cout<<"a="<<a<<", b="<<b<<", c="<<c<<std::endl;
+	Int_t n=100;
+	Double_t x[n], y[n];
+	for(Int_t i=0; i<n; i++){
+		x[i]=i/(n-1)*pi;
+		y[i]=a*pow(x[i],5)+b*pow(x[i],3)+c*x[i];
+	}
+	TGraph *g = new TGraph(n,x,y);
+	g->Draw();*/
 	return 0;
 }
