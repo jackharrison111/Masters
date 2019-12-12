@@ -71,15 +71,15 @@ void plot(string product, string histType){
 	productNames.push_back("2lep");
 
 	//gROOT->SetStyle("ATLAS");
-	gStyle->SetOptStat(0);
+	gStyle->SetOptStat(1111111);
 
 	TCanvas *c = new TCanvas("c", "c");	
 	TLegend *legend = new TLegend(1,0.5);
-	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
+	TH1D *totalHist = new TH1D("totalHist", "Totals", 100, 0, 1);
 	TH1D *etDist = new TH1D("missEtDist", "EtDist", 100, 0, M_PI);
 	
 
-	TFile *f = new TFile("rootOutput/mc_output_tau_11-12.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("rootOutput/mc_output_tau_DeltaR_12-12.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -130,9 +130,8 @@ void plot(string product, string histType){
 				//myHist->SetLineColor(4 - counter);
 				//myHist->SetDirectory(0);
 			
-			myHist->SetDirectory(0);
 			//std::cout << histName << std::endl;
-			etDist->Add(myHist);
+			//etDist->Add(myHist);
 			//totalHist->Add(myHist);
 				//if(histName != (product + "_" + histType + "_" + "mc15_13TeV.307431.MGPy8EG_A14NNPDF23LO_RS_G_ZZ_llll_c10_m0200.2lep_raw.root")){
 		counter++;
@@ -148,7 +147,8 @@ void plot(string product, string histType){
 	std::cout << chosenHist->GetMinimum() << std::endl;
 	*/
 	f->Close();
-	
+	totalHist->Draw("hist");
+	/*
 	TAxis* a = etDist->GetXaxis();
 	a->SetNdivisions(-504);
 	a->ChangeLabel(1,-1,-1,-1,-1,-1,"-#pi");
@@ -161,7 +161,7 @@ void plot(string product, string histType){
 	etDist->SetTitle(";#Delta/rad; counts/[#pi/100rad]");
 	etDist->SetDirectory(0);
 	//etDist->Draw("hist");
-	/*Double_t gx[2] = {-M_PI/2,-M_PI/2};
+	Double_t gx[2] = {-M_PI/2,-M_PI/2};
 	Double_t hx[2] = {M_PI/2,M_PI/2};
 	Double_t y[2] = {0,etDist->GetMaximum()};
 	TGraph *g = new TGraph(2,gx,y);
@@ -169,7 +169,7 @@ void plot(string product, string histType){
 	g->SetLineColor(kRed);
 	h->SetLineColor(kRed);
 	g->Draw("same");
-	h->Draw("same");*/
+	h->Draw("same");
 	
 	Double_t lowerMass=40;
 	Double_t higherMass=140;
@@ -235,7 +235,7 @@ void plot(string product, string histType){
 				EA = fit->GetParError(5);
 			}
 			backIntegral += A*exp(-pow((xx-mu)/ep,2)/2) + m*xx + c;
-			background_err/*sq*/ += pow(-A/(2*ep)*pow((xx-mu)/ep,3)*exp(-pow((xx-mu)/ep,2)/2)*Emu,2) + pow(-A/(2*ep)*pow((xx-mu)/ep,4)*exp(-pow((xx-mu)/ep,2)/2)*Eep,2) + pow(exp(-pow((xx-mu)/ep,2)/2)*EA,2) + pow(xx*Em,2) + pow(Ec,2); //propagating errors
+			background_err += pow(-A/(2*ep)*pow((xx-mu)/ep,3)*exp(-pow((xx-mu)/ep,2)/2)*Emu,2) + pow(-A/(2*ep)*pow((xx-mu)/ep,4)*exp(-pow((xx-mu)/ep,2)/2)*Eep,2) + pow(exp(-pow((xx-mu)/ep,2)/2)*EA,2) + pow(xx*Em,2) + pow(Ec,2); //propagating errors
 		}else std::cout<<"order==2"<<std::endl;
 	}
 	background_err=sqrt(background_err);
@@ -267,7 +267,7 @@ void plot(string product, string histType){
 	//totalHist->SetTitle(";M_{inv}/GeV; counts/0.8GeV");
 	//totalHist->Draw("hist");
 
-		
+	*/	
 		
 		
 		
@@ -477,6 +477,6 @@ void plot(string product, string histType){
 
 
 	int plottertau(){
-		plot("1lep1tau","invMassleptau");
+		plot("1lep1tau","deltaRDist");
 		return 0;
 	}
