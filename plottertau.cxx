@@ -240,7 +240,6 @@ void plot(string product, string histType){
 	background_err=sqrt(background_err);
 	
 	Double_t efficiency = mc_Eff;
-	efficiency = 2.73e-5;
 
 	TH1D *signalHist = new TH1D("signalHist","signalHist",200,0,160);
 	std::cout<<"check dark blue is the signal gaussian and not green"<<std::endl;
