@@ -182,8 +182,10 @@ void mini::Run(){
 		if(Cut(2,0,0)){
 			invM = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])))/1000;
 			histograms["invMassZee"]->Fill(invM,eventWeight);
-			//if(MC){Efficiency += eventWeight / sumw;}
-			//else{Efficiency++;}
+			if(invM<=100 && invM >= 80){
+			if(MC){Efficiency += eventWeight / sumw;}
+			else{Efficiency++;}
+			}
 		}
 	
 		/////////////////////////
@@ -226,7 +228,7 @@ void mini::Run(){
 			}
 
 			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
-				if(MC&&sumw!=0&&shortFileName==ZllZll){
+				if(MC&&sumw!=0){
 					Efficiency+=eventWeight/sumw;
 				}else if(!MC){
 					Efficiency++;//=1/n;

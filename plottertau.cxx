@@ -181,7 +181,7 @@ void plot(string product, string histType){
 	totalHist->SetTitle(";M_{inv}/GeV;counts/0.8GeV");
 	totalHist->Fit("fit","+R");
 
-	/*if(order==1){
+	*//*if(order==1){
 		fit = new TF1("fit",Fit,lowerMass,higherMass,8);
 		fit->SetParameters(91,5,1,80,5,1,1,1);
 	}else if(order==2){
@@ -273,7 +273,7 @@ void plot(string product, string histType){
 	//totalHist->SetTitle(";M_{inv}/GeV; counts/0.8GeV");
 	//totalHist->Draw("hist");
 
-	*/	
+	
 		
 		
 		

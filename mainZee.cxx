@@ -84,7 +84,8 @@ void mini::Run(){
 	TDirectory *TDir2 = output.mkdir("2lep");
 	std::map<string,TH1*> histograms;
 	histograms["invMassZee"]=new TH1D("invMassZee","Z->ee",200,0,160);
-
+	histograms["invMassZmumu"]=new TH1D("invMassZmumu","Z->mumu",200,0,160);
+	
 	Int_t counter{0};
 	clock_t startTime = clock();
 	
@@ -101,7 +102,7 @@ void mini::Run(){
 	Double_t lowerBound{86};
 	Double_t upperBound{96};
 	Double_t N_sing{0};
-
+	Double_t eventCounts{0};
 	Int_t fileCounter{1};
 	Bool_t newFile{true};
 	for (Long64_t i=0; i<n; i++){
@@ -160,16 +161,27 @@ void mini::Run(){
 		if(MC){
 			eventWeight = mcWeight*scaleFactor_PILEUP*scaleFactor_ELE*scaleFactor_MUON*scaleFactor_PHOTON*scaleFactor_TAU*scaleFactor_BTAG*scaleFactor_LepTRIGGER*scaleFactor_PhotonTRIGGER*scaleFactor_TauTRIGGER*scaleFactor_DiTauTRIGGER*lumFactor;
 		}
-
+		eventCounts++;
 		////2 ELECTRON EVENTS////
 		Double_t invM;
-		if(lep_n==2 && (*lep_type)[0]==11 && (*lep_type)[1]==11){
-				if(MC) Efficiency += eventWeight/sumw;
+		if(Cut(2,0,0)||Cut(0,2,0)){
+			//if(MC) Efficiency += eventWeight/sumw;
 			invM = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])))/1000;
-			histograms["invMassZee"]->Fill(invM,eventWeight);
-			/*if(invM>=65&&invM<=110){
-				if(MC) Efficiency += eventWeight/sumw;
-				else Efficiency++;
+			if(Cut(2,0,0)){
+				
+				histograms["invMassZee"]->Fill(invM,eventWeight);
+				if(invM>=80&&invM<=100){
+					//std::cout << eventWeight << " , " << sumw << "  :  " << eventWeight/sumw << " , " << Efficiency << std::endl;
+					if(MC) Efficiency += abs(eventWeight)/sumw;
+					else Efficiency++;
+				}
+			}
+			/*else if(Cut(0,2,0)){
+				histograms["invMassZmumu"]->Fill(invM,eventWeight);
+				if(invM>=80&&invM<=100){
+					if(MC) Efficiency += eventWeight/sumw;
+					else Efficiency++;
+				}
 			}*/
 		}
 		/////////////////////////
@@ -198,7 +210,6 @@ void mini::Run(){
 	clock_t endTime = clock();
 	std::cout<<"Run time: "<<(endTime-startTime)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
 	
-	histograms["invMassZee"]->Draw();
 
 	if(MC){
 		std::cout<<"efficiency = "<<Efficiency<<std::endl;
@@ -216,6 +227,7 @@ void mini::Run(){
 	}else{
 		v[0]=Efficiency/n;
 	}
+	std::cout << "Eventcounts = " <<eventCounts << " , n = " << n << std::endl;
 	std::cout<<"efficiency from vector = "<<v[0]<<std::endl;
 	v.Write("efficiency");
 
