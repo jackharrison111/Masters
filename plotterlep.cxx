@@ -67,7 +67,7 @@ void plot(string product, string histType){
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
 	
 	
-	TFile *f = new TFile("rootOutput/mc_output_tau_4-12.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("rootOutput/mc_output_2lep_12-12.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -119,14 +119,9 @@ void plot(string product, string histType){
 			//myHist->SetDirectory(0);
 			
 			myHist->SetDirectory(0);
+			totalHist->Add(myHist);
 			//std::cout << histName << std::endl;
-			for(Int_t i = 1; i <= myHist->GetNbinsX(); i++){		
-				Double_t content = myHist->GetBinContent(i);
-				if(histName != (product + "_" + histType + "_" + "mc15_13TeV.307431.MGPy8EG_A14NNPDF23LO_RS_G_ZZ_llll_c10_m0200.2lep_raw.root")){
-				totalHist->SetBinContent(i,(totalHist->GetBinContent(i) + content));
-				}
 
-			}
 		counter++;
 		}
 //	}
@@ -173,27 +168,28 @@ void plot(string product, string histType){
 		string name = reHist->GetName();
 		reHist->SetDirectory(0);
 				
-		re_totalHist->Add(reHist);
+		//re_totalHist->Add(reHist);
 		/*for(Int_t i = 1; i <= reHist->GetNbinsX(); i++){		
 			re_totalHist->Add(reHist);
 		}*/
 	}
 
 	delete f2;
-
-	TAxis* a = re_totalHist->GetXaxis();
+	/*
+	TAxis* a = totalHist->GetXaxis();
 	a->SetNdivisions(-504);
-	a->ChangeLabel(1,-1,-1,-1,-1,-1,"-#pi");
-	a->ChangeLabel(-1,-1,-1,-1,-1,-1,"#pi");
-	a->ChangeLabel(2,-1,-1,-1,-1,-1,"-#frac{#pi}{2}");
-	a->ChangeLabel(4,-1,-1,-1,-1,-1,"#frac{#pi}{2}");
+	//a->ChangeLabel(1,-1,-1,-1,-1,-1,"");
+	a->ChangeLabel(-1,-1,-1,-1,-1,-1,"2#pi");
+	a->ChangeLabel(2,-1,-1,-1,-1,-1,"#frac{#pi}{2}");
+	a->ChangeLabel(3,-1,-1,-1,-1,-1,"#pi");
+	a->ChangeLabel(4,-1,-1,-1,-1,-1,"#frac{3#pi}{2}");
 	a->SetLabelOffset(0.015);
 	a->SetTitleOffset(1.2);
-	re_totalHist->SetTitle(";#phi_{rel}/rad; counts/[#pi/100rad]");
-	re_totalHist->SetDirectory(0);
-	re_totalHist->Draw("hist");
+	totalHist->SetTitle(";#Delta#phi/rad; counts/[#pi/100rad]");
+	totalHist->SetDirectory(0);
+	totalHist->Draw("hist");
 
-
+	*/
 
 	/*
 
@@ -203,15 +199,16 @@ void plot(string product, string histType){
 
 
 	totalHist->SetLineColor(kRed);
-	legend->AddEntry(re_totalHist, "Real", "l");
+	//legend->AddEntry(re_totalHist, "Real", "l");
 	totalHist->SetDirectory(0);
 	totalHist->SetTitle(";M_{inv} /GeV; Counts /0.8GeV");
 	//totalHist->Draw("hist");
 	re_totalHist->SetDirectory(0);
 	re_totalHist->SetZTitle("Counts/(1.6GeV)^{2}");
-	re_totalHist->Draw("hist");
-	legend->Draw();
 	*/
+	totalHist->Draw("hist");
+	legend->Draw();
+
 	Int_t upperFit{140};
 	Int_t lowerFit{50};
 	TF1 *invMassFit = new TF1("invMassFit",Fit,lowerFit,upperFit,order+4); //hardcoded
@@ -231,8 +228,8 @@ void plot(string product, string histType){
 	//	Background fitting 	//
 	
 	
-	Double_t lower_range{15/0.8};
-	Double_t upper_range{60/0.8};
+	Double_t lower_range{110};
+	Double_t upper_range{125};
 	
 	
 	TF1 *backFit = new TF1("backFit",BackFit,lower_range,upper_range,order+1); //hardcoded
@@ -240,7 +237,7 @@ void plot(string product, string histType){
 	//backFit->SetParameters(2,20000);
 	backFit->SetParameters(1,1);
 	backFit->SetParameters(0,-1);
-	re_totalHist->Fit("backFit", "+RN");
+	totalHist->Fit("backFit", "+RN");
 
 	
 	Double_t m_err = backFit->GetParError(0);
@@ -346,16 +343,18 @@ void plot(string product, string histType){
 	//}
 	
 	Double_t backIntegral = backFit->Integral(80/0.8,100/0.8);
-	Double_t efficiency = re_Eff;   //TODO: Make sure to change this for the correct file
+	Double_t efficiency = mc_Eff;   //TODO: Make sure to change this for the correct file
+	//efficiency = 4.5e-5;
 	std::cout << "Background integral: " << backIntegral << " +- " << background_err << std::endl;
 	std::cout << "Efficiency used: " << efficiency << std::endl;
 	
 
 	Double_t err;
-	Double_t I = re_totalHist->IntegralAndError(80/0.8,100/0.8,err,"");
+	Double_t I = totalHist->IntegralAndError(80/0.8,100/0.8,err,"");
 	Double_t err_tot;
-	Double_t I_tot = re_totalHist->IntegralAndError(0,200,err_tot,"");
+	Double_t I_tot = totalHist->IntegralAndError(0,200,err_tot,"");
 	Double_t N_sig = (2*I-I_tot)/2;
+	std::cout << "Signal events : " << N_sig << std::endl;
 	Double_t sigma = pow(2*Br_lep,2)*(N_sig-backIntegral)/(efficiency*L_int);
 	Double_t sigma_sigma = sigma*sqrt((pow(err,2)+pow(err_tot,2)/4+pow(background_err,2))/pow(N_sig-backIntegral,2));
 	std::cout<<"sigma = "<<sigma/1e3<<" +- "<<sigma_sigma/1e3<<" pb"<<std::endl;
@@ -364,6 +363,6 @@ void plot(string product, string histType){
 
 
 int plotterlep(){
-	plot("2lep","opening_Angle2lep");
+	plot("2lep","invMass2l");
 	return 0;
 }

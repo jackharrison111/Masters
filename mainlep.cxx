@@ -79,7 +79,7 @@ void mini::Run(){
 
 	
 
-	TFile output(("rootOutput/" + outputName+"output_10-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/" + outputName+"output_2lep_12-12.root").c_str(),"RECREATE");
 	TDirectory *TDir1 = output.mkdir("1lep1tau");
 	TDirectory *TDir2 = output.mkdir("2lep");
 	std::map<string,TH1*> histograms;
@@ -311,7 +311,7 @@ void mini::Run(){
 			}
 			
 			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
-				if(MC&&sumw!=0&&shortFileName==ZllZll){
+				if(MC&&sumw!=0){
 					Efficiency+=eventWeight/sumw;
 				}else if(!MC){
 					Efficiency++;//=1/n;
