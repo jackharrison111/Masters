@@ -79,7 +79,8 @@ void plot(string product, string histType){
 	TH1D *etDist = new TH1D("missEtDist", "EtDist", 100, 0, M_PI);
 	
 
-	TFile *f = new TFile("rootOutput/mc_output_tau_temp_12-12.root");	//("rootOutput/mc_output.root");
+
+	TFile *f = new TFile("rootOutput/mc_output_tau_12-12.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -174,7 +175,13 @@ void plot(string product, string histType){
 	Double_t lowerMass=40;
 	Double_t higherMass=140;
 	TF1 *fit;
-	if(order==1){
+
+	fit = new TF1("fit",Gaussian,lowerMass,higherMass,6);
+	fit->SetParameters(85,10,100,91,5,100);
+	totalHist->SetTitle(";M_{inv}/GeV;counts/0.8GeV");
+	totalHist->Fit("fit","+R");
+
+	/*if(order==1){
 		fit = new TF1("fit",Fit,lowerMass,higherMass,8);
 		fit->SetParameters(91,5,1,80,5,1,1,1);
 	}else if(order==2){
@@ -184,7 +191,7 @@ void plot(string product, string histType){
 	totalHist->SetTitle(";M_{inv}/GeV;counts/0.8GeV");
 	totalHist->Fit("fit","+R");
 	
-	Int_t nBins=200+1;
+	Int_t nBins=200;
 	Double_t x[nBins], y1[nBins], y2[nBins], y3[nBins];
 	for(Int_t i=0; i<200; i++){
 		x[i]=0.8*(i+1);
@@ -240,9 +247,6 @@ void plot(string product, string histType){
 	}
 	background_err=sqrt(background_err);
 	
-	Double_t efficiency = mc_Eff;
-	efficiency = 2.73e-5;
-
 	TH1D *signalHist = new TH1D("signalHist","signalHist",200,0,160);
 	std::cout<<"check dark blue is the signal gaussian and not green"<<std::endl;
 	for(Int_t i=1; i<=200; i++){
@@ -250,6 +254,8 @@ void plot(string product, string histType){
 		if(signalHist->GetBinContent(i)<0) signalHist->SetBinContent(i,0);
 	}
 	
+	Double_t efficiency = mc_Eff;
+
 	Double_t err;
 	//Double_t I = totalHist->IntegralAndError(80/0.8,100/0.8,err,"");
 	Double_t I = signalHist->IntegralAndError(80/0.8,100/0.8,err,"");
@@ -258,11 +264,11 @@ void plot(string product, string histType){
 	Double_t I_tot = signalHist->IntegralAndError(0,200,err_tot,"");
 	Double_t N_sig = (2*I-I_tot)/2;
 	//Double_t sigma = pow(2*Br_lep,2)*(N_sig-backIntegral)/(efficiency*L_int);
-	Double_t sigma = pow(2*Br_lep,2)*N_sig/(efficiency*L_int);
+	Double_t sigma = pow(Br_lep,1)*N_sig/(efficiency*L_int);
 	//Double_t sigma_sigma = sigma*sqrt((pow(err,2)+pow(err_tot,2)/4+pow(background_err,2))/pow(N_sig-backIntegral,2));
 	Double_t sigma_sigma = sigma*sqrt((pow(err,2)+pow(err_tot,2)/4+pow(background_err,2))/pow(N_sig,2));
 	std::cout<<"eff="<<efficiency<<", Br_lep="<<Br_lep<<", N_sig="<<N_sig<<", bkgnd="<<backIntegral<<", L_int="<<L_int<<std::endl;
-	std::cout<<"sigma = "<<sigma/1e3<<" +- "<<sigma_sigma/1e3<<" pb"<<std::endl;
+	std::cout<<"sigma = "<<sigma/1e3<<" +- "<<sigma_sigma/1e3<<" pb"<<std::endl;*/
 		
 	//totalHist->SetTitle(";M_{inv}/GeV; counts/0.8GeV");
 	//totalHist->Draw("hist");
