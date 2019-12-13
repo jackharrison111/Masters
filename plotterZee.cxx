@@ -160,7 +160,7 @@ void plot(string product, string histType){
 	efficiency = N*efficiency/I; //scale by the background reduction
 	
 	//efficiency = 0.005; NEEDED TO GET THE RIGHT CROSS SECTION
-	Double_t sigma = Br_lep*N/(efficiency*L_int);//fb
+	Double_t sigma = N /(efficiency*L_int);//fb
 	sigma/=1e6;//nb
 	
 	Double_t I2 = totalHist->Integral(80/0.8,100/0.8);

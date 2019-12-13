@@ -423,11 +423,9 @@ void mini::Run(){
 				if(invM4<80 && 2*halfAng<M_PI/2 && 2*halfAng>=0.5/*&& phi_rel<=3*M_PI/5 && phi_rel>=-7*M_PI/10 && abs(met_phi)<halfAn*/){
 					//histograms["invMassleptau"]->Fill(invM1);
 					histograms["invMassleptau"]->Fill(invM3);
-					if(MC){
-						if(sumw!=0) Efficiency+=eventWeight/sumw;
+					if((MC)&&invM3<100&&invM3>80){
+						if(sumw!=0) Efficiency+=(eventWeight/lumFactor)/sumw;
 						else std::cout<<"ERROR: sumw=0"<<std::endl;
-					}else if(!MC){
-						Efficiency++;//=1/n;
 					}
 				}
 			}

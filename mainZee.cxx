@@ -172,7 +172,7 @@ void mini::Run(){
 				histograms["invMassZee"]->Fill(invM,eventWeight);
 				if(invM>=80&&invM<=100){
 					//std::cout << eventWeight << " , " << sumw << "  :  " << eventWeight/sumw << " , " << Efficiency << std::endl;
-					if(MC) Efficiency += abs(eventWeight)/sumw;
+					if(MC) Efficiency += (eventWeight/lumFactor)/sumw;
 					else Efficiency++;
 				}
 			}
