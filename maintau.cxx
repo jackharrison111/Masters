@@ -73,7 +73,7 @@ void mini::Run(){
 		outputName="re_";
 	}
 
-	TFile output(("rootOutput/"+outputName+"output_tau_11-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/"+outputName+"output_tau_12-12.root").c_str(),"RECREATE");
 	TDirectory *TDir = output.mkdir("1lep1tau");
 	std::map<string,TH1*> histograms;
 
@@ -331,7 +331,7 @@ void mini::Run(){
 
 //			if((invM1<96&&invM1>86)/*||(invM3<96&&invM3>86)*/){ //hardcoded
 				if(invM4<80 && 2*halfAng<M_PI/2 && 2*halfAng>=0.5/*&& phi_rel<=3*M_PI/5 && phi_rel>=-7*M_PI/10 && abs(met_phi)<halfAn*/){
-					histograms["invMassleptau"]->Fill(invM1);
+					//histograms["invMassleptau"]->Fill(invM1);
 					histograms["invMassleptau"]->Fill(invM3);
 					if(MC){
 						if(sumw!=0) Efficiency+=eventWeight/sumw;
