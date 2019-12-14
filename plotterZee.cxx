@@ -111,17 +111,10 @@ void plot(string product, string histType){
 			TH1D *myHist = new TH1D;
 			myHist = (TH1D*)aKey->ReadObj();
 			string histName = myHist->GetName();
-			//TODO: dont delete - how to choose a specific hist
-			//std::cout<<histName << std::endl;
-			
 			string printChoice = product + "_" + histType + "_" + signalFile;
-			//if(histName == printChoice){
-				myHist->SetDirectory(0);
-				totalHist->Add(myHist);
-				//myHist->SetLineWidth(1);
-				//myHist->Draw("hist");
-			//}
-		counter++;
+			myHist->SetDirectory(0);
+			totalHist->Add(myHist);
+			counter++;
 		}
 //	}
 	f->Close();
@@ -155,17 +148,30 @@ void plot(string product, string histType){
 	Double_t I = 0;
 	Double_t B = 0;
 	for(Int_t i{0}; i<200; i++){
-		if(0.8*i>=65&&0.8*i<=110){
+		if(0.8*i>=80&&0.8*i<=100){
 			I+=totalHist->GetBinContent(i);
 			B+=y[i];
 		}
 		//efficiency-=1/n;
 	}
 	Double_t N = I-B;
-	Double_t sigma = Br_lep*N/(efficiency*L_int);//fb
-	sigma/=1e3;//pb
+	std::cout << efficiency << " = eff before" << std::endl;	
+	
+	efficiency = N*efficiency/I; //scale by the background reduction
+	
+	//efficiency = 0.005; NEEDED TO GET THE RIGHT CROSS SECTION
+	Double_t sigma = N /(efficiency*L_int);//fb
+	sigma/=1e6;//nb
+	
+	Double_t I2 = totalHist->Integral(80/0.8,100/0.8);
+	
 	std::cout<<"I="<<I<<", B="<<B<<"N="<<N<<", eff="<<efficiency<<std::endl;
-	std::cout<<"sigma="<<sigma<<" pb"<<std::endl;
+	std::cout<<"sigma="<<sigma<<" nb"<<std::endl;
+	std::cout << "sigma in infofile= 1.95 nb" << std::endl;
+	
+	
+	
+	
 	//Double_t I = signalHist->IntegralAndError(80/0.8,100/0.8,err,"");
 	//Double_t err_tot;
 	//Double_t I_tot = totalHist->IntegralAndError(0,200,err_tot,"");

@@ -79,7 +79,7 @@ void mini::Run(){
 
 	
 
-	TFile output(("rootOutput/" + outputName+"output_10-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/" + outputName+"output_2lep_13-12.root").c_str(),"RECREATE");
 	TDirectory *TDir1 = output.mkdir("1lep1tau");
 	TDirectory *TDir2 = output.mkdir("2lep");
 	std::map<string,TH1*> histograms;
@@ -177,23 +177,6 @@ void mini::Run(){
 			if(lumFactor==0) continue; //breaks the current iteration of for loop, continues with next event?
 		}
 
-		////2 ELECTRON EVENTS////
-		Double_t invM;
-		if(Cut(2,0,0)){
-			invM = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])))/1000;
-			histograms["invMassZee"]->Fill(invM,eventWeight);
-			//if(MC){Efficiency += eventWeight / sumw;}
-			//else{Efficiency++;}
-		}
-	
-		/////////////////////////
-		//
-		////2 MUON EVENTS////
-		if(Cut(0,2,0)){
-			invM = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])))/1000;
-			histograms["invMassZmumu"]->Fill(invM,eventWeight);
-		}
-
 
 		/////////////////////
 		////4 LEPTON EVENTS////
@@ -226,11 +209,12 @@ void mini::Run(){
 			}
 
 			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
-				if(MC&&sumw!=0&&shortFileName==ZllZll){
-					Efficiency+=eventWeight/sumw;
-				}else if(!MC){
-					Efficiency++;//=1/n;
+				if((invM1<100&&invM1>lower)&&(invM2<100&&invM2>80)){
+					if(MC&&sumw!=0){
+						Efficiency+=(eventWeight/lumFactor)/sumw;
+					}
 				}
+				
 				histograms["invMass2l"]->Fill(invM1,eventWeight);
 				histograms["invMass2l"]->Fill(invM2,eventWeight);
 				histograms["invMass2D_EMu"]->Fill(invM1,invM2);
@@ -311,10 +295,10 @@ void mini::Run(){
 			}
 			
 			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
-				if(MC&&sumw!=0&&shortFileName==ZllZll){
-					Efficiency+=eventWeight/sumw;
-				}else if(!MC){
-					Efficiency++;//=1/n;
+				if((invM1<100&&invM1>lower)&&(invM2<100&&invM2>80)){
+					if(MC&&sumw!=0){
+						Efficiency+=(eventWeight/lumFactor)/sumw;
+					}
 				}
 				histograms["invMass2l"]->Fill(invM1,eventWeight);
 				histograms["invMass2l"]->Fill(invM2,eventWeight);

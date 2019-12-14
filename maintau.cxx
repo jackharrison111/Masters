@@ -53,6 +53,27 @@ Double_t mini::GetOpenAngle(Double_t ang1, Double_t ang2){
 	return openAngle;
 }
 
+Double_t getOpeningAngle(Double_t tauPhi, Double_t lepPhi){
+
+	Double_t angle;
+	angle = tauPhi - lepPhi;
+	angle = abs(angle);
+	if(angle > M_PI){
+		angle = 2*M_PI - angle;
+	}
+
+	return angle;
+}
+
+Double_t cot(Double_t angle){
+	return cos(angle) / sin(angle);
+}
+
+Double_t acot(Double_t angle){
+	return atan(1/angle);
+}
+
+
 void mini::Run(){
 	gStyle->SetOptStat(0);
 
@@ -73,7 +94,9 @@ void mini::Run(){
 		outputName="re_";
 	}
 
+
 	TFile output(("rootOutput/"+outputName+"output_tau_12-12.root").c_str(),"RECREATE");
+
 	TDirectory *TDir = output.mkdir("1lep1tau");
 	std::map<string,TH1*> histograms;
 
@@ -83,11 +106,15 @@ void mini::Run(){
 	histograms["invMass3lep1tau"] = new TH1D("invMass3lep1tau","Z->lll#tau",200,0,160);
 	histograms["missEtDist"] = new TH1D("missEtDist","Distribution of missing transverse momentum",100,-M_PI,M_PI);
 	histograms["opAngDist"] = new TH1D("opAngDist","Opening angle distribution",100,0,M_PI);
+	histograms["deltaRDist"] = new TH1D("deltaRDist", "#Delta R angle distribution", 100, 0, 1);
+	
 	Double_t nIntervals=50;
 	histograms["etContainedFrac"] = new TH1D("etContainedFrac","Fraction of missing transverse momentum as a function of opening angle",nIntervals,0,M_PI);
 
 
 	Int_t counter{0};
+	Int_t truthMatchedCounter{0};
+	
 	clock_t startTime = clock();
 	
 	string fileName;
@@ -172,6 +199,8 @@ void mini::Run(){
 
 		Double_t invM1, invM2, invM3, invM4;
 		if(Cut(2,1,1)||Cut(1,2,1)||Cut(3,0,1)||Cut(0,3,1)){
+			
+		//	std::cout << (*lep_truthMatched)[0] << " , " << (*lep_truthMatched)[1] << " , " << (*lep_truthMatched)[2] << "  ,  " << (*lep_truthMatched)[3] << ","<<(*lep_truthMatched)[4]<< " - " << (*lep_truthMatched).size() << std::endl;
 			Int_t totalQ = (*lep_charge)[0]+(*lep_charge)[1]+(*lep_charge)[2];
 			if(totalQ+(*tau_charge)[0]!=0) continue;
 
@@ -207,7 +236,13 @@ void mini::Run(){
 				
 				if(abs(invM1 - zMass) < abs(invM2 - zMass)){
 					tauPartner = sameLeps[1];
+					if(((*lep_truthMatched)[sameLeps[0]] != (*lep_truthMatched)[oddLep])){ //!= 1) && ((*lep_truthMatched)[oddLep] != 1)){
+						truthMatchedCounter++;	
+					}
 				}else{
+					if(((*lep_truthMatched)[sameLeps[1]] != (*lep_truthMatched)[oddLep])){ //&& ((*lep_truthMatched)[oddLep] != 1)){
+						truthMatchedCounter++;	
+					}
 					tauPartner = sameLeps[0];
 					invM1 = invM2;
 				}
@@ -224,11 +259,33 @@ void mini::Run(){
 				            +(*lep_pt)[tauPartner]*sinh((*lep_eta)[tauPartner])+(*tau_pt)[0]*sinh((*tau_eta)[0]);
 				invM3 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
 
+
+
 				invM4 = sqrt(2*(*lep_pt)[tauPartner]*(*tau_pt)[0]*(cosh((*lep_eta)[tauPartner]-(*tau_eta)[0])-cos((*lep_phi)[tauPartner]-(*tau_phi)[0])))/1000;
 
 				l = (*lep_phi)[tauPartner];
 
 				histograms["invMassVis"]->Fill(invM4);
+			
+				
+				Double_t l_pt = (*lep_pt)[tauPartner];
+				Double_t t_pt = (*tau_pt)[0];
+				Double_t l_theta = 2*atan(exp(-(*lep_eta)[tauPartner]));
+				Double_t t_theta = 2*atan(exp(-(*tau_eta)[0]));
+
+				Double_t etaMiss = asinh((-(*lep_pt)[tauPartner] - (*tau_pt)[0])/ met_et);
+				Double_t phiVis = atan( (l_pt*sin(l) + t_pt*sin(t))/(l_pt*cos(l) + t_pt*cos(t)));
+				Double_t ptVis = (l_pt*cos(l) + t_pt*cos(t))/cos(phiVis);
+				
+
+				Double_t etaVis = acot((l_pt*cot(l_theta)+t_pt*cot(t_theta))/ptVis);
+				etaVis = -log(tan(etaVis/2));
+
+				Double_t deltaR = sqrt( pow(etaVis - etaMiss, 2) + pow(phiVis - met_phi,2));
+				//if((*lep_pt)[tauPartner]<=30e3&&(*lep_pt)[tauPartner]>25e3){
+					histograms["deltaRDist"]->Fill(deltaR);
+				//}
+
 			}
 
 			// 2 leps same type, other not
@@ -249,6 +306,9 @@ void mini::Run(){
 					//the odd lepton in this case is the one which is not the same type as the other two
 					oddLep=j;
 				}
+				if(((*lep_truthMatched)[leps.first] != (*lep_truthMatched)[leps.second])){ //1) && ((*lep_truthMatched)[leps.second] != 1)){
+					truthMatchedCounter++;	
+				}
 				// now compare lepton - lepton pairings and oddlepton - tau pairings
 				// ......
 				invM1 = sqrt(2*(*lep_pt)[leps.first]*(*lep_pt)[leps.second]*(cosh((*lep_eta)[leps.first]-(*lep_eta)[leps.second])-cos((*lep_phi)[leps.first]-(*lep_phi)[leps.second])))/1000;
@@ -268,6 +328,36 @@ void mini::Run(){
 				invM4 = sqrt(2*(*lep_pt)[oddLep]*(*tau_pt)[0]*(cosh((*lep_eta)[oddLep]-(*tau_eta)[0])-cos((*lep_phi)[oddLep]-(*tau_phi)[0])))/1000;
 				
 				l = (*lep_phi)[oddLep];
+				Double_t l_pt = (*lep_pt)[oddLep];
+				Double_t t_pt = (*tau_pt)[0];
+				Double_t l_theta = 2*atan(exp(-(*lep_eta)[oddLep]));
+				Double_t t_theta = 2*atan(exp(-(*tau_eta)[0]));
+
+
+				for(phi 1 in range):
+					for(phi 2 in range):
+
+
+
+
+
+
+
+				Double_t etaMiss = asinh((-(*lep_pt)[oddLep] - (*tau_pt)[0])/ met_et);
+				Double_t phiVis = atan( (l_pt*sin(l) + t_pt*sin(t))/(l_pt*cos(l) + t_pt*cos(t)));
+				Double_t ptVis = (l_pt*cos(l) + t_pt*cos(t))/cos(phiVis);
+				
+
+				Double_t etaVis = acot((l_pt*cot(l_theta)+t_pt*cot(t_theta))/ptVis);
+				etaVis = -log(tan(etaVis/2));
+
+				Double_t deltaR = sqrt( pow(etaVis - etaMiss, 2) + pow(phiVis - met_phi,2));
+				//if((*lep_pt)[oddLep]<=30e3&&(*lep_pt)[oddLep]>25e3){
+					histograms["deltaRDist"]->Fill(deltaR);
+				//}
+
+
+				
 				
 				histograms["invMassVis"]->Fill(invM4);
 			}
@@ -333,11 +423,9 @@ void mini::Run(){
 				if(invM4<80 && 2*halfAng<M_PI/2 && 2*halfAng>=0.5/*&& phi_rel<=3*M_PI/5 && phi_rel>=-7*M_PI/10 && abs(met_phi)<halfAn*/){
 					//histograms["invMassleptau"]->Fill(invM1);
 					histograms["invMassleptau"]->Fill(invM3);
-					if(MC){
-						if(sumw!=0) Efficiency+=eventWeight/sumw;
+					if((MC)&&invM3<100&&invM3>80){
+						if(sumw!=0) Efficiency+=(eventWeight/lumFactor)/sumw;
 						else std::cout<<"ERROR: sumw=0"<<std::endl;
-					}else if(!MC){
-						Efficiency++;//=1/n;
 					}
 				}
 			}
@@ -387,6 +475,9 @@ void mini::Run(){
 	}else{
 		v[0]=Efficiency/n;
 	}
+	
+	std::cout << "Num of truth matched wrong: " << truthMatchedCounter << "  /  " << sigEvCounter  << std::endl;
+
 	std::cout<<"efficiency from vector = "<<v[0]<<std::endl;
 	v.Write("efficiency");
 	output.Close(); //Close the output file

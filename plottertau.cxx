@@ -71,13 +71,14 @@ void plot(string product, string histType){
 	productNames.push_back("2lep");
 
 	//gROOT->SetStyle("ATLAS");
-	gStyle->SetOptStat(0);
+	gStyle->SetOptStat(1111111);
 
 	TCanvas *c = new TCanvas("c", "c");	
 	TLegend *legend = new TLegend(1,0.5);
-	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
+	TH1D *totalHist = new TH1D("totalHist", "Totals", 100, 0, 1);
 	TH1D *etDist = new TH1D("missEtDist", "EtDist", 100, 0, M_PI);
 	
+
 
 	TFile *f = new TFile("rootOutput/mc_output_tau_12-12.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
@@ -130,9 +131,9 @@ void plot(string product, string histType){
 				//myHist->SetLineColor(4 - counter);
 				//myHist->SetDirectory(0);
 			
-				myHist->SetDirectory(0);
-				//std::cout << histName << std::endl;
-				//etDist->Add(myHist);
+			//std::cout << histName << std::endl;
+			//etDist->Add(myHist);
+			//totalHist->Add(myHist);
 				//if(histName != (product + "_" + histType + "_" + "mc15_13TeV.307431.MGPy8EG_A14NNPDF23LO_RS_G_ZZ_llll_c10_m0200.2lep_raw.root")){
 		counter++;
 		}
@@ -147,11 +148,12 @@ void plot(string product, string histType){
 	std::cout << chosenHist->GetMinimum() << std::endl;
 	*/
 	f->Close();
-	
+	totalHist->Draw("hist");
+	/*
 	TAxis* a = etDist->GetXaxis();
-	a->SetNdivisions(-502);
-	a->ChangeLabel(1,-1,-1,-1,-1,-1,"0");
-	a->ChangeLabel(2,-1,-1,-1,-1,-1,"#frac{#pi}{2}");
+	a->SetNdivisions(-504);
+	a->ChangeLabel(1,-1,-1,-1,-1,-1,"-#pi");
+	
 	a->ChangeLabel(-1,-1,-1,-1,-1,-1,"#pi");
 	//a->ChangeLabel(2,-1,-1,-1,-1,-1,"-#frac{#pi}{2} (l)");
 	//a->ChangeLabel(4,-1,-1,-1,-1,-1,"#frac{#pi}{2} (#tau)");
@@ -160,7 +162,7 @@ void plot(string product, string histType){
 	etDist->SetTitle(";#Delta/rad; counts/[#pi/100rad]");
 	etDist->SetDirectory(0);
 	//etDist->Draw("hist");
-	/*Double_t gx[2] = {-M_PI/2,-M_PI/2};
+	Double_t gx[2] = {-M_PI/2,-M_PI/2};
 	Double_t hx[2] = {M_PI/2,M_PI/2};
 	Double_t y[2] = {0,etDist->GetMaximum()};
 	TGraph *g = new TGraph(2,gx,y);
@@ -168,7 +170,7 @@ void plot(string product, string histType){
 	g->SetLineColor(kRed);
 	h->SetLineColor(kRed);
 	g->Draw("same");
-	h->Draw("same");*/
+	h->Draw("same");
 	
 	Double_t lowerMass=40;
 	Double_t higherMass=140;
@@ -179,7 +181,7 @@ void plot(string product, string histType){
 	totalHist->SetTitle(";M_{inv}/GeV;counts/0.8GeV");
 	totalHist->Fit("fit","+R");
 
-	/*if(order==1){
+	*//*if(order==1){
 		fit = new TF1("fit",Fit,lowerMass,higherMass,8);
 		fit->SetParameters(91,5,1,80,5,1,1,1);
 	}else if(order==2){
@@ -273,7 +275,7 @@ void plot(string product, string histType){
 	//totalHist->SetTitle(";M_{inv}/GeV; counts/0.8GeV");
 	//totalHist->Draw("hist");
 
-		
+	
 		
 		
 		
@@ -464,8 +466,8 @@ void plot(string product, string histType){
 		//legend->Draw();*/
 		//}
 		
-		/*Double_t backIntegral = backFit->Integral(80/0.8,100/0.8);
-		Double_t efficiency = re_Eff;   //TODO: Make sure to change this for the correct file
+		Double_t backIntegral = backFit->Integral(80/0.8,100/0.8);
+		Double_t efficiency = mc_Eff;   //TODO: Make sure to change this for the correct file
 		std::cout << "Background integral: " << backIntegral << " +- " << background_err << std::endl;
 		std::cout << "Efficiency used: " << efficiency << std::endl;
 		
@@ -478,7 +480,7 @@ void plot(string product, string histType){
 		Double_t sigma = pow(2*Br_lep,2)*(N_sig-backIntegral)/(efficiency*L_int);
 		Double_t sigma_sigma = sigma*sqrt((pow(err,2)+pow(err_tot,2)/4+pow(background_err,2))/pow(N_sig-backIntegral,2));
 		std::cout<<"sigma = "<<sigma/1e3<<" +- "<<sigma_sigma/1e3<<" pb"<<std::endl;
-		*/
+		
 	}
 
 
