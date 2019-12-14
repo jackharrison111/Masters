@@ -67,7 +67,7 @@ void plot(string product, string histType){
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
 	
 	
-	TFile *f = new TFile("rootOutput/mc_output_2lep_12-12.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("rootOutput/mc_output_2lep_13-12.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -137,9 +137,9 @@ void plot(string product, string histType){
 	f->Close();
 
 	
-	TH1D *re_totalHist = new TH1D("re_totalHist", "", 200, 0, 2*M_PI);
+	TH1D *re_totalHist = new TH1D("re_totalHist", "", 200, 0, 160);
 	//re_totalHist->SetTitle(";M_{inv}/GeV;counts/0.8GeV");
-	TFile *f2 = new TFile("rootOutput/re_output_openAngle_5-12.root");
+	TFile *f2 = new TFile("rootOutput/re_output_2lep_13-12.root");
 	if(!f2->IsOpen()){
 		std::cout << "Couldn't open re_output.root" << std::endl;
 	}
@@ -168,7 +168,7 @@ void plot(string product, string histType){
 		string name = reHist->GetName();
 		reHist->SetDirectory(0);
 				
-		//re_totalHist->Add(reHist);
+		re_totalHist->Add(reHist);
 		/*for(Int_t i = 1; i <= reHist->GetNbinsX(); i++){		
 			re_totalHist->Add(reHist);
 		}*/
@@ -206,8 +206,13 @@ void plot(string product, string histType){
 	re_totalHist->SetDirectory(0);
 	re_totalHist->SetZTitle("Counts/(1.6GeV)^{2}");
 	*/
-	totalHist->Draw("hist");
-	legend->Draw();
+	
+	//totalHist->Draw("hist");
+	//legend->Draw();
+	re_totalHist->Draw("histsame");
+
+
+
 
 	Int_t upperFit{140};
 	Int_t lowerFit{50};
@@ -260,13 +265,51 @@ void plot(string product, string histType){
 	g->SetLineColor(kRed);
 	g->SetLineWidth(2);
 	g->Draw("same");
-	legend->AddEntry(g,"Background","l");
+	legend->AddEntry(g,"MC Background","l");
 	
+	Double_t backIntegral = backFit->Integral(80/0.8,100/0.8);
 	
+	/////////////////////////////
+	//	Re_ background     //
+	//	fitting		   //
+
 	
+	Double_t lower_range1{25};
+	Double_t upper_range1{60};
+
+	TF1 *re_backFit = new TF1("re_backFit",BackFit,lower_range1,upper_range1,order+1); //hardcoded
+	re_backFit->SetParNames("a","b");
+	//backFit->SetParameters(2,20000);
+	re_backFit->SetParameters(1,1);
+	re_backFit->SetParameters(0,-1);
+	re_totalHist->Fit("re_backFit", "+RN");
+
 	
+	Double_t re_m_err = re_backFit->GetParError(0);
+	Double_t re_c_err = re_backFit->GetParError(1);
+
+
+	Double_t x1[200], y1[200];
+	Double_t background_err1{0};
+	for(Int_t i=0; i<200; i++){
+		x1[i]=160*i/200;
+		//y[i]=invMassFit->GetParameter(1)*invMassFit->GetParameter(2)/(pow(x[i]-invMassFit->GetParameter(0),2)+pow(0.5*invMassFit->GetParameter(1),2));
+		y1[i] = re_backFit->GetParameter(1) + re_backFit->GetParameter(0)*x1[i];// + backFit->GetParameter(0)*pow(x[i],2);
+		if(x1[i]>=80&&x1[i]<=100){
+			background_err1 += pow(x1[i]*re_m_err,2) + pow(re_c_err,2);
+		}
+	}
+	background_err1 = sqrt(background_err1);
+
+	TGraph *g1 = new TGraph(200,x1,y1);
+	g1->SetLineColor(kBlue);
+	g1->SetLineWidth(2);
+	g1->Draw("same");
+	legend->AddEntry(g1,"re_Background","l");
+	legend->Draw();
+	Double_t re_backIntegral = re_backFit->Integral(80/0.8,100/0.8);
 	
-	
+
 	////////////////////////////
 	//	Signal fitting    //
 	
@@ -342,20 +385,27 @@ void plot(string product, string histType){
 	//legend->Draw();*/
 	//}
 	
-	Double_t backIntegral = backFit->Integral(80/0.8,100/0.8);
 	Double_t efficiency = mc_Eff;   //TODO: Make sure to change this for the correct file
 	//efficiency = 4.5e-5;
 	std::cout << "Background integral: " << backIntegral << " +- " << background_err << std::endl;
 	std::cout << "Efficiency used: " << efficiency << std::endl;
 	
 
+
+	//Subtracting MC signal file background fit off the real data:
+	
+
+
 	Double_t err;
-	Double_t I = totalHist->IntegralAndError(80/0.8,100/0.8,err,"");
+	Double_t I = re_totalHist->IntegralAndError(80/0.8,100/0.8,err,"");
 	Double_t err_tot;
-	Double_t I_tot = totalHist->IntegralAndError(0,200,err_tot,"");
+	Double_t I_tot = re_totalHist->IntegralAndError(0,200,err_tot,"");
 	Double_t N_sig = (2*I-I_tot)/2;
+	
+	N_sig = N_sig - backIntegral; 		//subtract MonteCarlo signal background
+
 	std::cout << "Signal events : " << N_sig << std::endl;
-	Double_t sigma = pow(2*Br_lep,2)*(N_sig-backIntegral)/(efficiency*L_int);
+	Double_t sigma = (N_sig-re_backIntegral)/(efficiency*L_int);
 	Double_t sigma_sigma = sigma*sqrt((pow(err,2)+pow(err_tot,2)/4+pow(background_err,2))/pow(N_sig-backIntegral,2));
 	std::cout<<"sigma = "<<sigma/1e3<<" +- "<<sigma_sigma/1e3<<" pb"<<std::endl;
 	std::cout<<"eff="<<efficiency<<std::endl;

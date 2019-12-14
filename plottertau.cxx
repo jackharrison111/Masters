@@ -181,7 +181,7 @@ void plot(string product, string histType){
 	totalHist->SetTitle(";M_{inv}/GeV;counts/0.8GeV");
 	totalHist->Fit("fit","+R");
 
-	/*if(order==1){
+	*//*if(order==1){
 		fit = new TF1("fit",Fit,lowerMass,higherMass,8);
 		fit->SetParameters(91,5,1,80,5,1,1,1);
 	}else if(order==2){
@@ -273,7 +273,7 @@ void plot(string product, string histType){
 	//totalHist->SetTitle(";M_{inv}/GeV; counts/0.8GeV");
 	//totalHist->Draw("hist");
 
-	*/	
+	
 		
 		
 		
@@ -464,8 +464,8 @@ void plot(string product, string histType){
 		//legend->Draw();*/
 		//}
 		
-		/*Double_t backIntegral = backFit->Integral(80/0.8,100/0.8);
-		Double_t efficiency = re_Eff;   //TODO: Make sure to change this for the correct file
+		Double_t backIntegral = backFit->Integral(80/0.8,100/0.8);
+		Double_t efficiency = mc_Eff;   //TODO: Make sure to change this for the correct file
 		std::cout << "Background integral: " << backIntegral << " +- " << background_err << std::endl;
 		std::cout << "Efficiency used: " << efficiency << std::endl;
 		
@@ -478,11 +478,11 @@ void plot(string product, string histType){
 		Double_t sigma = pow(2*Br_lep,2)*(N_sig-backIntegral)/(efficiency*L_int);
 		Double_t sigma_sigma = sigma*sqrt((pow(err,2)+pow(err_tot,2)/4+pow(background_err,2))/pow(N_sig-backIntegral,2));
 		std::cout<<"sigma = "<<sigma/1e3<<" +- "<<sigma_sigma/1e3<<" pb"<<std::endl;
-		*/
+		
 	}
 
 
 	int plottertau(){
-		plot("1lep1tau","deltaRDist");
+		plot("1lep1tau","invMassleptau");
 		return 0;
 	}
