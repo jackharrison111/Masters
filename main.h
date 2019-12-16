@@ -215,6 +215,7 @@ public :
    virtual void     Show(Long64_t entry = -1);
    Bool_t           Cut(Int_t e, Int_t mu, Int_t tau);
    Int_t            numberOfType(Int_t type);
+   Double_t         GetOpenAngle(Double_t ang1, Double_t ang2);
    static Double_t  Gaussian(Double_t *x, Double_t *par);
    static Double_t  Lorentz(Double_t *x, Double_t *par);
    static Int_t     order;
@@ -232,8 +233,8 @@ mini::mini(TTree *tree) : fChain(0)
 // used to generate this class and read the Tree.
    if (tree == 0) {
       chain = new TChain("mini");
-      //chain->Add("/data/ATLAS/1lep1tau/Data/*");
-      chain->Add("/data/ATLAS/2lep/Data/*");
+      chain->Add("/data/ATLAS/1lep1tau/Data/*");
+      //chain->Add("/data/ATLAS/2lep/Data/*");
    }
    Init(chain);
 }

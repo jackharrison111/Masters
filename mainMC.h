@@ -215,6 +215,7 @@ public :
    virtual void     Show(Long64_t entry = -1);
    Bool_t           Cut(Int_t e, Int_t mu, Int_t tau);
    Int_t            numberOfType(Int_t type);
+   Double_t         GetOpenAngle(Double_t ang1, Double_t ang2);
    static Double_t  Gaussian(Double_t *x, Double_t *par);
    static Double_t  Lorentz(Double_t *x, Double_t *par);
    static Int_t     order;
@@ -237,10 +238,10 @@ mini::mini(TTree *tree) : fChain(0)
       }
       f->GetObject("mini",tree);*/
       chain = new TChain("mini");
-      chain->Add("/data/ATLAS/1lep1tau/MC/*");
+      //chain->Add("/data/ATLAS/1lep1tau/MC/*");
       //chain->Add("/data/ATLAS/2lep/MC/*");
       //chain->Add("/data/ATLAS/2lep/MC/mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.2lep_raw.root");
-      //chain->Add("/data/ATLAS/1lep1tau/MC/mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.1lep1tau_raw.root");
+      chain->Add("/data/ATLAS/1lep1tau/MC/mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.1lep1tau_raw.root");
       //chain->Add("/data/ATLAS/2lep/MC/mc15_13TeV.361603.PwPy8EG_CT10nloME_AZNLOCTEQ6L1_ZZllll_mll4.2lep_raw.root");	
       //chain->Add("/data/ATLAS/2lep/MC/mc15_13TeV.361106.PwPy8EG_AZNLOCTEQ6L1_Zee.2lep_raw.root");
    }
