@@ -57,7 +57,7 @@ Double_t mini::GetOpenAngle(Double_t ang1, Double_t ang2){
 }
 
 void mini::Run(){
-	
+
 	//gROOT->SetStyle("ATLAS");
 	gStyle->SetOptStat(0);
 
@@ -80,11 +80,10 @@ void mini::Run(){
 
 	
 
-	TFile output(("rootOutput/" + outputName+"output_Zee_allMC_12-12.root").c_str(),"RECREATE");
-	TDirectory *TDir2 = output.mkdir("2lep");
+	TFile output(("rootOutput/" + outputName+"output_Zee_14-12.root").c_str(),"RECREATE");
+	TDirectory *TDir = output.mkdir("2lep");
 	std::map<string,TH1*> histograms;
-	histograms["invMassZee"]=new TH1D("invMassZee","Z->ee",200,0,160);
-	histograms["invMassZmumu"]=new TH1D("invMassZmumu","Z->mumu",200,0,160);
+	histograms["invMassZee"]=new TH1D("invMassZee","Z->ee",160,0,160);
 	
 	Int_t counter{0};
 	clock_t startTime = clock();
@@ -141,7 +140,6 @@ void mini::Run(){
 				i.makeMap();
 				
 				lumFactor=1000*totRealLum*i.infos[shortFileName]["xsec"]/(i.infos[shortFileName]["sumw"]*i.infos[shortFileName]["red_eff"]);
-				cout<<lumFactor<<std::endl;
 				//TODO: fix this:
 				if(i.infos[shortFileName]["sumw"]==0){
 					lumFactor=0;
@@ -161,19 +159,20 @@ void mini::Run(){
 		if(MC){
 			eventWeight = mcWeight*scaleFactor_PILEUP*scaleFactor_ELE*scaleFactor_MUON*scaleFactor_PHOTON*scaleFactor_TAU*scaleFactor_BTAG*scaleFactor_LepTRIGGER*scaleFactor_PhotonTRIGGER*scaleFactor_TauTRIGGER*scaleFactor_DiTauTRIGGER*lumFactor;
 		}
-		eventCounts++;
 		////2 ELECTRON EVENTS////
 		Double_t invM;
 		if(Cut(2,0,0)||Cut(0,2,0)){
 			//if(MC) Efficiency += eventWeight/sumw;
 			invM = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])))/1000;
 			if(Cut(2,0,0)){
+				eventCounts++;
 				
 				histograms["invMassZee"]->Fill(invM,eventWeight);
-				if(invM>=80&&invM<=100){
+				if(invM>=81&&invM<=101){
 					//std::cout << eventWeight << " , " << sumw << "  :  " << eventWeight/sumw << " , " << Efficiency << std::endl;
-					if(MC) Efficiency += (eventWeight/lumFactor)/sumw;
-					else Efficiency++;
+					//if(MC) Efficiency += (eventWeight/lumFactor)/sumw;
+					//else Efficiency++;
+
 				}
 			}
 			/*else if(Cut(0,2,0)){
@@ -200,7 +199,7 @@ void mini::Run(){
 					(it->second)->Write((products+"_"+it->first+"_"+shortFileName).c_str(),TObject::kWriteDelete);
 				}
 				gDirectory->cd("..");
-				(it->second)->Reset();
+				//(it->second)->Reset();
 				it++;
 			}
 		}
@@ -209,12 +208,97 @@ void mini::Run(){
 	//Print the time taken to run the loop (relies on startTime at beginning of loop)
 	clock_t endTime = clock();
 	std::cout<<"Run time: "<<(endTime-startTime)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
-	
+	std::cout<<"\n\nPERCENTAGE OF EVENTS ADDED TO HIST: "<<100*eventCounts/n<<"\n\n\n"<<std::endl;
+
+	TF1 *fitt = new TF1("fitt",BackFit,110,160,2);
+	fitt->SetParameters(1,1);
+	histograms["invMassZee"]->SetDirectory(0);
+	histograms["invMassZee"]->SetTitle(";M_{inv}/GeV;counts/1GeV");
+	histograms["invMassZee"]->Fit("fitt","+R");
+	Double_t m = fitt->GetParameter(0);
+	Double_t cons = fitt->GetParameter(1);
+	std::cout<<"m="<<m<<", c="<<cons<<std::endl;
+
+	Double_t x[160], y[160];
+	for(Int_t i{0}; i<160; i++){
+		x[i]=1*i;
+		y[i]=m*x[i]+cons;
+	}
+
+	Double_t I = 0;
+	Double_t B = 0;
+	Double_t lowerRange = 91-8;
+	Double_t upperRange = 91+8;
+	for(Int_t i{0}; i<160; i++){
+		if(1*i>=lowerRange&&1*i<=upperRange){
+			I+=histograms["invMassZee"]->GetBinContent(i);
+			B+=y[i];
+		}
+	}
+	Double_t N = I-B;
+
+
+
+
+
+
+
+
+
+
+
+
+
+	for (Long64_t i=0; i<n; i++){
+		Long64_t ientry = LoadTree(i);
+		if(ientry < 0) break;
+		nb = fChain->GetEntry(i);   nbytes += nb;
+		
+		fileName = (chain->GetFile())->GetName();
+		
+		Double_t eventWeight = 1;
+		if(fileName!=oldFileName){ //dont want to calculate lumFactor repeatedly, only once per file/per event type
+			std::cout<<(chain->GetFile())->GetSize()/1e6<<" MB : File "<<fileCounter<<" out of "<<((chain->GetListOfFiles())->GetLast()+1)<<", "<<fileName<<std::endl;
+			fileCounter++;
+			oldFileName=fileName;
+			products=oldFileName.substr(12,oldFileName.find('/',12)-12); //12 is the position after "/data/ATLAS/"
+			shortFileName=oldFileName.substr(oldFileName.find_last_of('/')+1,oldFileName.length()-oldFileName.find_last_of('/')); //to get rid of "/data/ATLAS/2lep/MC/" from the TChain file strings
+			if(MC){
+				convert i;
+				i.makeMap();
+				
+				lumFactor=1000*totRealLum*i.infos[shortFileName]["xsec"]/(i.infos[shortFileName]["sumw"]*i.infos[shortFileName]["red_eff"]);
+				//TODO: fix this:
+				if(i.infos[shortFileName]["sumw"]==0){
+					lumFactor=0;
+					std::cout<<"ERROR! lum factor is zero"<<std::endl;
+				}
+				sumw = i.infos[shortFileName]["sumw"];
+			}
+		}
+		if(sumw==0) continue;
+		if(MC){
+			eventWeight = mcWeight*scaleFactor_PILEUP*scaleFactor_ELE*scaleFactor_MUON*scaleFactor_PHOTON*scaleFactor_TAU*scaleFactor_BTAG*scaleFactor_LepTRIGGER*scaleFactor_PhotonTRIGGER*scaleFactor_TauTRIGGER*scaleFactor_DiTauTRIGGER*lumFactor;
+		}
+		
+		Double_t invM;
+		if(Cut(2,0,0)){
+			invM = sqrt(2*(*lep_pt)[0]*(*lep_pt)[1]*(cosh((*lep_eta)[0]-(*lep_eta)[1])-cos((*lep_phi)[0]-(*lep_phi)[1])))/1000;
+			if(invM>=lowerRange&&invM<=upperRange){
+				if(MC) Efficiency += (1-(m*(int)invM+cons)/I)*(eventWeight/lumFactor)/sumw;
+				else Efficiency++;
+			}
+		}
+	}
+	Double_t sigma = N /(Efficiency*L_int);//fb
+	sigma/=1e6;//nb
+	std::cout<<"I="<<I<<", B="<<B<<", N="<<N<<", eff="<<Efficiency<<std::endl;
+	std::cout<<"sigma="<<sigma<<" nb"<<std::endl;
 
 	if(MC){
-		std::cout<<"efficiency = "<<Efficiency<<std::endl;
+		std::cout<<"Efficiency = "<<Efficiency<<std::endl;
 	}else{
-		std::cout<<"efficiency = "<<Efficiency/n<<std::endl;
+		std::cout<<"Efficiency = "<<Efficiency/n<<std::endl;
 	}
 
 	output.cd();
@@ -228,8 +312,7 @@ void mini::Run(){
 		v[0]=Efficiency/n;
 	}
 	std::cout << "Eventcounts = " <<eventCounts << " , n = " << n << std::endl;
-	std::cout<<"efficiency from vector = "<<v[0]<<std::endl;
-	v.Write("efficiency");
+	v.Write("Efficiency");
 
 	output.cd();
 	output.Close(); //Close the output file
@@ -242,7 +325,7 @@ void mini::Run(){
 Int_t mainZee(){
 	mini a;
 	a.Run();
-	plotterZee();
+	//plotterZee();
 
 	return 0;
 }
