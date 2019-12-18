@@ -230,7 +230,7 @@ void mini::Run(){
 	Double_t lowerRange = 91-8;
 	Double_t upperRange = 91+8;
 	for(Int_t i{0}; i<160; i++){
-		if(1*i>=lowerRange&&1*i<=upperRange){
+		if(i>=lowerRange&&i<=upperRange){
 			I+=histograms["invMassZee"]->GetBinContent(i);
 			B+=y[i];
 		}
