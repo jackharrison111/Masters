@@ -638,7 +638,19 @@ infos = {
                     'sumw':4389990.08913,
                     'xsec':0.02020229148},
 
+  'VBFH125_WW2lepb':{'DSID':345323,
+                    'events':1175000,
+                    'red_eff':1,
+                    'sumw':4389990.08913,
+                    'xsec':0.02020229148},
+  
   'ggH125_WW2lep':{'DSID':345324,
+                   'events':1972000,
+                   'red_eff':1,
+                   'sumw':55832659.6908,
+                   'xsec':0.1481173588},
+
+  'ggH125_WW2lepb':{'DSID':345324,
                    'events':1972000,
                    'red_eff':1,
                    'sumw':55832659.6908,
@@ -650,7 +662,19 @@ infos = {
                     'sumw':212083.006669,
                     'xsec':0.009137412},
 
+  'WH125_qqWW2lepb':{'DSID':345325,
+                    'events':246000,
+                    'red_eff':1,
+                    'sumw':212083.006669,
+                    'xsec':0.009137412},
+
   'WH125_lvWW2lep':{'DSID':345327,
+                    'events':99000,
+                    'red_eff':1,
+                    'sumw':27654.9427524,
+                    'xsec':0.002953584},
+
+  'WH125_lvWW2lepb':{'DSID':345327,
                     'events':99000,
                     'red_eff':1,
                     'sumw':27654.9427524,
@@ -662,7 +686,19 @@ infos = {
                     'sumw':186418.164907,
                     'xsec':0.008065858},
 
+  'ZH125_qqWW2lepb':{'DSID':345336,
+                    'events':245000,
+                    'red_eff':1,
+                    'sumw':186418.164907,
+                    'xsec':0.008065858},
+
   'ZH125_llWW2lep':{'DSID':345337,
+                    'events':297000,
+                    'red_eff':1,
+                    'sumw':22685.3119437,
+                    'xsec':0.0008078684},
+
+  'ZH125_llWW2lepb':{'DSID':345337,
                     'events':297000,
                     'red_eff':1,
                     'sumw':22685.3119437,
@@ -1016,6 +1052,12 @@ infos = {
              'red_eff'          : 1,
              'sumw'             : 7538705.8077,
              'xsec'             : 1.2578},
+
+'ZllZll_tau' : {'DSID':363490,
+	    'events':17825300,
+            'red_eff'          : 1, 
+	    'sumw'             : 7538705.8077,
+            'xsec'             : 1.2578},
 
  'WlvZll' : {'DSID':363491,
              'events':15772084,
