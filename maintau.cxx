@@ -1,6 +1,6 @@
 //TODO: make an if statement to check whether dataSets.json contains shortFileName
 #define main_cxx
-#include "mainMC.h" //change this for mc or real data
+#include "mainMCtemp.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
 #include "plottertau.cxx"
 #include <TH2.h>
@@ -95,18 +95,17 @@ void mini::Run(){
 	}
 
 
-	TFile output(("rootOutput/"+outputName+"output_tau_12-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/"+outputName+"output_tau_16-12.root").c_str(),"RECREATE");
 
 	TDirectory *TDir = output.mkdir("1lep1tau");
 	std::map<string,TH1*> histograms;
 
-	histograms["missingET"] = new TH1D("missingET", "Z#rightarrowllVis",200,0,160);
-	histograms["invMassVis"] = new TH1D("invMassVis", "Z#rightarrowllVis",200,0,160);
-	histograms["invMassleptau"] = new TH1D("invMassleptau","Z->l#tau",200,0,160);
-	histograms["invMass3lep1tau"] = new TH1D("invMass3lep1tau","Z->lll#tau",200,0,160);
+	histograms["missingET"] = new TH1D("missingET", "Z#rightarrowllVis",160,0,160);
+	histograms["invMassVis"] = new TH1D("invMassVis", "Z#rightarrowllVis",160,0,160);
+	histograms["invMassleptau"] = new TH1D("invMassleptau","Z->l#tau",160,0,160);
+	histograms["invMass3lep1tau"] = new TH1D("invMass3lep1tau","Z->lll#tau",160,0,160);
 	histograms["missEtDist"] = new TH1D("missEtDist","Distribution of missing transverse momentum",100,-M_PI,M_PI);
 	histograms["opAngDist"] = new TH1D("opAngDist","Opening angle distribution",100,0,M_PI);
-	histograms["deltaRDist"] = new TH1D("deltaRDist", "#Delta R angle distribution", 100, 0, 1);
 	
 	Double_t nIntervals=50;
 	histograms["etContainedFrac"] = new TH1D("etContainedFrac","Fraction of missing transverse momentum as a function of opening angle",nIntervals,0,M_PI);
@@ -259,33 +258,11 @@ void mini::Run(){
 				            +(*lep_pt)[tauPartner]*sinh((*lep_eta)[tauPartner])+(*tau_pt)[0]*sinh((*tau_eta)[0]);
 				invM3 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
 
-
-
 				invM4 = sqrt(2*(*lep_pt)[tauPartner]*(*tau_pt)[0]*(cosh((*lep_eta)[tauPartner]-(*tau_eta)[0])-cos((*lep_phi)[tauPartner]-(*tau_phi)[0])))/1000;
 
 				l = (*lep_phi)[tauPartner];
 
 				histograms["invMassVis"]->Fill(invM4);
-			
-				
-				Double_t l_pt = (*lep_pt)[tauPartner];
-				Double_t t_pt = (*tau_pt)[0];
-				Double_t l_theta = 2*atan(exp(-(*lep_eta)[tauPartner]));
-				Double_t t_theta = 2*atan(exp(-(*tau_eta)[0]));
-
-				Double_t etaMiss = asinh((-(*lep_pt)[tauPartner] - (*tau_pt)[0])/ met_et);
-				Double_t phiVis = atan( (l_pt*sin(l) + t_pt*sin(t))/(l_pt*cos(l) + t_pt*cos(t)));
-				Double_t ptVis = (l_pt*cos(l) + t_pt*cos(t))/cos(phiVis);
-				
-
-				Double_t etaVis = acot((l_pt*cot(l_theta)+t_pt*cot(t_theta))/ptVis);
-				etaVis = -log(tan(etaVis/2));
-
-				Double_t deltaR = sqrt( pow(etaVis - etaMiss, 2) + pow(phiVis - met_phi,2));
-				//if((*lep_pt)[tauPartner]<=30e3&&(*lep_pt)[tauPartner]>25e3){
-					histograms["deltaRDist"]->Fill(deltaR);
-				//}
-
 			}
 
 			// 2 leps same type, other not
@@ -328,36 +305,6 @@ void mini::Run(){
 				invM4 = sqrt(2*(*lep_pt)[oddLep]*(*tau_pt)[0]*(cosh((*lep_eta)[oddLep]-(*tau_eta)[0])-cos((*lep_phi)[oddLep]-(*tau_phi)[0])))/1000;
 				
 				l = (*lep_phi)[oddLep];
-				Double_t l_pt = (*lep_pt)[oddLep];
-				Double_t t_pt = (*tau_pt)[0];
-				Double_t l_theta = 2*atan(exp(-(*lep_eta)[oddLep]));
-				Double_t t_theta = 2*atan(exp(-(*tau_eta)[0]));
-
-
-				for(phi 1 in range):
-					for(phi 2 in range):
-
-
-
-
-
-
-
-				Double_t etaMiss = asinh((-(*lep_pt)[oddLep] - (*tau_pt)[0])/ met_et);
-				Double_t phiVis = atan( (l_pt*sin(l) + t_pt*sin(t))/(l_pt*cos(l) + t_pt*cos(t)));
-				Double_t ptVis = (l_pt*cos(l) + t_pt*cos(t))/cos(phiVis);
-				
-
-				Double_t etaVis = acot((l_pt*cot(l_theta)+t_pt*cot(t_theta))/ptVis);
-				etaVis = -log(tan(etaVis/2));
-
-				Double_t deltaR = sqrt( pow(etaVis - etaMiss, 2) + pow(phiVis - met_phi,2));
-				//if((*lep_pt)[oddLep]<=30e3&&(*lep_pt)[oddLep]>25e3){
-					histograms["deltaRDist"]->Fill(deltaR);
-				//}
-
-
-				
 				
 				histograms["invMassVis"]->Fill(invM4);
 			}
@@ -411,12 +358,14 @@ void mini::Run(){
 			}
 
 			phi_rel = met_phi*M_PI/(2*halfAng);
-
-			//+-1
-			if(t>l){
-				histograms["missEtDist"]->Fill(phi_rel);
-			}else{
-				histograms["missEtDist"]->Fill(-1*phi_rel);
+			
+			if(invM4<80){
+				//+-1
+				if(t>l){
+					histograms["missEtDist"]->Fill(phi_rel);
+				}else{
+					histograms["missEtDist"]->Fill(-1*phi_rel);
+				}
 			}
 
 //			if((invM1<96&&invM1>86)/*||(invM3<96&&invM3>86)*/){ //hardcoded
