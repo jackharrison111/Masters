@@ -95,7 +95,7 @@ void mini::Run(){
 	}
 
 
-	TFile output(("rootOutput/"+outputName+"output_tau_16-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/"+outputName+"output_tau_21-12.root").c_str(),"RECREATE");
 
 	TDirectory *TDir = output.mkdir("1lep1tau");
 	std::map<string,TH1*> histograms;
@@ -103,6 +103,7 @@ void mini::Run(){
 	histograms["missingET"] = new TH1D("missingET", "Z#rightarrowllVis",160,0,160);
 	histograms["invMassVis"] = new TH1D("invMassVis", "Z#rightarrowllVis",160,0,160);
 	histograms["invMassleptau"] = new TH1D("invMassleptau","Z->l#tau",160,0,160);
+	histograms["invMassleplep"] = new TH1D("invMassleplep","Z->ll",160,0,160);
 	histograms["invMass3lep1tau"] = new TH1D("invMass3lep1tau","Z->lll#tau",160,0,160);
 	histograms["missEtDist"] = new TH1D("missEtDist","Distribution of missing transverse momentum",100,-M_PI,M_PI);
 	histograms["opAngDist"] = new TH1D("opAngDist","Opening angle distribution",100,0,M_PI);
@@ -136,7 +137,9 @@ void mini::Run(){
 	}
 	vector<Double_t> fractionContained(nIntervals,0);
 	vector<Double_t> openingAngleCounter(nIntervals,0);
-	
+
+	vector<Double_t> eventWeights;
+
 	for (Long64_t i=0; i<n; i++){
 		Long64_t ientry = LoadTree(i);
 		if(ientry < 0) break;
@@ -196,7 +199,7 @@ void mini::Run(){
 
 
 
-		Double_t invM1, invM2, invM3, invM4;
+		Double_t invM1, invM2, invM3, invM4; //1&2 for leplep, 3 for vis, 4 for leptau
 		if(Cut(2,1,1)||Cut(1,2,1)||Cut(3,0,1)||Cut(0,3,1)){
 			
 		//	std::cout << (*lep_truthMatched)[0] << " , " << (*lep_truthMatched)[1] << " , " << (*lep_truthMatched)[2] << "  ,  " << (*lep_truthMatched)[3] << ","<<(*lep_truthMatched)[4]<< " - " << (*lep_truthMatched).size() << std::endl;
@@ -210,6 +213,7 @@ void mini::Run(){
 			
 			Double_t t = (*tau_phi)[0];
 			Double_t l;
+			Double_t x1, x2;
 			Double_t rotationAngle;
 			Double_t phi_rel;
 			// all 3 leps same type
@@ -248,21 +252,16 @@ void mini::Run(){
 				
 				Double_t nu_T_lep = met_et*(sin(met_phi)-sin((*tau_phi)[0]))/(sin((*lep_phi)[tauPartner])-sin((*tau_phi)[0]));
 				Double_t nu_T_had = met_et*(sin(met_phi)-sin((*lep_phi)[tauPartner]))/(sin((*tau_phi)[0])-sin((*lep_phi)[tauPartner]));
-				Double_t A = nu_T_lep*cosh((*lep_eta)[tauPartner])+nu_T_had*cosh((*tau_eta)[0])
-				            +(*lep_pt)[tauPartner]*cosh((*lep_eta)[tauPartner])+(*tau_pt)[0]*cosh((*tau_eta)[0]);
-				Double_t B = nu_T_lep*cos((*lep_phi)[tauPartner])+nu_T_had*cos((*tau_phi)[0])
-				            +(*lep_pt)[tauPartner]*cos((*lep_phi)[tauPartner])+(*tau_pt)[0]*cos((*tau_phi)[0]);
-				Double_t C = nu_T_lep*sin((*lep_phi)[tauPartner])+nu_T_had*sin((*tau_phi)[0])
-				            +(*lep_pt)[tauPartner]*sin((*lep_phi)[tauPartner])+(*tau_pt)[0]*sin((*tau_phi)[0]);
-				Double_t D = nu_T_lep*sinh((*lep_eta)[tauPartner])+nu_T_had*sinh((*tau_eta)[0])
-				            +(*lep_pt)[tauPartner]*sinh((*lep_eta)[tauPartner])+(*tau_pt)[0]*sinh((*tau_eta)[0]);
-				invM3 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
 
-				invM4 = sqrt(2*(*lep_pt)[tauPartner]*(*tau_pt)[0]*(cosh((*lep_eta)[tauPartner]-(*tau_eta)[0])-cos((*lep_phi)[tauPartner]-(*tau_phi)[0])))/1000;
+				invM3 = sqrt(2*(*lep_pt)[tauPartner]*(*tau_pt)[0]*(cosh((*lep_eta)[tauPartner]-(*tau_eta)[0])-cos((*lep_phi)[tauPartner]-(*tau_phi)[0])))/1000;
 
 				l = (*lep_phi)[tauPartner];
-
-				histograms["invMassVis"]->Fill(invM4);
+			
+				x1 = (*lep_pt)[tauPartner]/((*lep_pt)[tauPartner]+nu_T_lep);
+				x2 = (*tau_pt)[0]/((*tau_pt)[0]+nu_T_had);
+				invM4 = invM4/sqrt(x1*x2);
+				
+				if(eventWeight<0.282935&&eventWeight>-0.0444269) histograms["invMassVis"]->Fill(invM3,eventWeight);
 			}
 
 			// 2 leps same type, other not
@@ -292,21 +291,16 @@ void mini::Run(){
 
 				Double_t nu_T_lep = met_et*(sin(met_phi)-sin((*tau_phi)[0]))/(sin((*lep_phi)[oddLep])-sin((*tau_phi)[0]));
 				Double_t nu_T_had = met_et*(sin(met_phi)-sin((*lep_phi)[oddLep]))/(sin((*tau_phi)[0])-sin((*lep_phi)[oddLep]));
-				Double_t A = nu_T_lep*cosh((*lep_eta)[oddLep])+nu_T_had*cosh((*tau_eta)[0])
-				            +(*lep_pt)[oddLep]*cosh((*lep_eta)[oddLep])+(*tau_pt)[0]*cosh((*tau_eta)[0]);
-				Double_t B = nu_T_lep*cos((*lep_phi)[oddLep])+nu_T_had*cos((*tau_phi)[0])
-				            +(*lep_pt)[oddLep]*cos((*lep_phi)[oddLep])+(*tau_pt)[0]*cos((*tau_phi)[0]);
-				Double_t C = nu_T_lep*sin((*lep_phi)[oddLep])+nu_T_had*sin((*tau_phi)[0])
-				            +(*lep_pt)[oddLep]*sin((*lep_phi)[oddLep])+(*tau_pt)[0]*sin((*tau_phi)[0]);
-				Double_t D = nu_T_lep*sinh((*lep_eta)[oddLep])+nu_T_had*sinh((*tau_eta)[0])
-				            +(*lep_pt)[oddLep]*sinh((*lep_eta)[oddLep])+(*tau_pt)[0]*sinh((*tau_eta)[0]);
-				invM3 = sqrt(pow(A,2)-pow(B,2)-pow(C,2)-pow(D,2))/1000;
 				
-				invM4 = sqrt(2*(*lep_pt)[oddLep]*(*tau_pt)[0]*(cosh((*lep_eta)[oddLep]-(*tau_eta)[0])-cos((*lep_phi)[oddLep]-(*tau_phi)[0])))/1000;
+				invM3 = sqrt(2*(*lep_pt)[oddLep]*(*tau_pt)[0]*(cosh((*lep_eta)[oddLep]-(*tau_eta)[0])-cos((*lep_phi)[oddLep]-(*tau_phi)[0])))/1000;
 				
 				l = (*lep_phi)[oddLep];
 				
-				histograms["invMassVis"]->Fill(invM4);
+				x1 = (*lep_pt)[oddLep]/((*lep_pt)[oddLep]+nu_T_lep);
+				x2 = (*tau_pt)[0]/((*tau_pt)[0]+nu_T_had);
+				invM4 = invM3/sqrt(x1*x2);
+				
+				if(eventWeight<0.282935&&eventWeight>-0.0444269) histograms["invMassVis"]->Fill(invM3,eventWeight);
 			}
 
 			//rotate most negative between lep and tau to 0
@@ -344,7 +338,7 @@ void mini::Run(){
 			Bool_t found = false;
 			Int_t index = 0;
 			for(vector<Double_t>::iterator it=openingAngle.begin(); it!=openingAngle.end(); it++){
-				if(2*halfAng<*it && !found && invM4<80){//use this or previous instance of *it
+				if(2*halfAng<*it && !found && invM3<80){//use this or previous instance of *it
 					found = true;
 					if(abs(*it-2*halfAng)<abs(*(it-1)-2*halfAng) || index==0){//use index
 						openingAngleCounter[index]++; //counts how many events have this opening angle
@@ -359,7 +353,7 @@ void mini::Run(){
 
 			phi_rel = met_phi*M_PI/(2*halfAng);
 			
-			if(invM4<80){
+			if(invM3<80){
 				//+-1
 				if(t>l){
 					histograms["missEtDist"]->Fill(phi_rel);
@@ -368,17 +362,20 @@ void mini::Run(){
 				}
 			}
 
-//			if((invM1<96&&invM1>86)/*||(invM3<96&&invM3>86)*/){ //hardcoded
-				if(invM4<80 && 2*halfAng<M_PI/2 && 2*halfAng>=0.5/*&& phi_rel<=3*M_PI/5 && phi_rel>=-7*M_PI/10 && abs(met_phi)<halfAn*/){
-					//histograms["invMassleptau"]->Fill(invM1);
-					histograms["invMassleptau"]->Fill(invM3);
-					if((MC)&&invM3<100&&invM3>80){
-						if(sumw!=0) Efficiency+=(eventWeight/lumFactor)/sumw;
-						else std::cout<<"ERROR: sumw=0"<<std::endl;
-					}
+			if(invM3<80 && 2*halfAng<=2.5 && 2*halfAng>=0.5 && phi_rel<=3*M_PI/5 && phi_rel>=-7*M_PI/10){
+				eventWeights.push_back(eventWeight);
+				if(eventWeight<0.282935&&eventWeight>-0.0444269){//these event weights are abnormal large in magnitude
+					histograms["invMassleptau"]->Fill(invM4,eventWeight);
+					histograms["invMassleplep"]->Fill(invM1,eventWeight);
+					histograms["invMass3lep1tau"]->Fill(invM1,eventWeight);
+					histograms["invMass3lep1tau"]->Fill(invM4,eventWeight);
+				}
+				if((MC)&&invM1<100&&invM1>80&&invM4<120&&invM4>40&&eventWeight<0.282935&&eventWeight>-0.0444269){
+					if(sumw!=0) Efficiency+=(eventWeight/lumFactor)/sumw;
+					else std::cout<<"ERROR: sumw=0"<<std::endl;
 				}
 			}
-//		}
+		}
 		
 		//to write the last files histograms (loop ends after last event in last file,
 		//but writing normally occurs at start of next loop)
@@ -430,6 +427,12 @@ void mini::Run(){
 	std::cout<<"efficiency from vector = "<<v[0]<<std::endl;
 	v.Write("efficiency");
 	output.Close(); //Close the output file
+
+	Double_t maxEventWeight=1000;
+	for(vector<Double_t>::iterator it=eventWeights.begin(); it!=eventWeights.end(); it++){
+		if(*it<maxEventWeight&&*it>-0.0444269) maxEventWeight=*it;
+	}
+	cout<<maxEventWeight<<endl;
 } 
 
 
@@ -438,7 +441,7 @@ void mini::Run(){
 Int_t maintau(){
 	mini a;
 	a.Run();
-	plottertau();
+	//plottertau();
 	
 	return 0;
 }
