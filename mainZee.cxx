@@ -2,7 +2,7 @@
 #define main_cxx
 #include "mainMC.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
-#include "plotterZee.cxx"
+#include "plotter.cxx"
 #include <TH2.h>
 //#include <TROOT.h>
 //#include <TRint.h>
@@ -67,7 +67,7 @@ void mini::Run(){
 	//if(n == 9223372036854775807){
 	//	n = fChain->GetEntries();
 	//}
-	//std::cout << n << std::endl;
+	std::cout << n << std::endl;
 	Long64_t nbytes = 0, nb = 0;
 	
 	//Save the output file to the correct place based on data type
@@ -80,7 +80,7 @@ void mini::Run(){
 
 	
 
-	TFile output(("rootOutput/" + outputName+"output_Zee_14-12.root").c_str(),"RECREATE");
+/*	TFile output(("rootOutput/" + outputName+"output_Zee_14-12.root").c_str(),"RECREATE");
 	TDirectory *TDir = output.mkdir("2lep");
 	std::map<string,TH1*> histograms;
 	histograms["invMassZee"]=new TH1D("invMassZee","Z->ee",160,0,160);
@@ -175,13 +175,6 @@ void mini::Run(){
 
 				}
 			}
-			/*else if(Cut(0,2,0)){
-				histograms["invMassZmumu"]->Fill(invM,eventWeight);
-				if(invM>=80&&invM<=100){
-					if(MC) Efficiency += eventWeight/sumw;
-					else Efficiency++;
-				}
-			}*/
 		}
 		/////////////////////////
 		
@@ -316,7 +309,7 @@ void mini::Run(){
 
 	output.cd();
 	output.Close(); //Close the output file
-
+*/
 } 
 
 

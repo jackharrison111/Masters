@@ -47,7 +47,7 @@ Double_t Background(Double_t *x, Double_t *par, Int_t order){
 	return B;
 }
 
-Int_t order = 2; //global?
+Int_t order = 1; //global?
 //combine
 Double_t Fit(Double_t *x, Double_t *par){
 	return Gaussian(x, par) + Background(x,&par[3],order);
@@ -101,7 +101,7 @@ void plot(string product, string histType){
 	}
 
 	//f->cd((product +"/"+histType).c_str());
-	f->cd((product +"/"+histType).c_str());
+	f->cd((product +"/invMass2lB").c_str());
 	TIter next1(gDirectory->GetListOfKeys());
 	TKey *aKey1;
 	while((aKey1 = (TKey*)next1())){
@@ -116,7 +116,7 @@ void plot(string product, string histType){
 		totalHist1->Add(myHist);
 	}
 
-	/*f->cd((product +"/invMass2lR").c_str());
+	f->cd((product +"/invMass2lR").c_str());
 	TIter next2(gDirectory->GetListOfKeys());
 	TKey *aKey2;
 	while((aKey2 = (TKey*)next2())){
@@ -144,7 +144,7 @@ void plot(string product, string histType){
 		myHist = (TH1D*)aKey3->ReadObj();
 		myHist->SetDirectory(0);
 		totalHist3->Add(myHist);
-	}*/
+	}
 	f->Close();
 
 	Double_t lowerMass=40;
@@ -159,16 +159,16 @@ void plot(string product, string histType){
 	totalHist1->SetZTitle("\nN / [GeV^{2}]");
 	totalHist1->SetTitleOffset(1.25,"Z");
 	totalHist1->Fit("fit","+RN");
-	//totalHist1->SetLineColor(kBlack);
+	totalHist1->SetLineColor(kBlack);
 	legend->AddEntry(totalHist1,"minimum |M_{ll} - M_{Z}|","l");
 	totalHist1->Draw("hist");
-	/*totalHist2->SetLineColor(kRed);
+	totalHist2->SetLineColor(kRed);
 	legend->AddEntry(totalHist2,"at least one 86-96 GeV","l");
 	totalHist2->Draw("histsame");
 	totalHist3->SetLineColor(kGreen);
 	legend->AddEntry(totalHist3,"2e2#mu","l");
 	totalHist3->Draw("histsame");
-	legend->Draw("same");*/
+	legend->Draw("same");
 
 	Double_t a = fit->GetParameter(0);
 	Double_t m = fit->GetParameter(1);
@@ -182,7 +182,7 @@ void plot(string product, string histType){
 	TGraph *g = new TGraph(160,x,y);
 	g->SetLineColor(kRed);
 	g->SetLineWidth(2);
-	g->Draw("same");
+	//g->Draw("same");
 	
 	/*Double_t efficiency = mc_Eff;
 
