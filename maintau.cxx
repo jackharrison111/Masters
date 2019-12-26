@@ -95,7 +95,7 @@ void mini::Run(){
 	}
 
 
-	TFile output(("rootOutput/"+outputName+"output_tau_21-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/"+outputName+"output_tau_23-12.root").c_str(),"RECREATE");
 
 	TDirectory *TDir = output.mkdir("1lep1tau");
 	std::map<string,TH1*> histograms;
@@ -213,6 +213,11 @@ void mini::Run(){
 			
 			Double_t t = (*tau_phi)[0];
 			Double_t l;
+			Double_t pt_t = (*tau_pt)[0];
+			Double_t pt_l;
+			Double_t theta_t = 2*atan(exp(-(*tau_eta)[0]));
+			Double_t theta_l;
+
 			Double_t x1, x2;
 			Double_t rotationAngle;
 			Double_t phi_rel;
@@ -256,6 +261,8 @@ void mini::Run(){
 				invM3 = sqrt(2*(*lep_pt)[tauPartner]*(*tau_pt)[0]*(cosh((*lep_eta)[tauPartner]-(*tau_eta)[0])-cos((*lep_phi)[tauPartner]-(*tau_phi)[0])))/1000;
 
 				l = (*lep_phi)[tauPartner];
+				pt_l = (*lep_pt)[tauPartner];
+				theta_l = 2*atan(exp(-(*lep_eta)[tauPartner]));
 			
 				x1 = (*lep_pt)[tauPartner]/((*lep_pt)[tauPartner]+nu_T_lep);
 				x2 = (*tau_pt)[0]/((*tau_pt)[0]+nu_T_had);
@@ -295,6 +302,8 @@ void mini::Run(){
 				invM3 = sqrt(2*(*lep_pt)[oddLep]*(*tau_pt)[0]*(cosh((*lep_eta)[oddLep]-(*tau_eta)[0])-cos((*lep_phi)[oddLep]-(*tau_phi)[0])))/1000;
 				
 				l = (*lep_phi)[oddLep];
+				pt_l = (*lep_pt)[oddLep];
+				theta_l = 2*atan(exp(-(*lep_eta)[oddLep]));
 				
 				x1 = (*lep_pt)[oddLep]/((*lep_pt)[oddLep]+nu_T_lep);
 				x2 = (*tau_pt)[0]/((*tau_pt)[0]+nu_T_had);
@@ -305,6 +314,15 @@ void mini::Run(){
 
 			//rotate most negative between lep and tau to 0
 			Double_t halfAng = GetOpenAngle(t,l)/2;
+			
+			Double_t px_t = pt_t*cos(t);
+			Double_t py_t = pt_t*sin(t);
+			Double_t pz_t = pt_t/tan(theta_t);
+			Double_t px_l = pt_l*cos(l);
+			Double_t py_l = pt_l*sin(l);
+			Double_t pz_l = pt_l/tan(theta_l);
+			Double_t Delta = acos((px_t*px_l+py_t*py_l+pz_t*pz_l)/(pt_t*pt_l*sqrt(1+1/pow(tan(theta_t),2))*sqrt(1+1/pow(tan(theta_l),2))));
+
 			if(2*halfAng<=M_PI/2){
 				histograms["missingET"]->Fill(met_et/1000);
 			}
@@ -442,6 +460,7 @@ Int_t maintau(){
 	mini a;
 	a.Run();
 	//plottertau();
+
 	
 	return 0;
 }
