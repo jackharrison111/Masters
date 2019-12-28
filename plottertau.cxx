@@ -182,7 +182,7 @@ void plot(string product, string histType){
 	g->Draw("same");
 	h->Draw("same");*/
 	
-/*	Int_t lowerMass=20;
+	Int_t lowerMass=20;
 	Int_t higherMass=140;
 	TF1 *fit;
 
@@ -250,8 +250,8 @@ void plot(string product, string histType){
 				A = fit->GetParameter(5);
 				EA = fit->GetParError(5);
 			}
-			B += /A*exp(-pow((xx-mu)/ep,2)/2) +/ m*xx + c;
-			err_B += *pow(-A/(2*ep)*pow((xx-mu)/ep,3)*exp(-pow((xx-mu)/ep,2)/2)*Emu,2) + pow(-A/(2*ep)*pow((xx-mu)/ep,4)*exp(-pow((xx-mu)/ep,2)/2)*Eep,2) + pow(exp(-pow((xx-mu)/ep,2)/2)*EA,2) + /pow(xx*Em,2) + pow(Ec,2); //propagating errors
+			B += /*A*exp(-pow((xx-mu)/ep,2)/2) +*/ m*xx + c;
+			err_B += /*pow(-A/(2*ep)*pow((xx-mu)/ep,3)*exp(-pow((xx-mu)/ep,2)/2)*Emu,2) + pow(-A/(2*ep)*pow((xx-mu)/ep,4)*exp(-pow((xx-mu)/ep,2)/2)*Eep,2) + pow(exp(-pow((xx-mu)/ep,2)/2)*EA,2) + */pow(xx*Em,2) + pow(Ec,2); //propagating errors
 		}else std::cout<<"order==2"<<std::endl;
 	}
 	err_B=sqrt(err_B);
@@ -266,21 +266,29 @@ void plot(string product, string histType){
 	Double_t efficiency = mc_Eff;
 
 		
+	//stat
 	Double_t err_I;
-	Double_t I = totalHist->IntegralAndError(lowerMass,higherMass,err_I,"");
-	Double_t N_sig = (I-B)/2;
-	Double_t err_N = sqrt(pow(err_I,2)+pow(err_B,2));
-	Double_t sigma = N_sig/(efficiency*L_int);
-	Double_t sigma_stat = sigma*sqrt(pow(err_N/N_sig,2));
-	Double_t sigma_lumi = sigma*0.017;//1.7% int lumi error
-	std::cout<<"eff="<<efficiency<<", Br_lep="<<Br_lep<<", N_sig="<<N_sig<<", bkgnd="<<B<<", L_int="<<L_int<<std::endl;
-	std::cout<<"sigma = "<<sigma/1e3<<" +- "<<sigma_stat/1e3<<" (stat) +- "<<sigma_lumi<<" (lumi) pb<<std::endl;
-	std::cout<<"lumi makes no sense for mc!!"<<std::endl;
-*/		
-	//totalHist->SetTitle(";M_{inv}/GeV; counts/0.8GeV");
-	//totalHist->Draw("hist");
+	Double_t I = totalHist->IntegralAndError(lowerMass+1,higherMass+1,err_I,"");
+	Double_t N = I/2;
+	Double_t err_N = N*err_I/I;
+	Double_t err_Eff = efficiency*err_N/N;
+	Double_t stat_sigma = sqrt(pow(err_N/N,2)+pow(err_Eff/efficiency,2));
 
+	//sys
+	N -= B/2;
+	Double_t sys_sigma = err_B/B;
 	
+	//lumi
+	Double_t lumi_sigma = 0.017; //1.7%
+
+	Double_t sigma = N/(efficiency*L_int);
+	sigma/=1e3;//pb
+	stat_sigma *= sigma;
+	sys_sigma *= sigma;
+	lumi_sigma *= sigma;
+
+	std::cout<<"I="<<I<<", B="<<B<<", N="<<N<<", eff="<<efficiency<<std::endl;
+	std::cout<<"sigma="<<sigma<<" += "<<stat_sigma<<" (stat) +- "<<sys_sigma<<" (sys) +- "<<lumi_sigma<<" (lumi) pb"<<std::endl;
 		
 		
 		
@@ -489,6 +497,6 @@ void plot(string product, string histType){
 
 
 	int plottertau(){
-		plot("1lep1tau","invMassleptau");
+		plot("1lep1tau","invMass3lep1tau");
 		return 0;
 	}

@@ -80,7 +80,7 @@ void mini::Run(){
 
 	
 
-	TFile output(("rootOutput/" + outputName+"output_final2lep_22-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/" + outputName+"output_final2lep_23-12.root").c_str(),"RECREATE");
 	TDirectory *TDir1 = output.mkdir("1lep1tau");
 	TDirectory *TDir2 = output.mkdir("2lep");
 	std::map<string,TH1*> histograms;
@@ -399,8 +399,8 @@ void mini::Run(){
 	std::cout<<"Run time: "<<(endTime-startTime)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
 
 
-	Double_t lowerMass=110;//40;
-	Double_t higherMass=125;//70;
+	Double_t lowerMass=25;//40;
+	Double_t higherMass=80;//70;
 	TF1 *fit;
 	fit = new TF1("fit",BackFit,lowerMass,higherMass,2);//3);
 	fit->SetParameters(1,1);//,1);
@@ -436,8 +436,8 @@ void mini::Run(){
 	g->Draw("same");
 	
 	//stat
-	Efficiency=0.0105559;//from MC
 	Double_t err_N=sqrt(N);
+	Efficiency=0.0105559;//from MC
 	Double_t err_Eff=Efficiency*err_N/N;
 	std::cout<<"eff="<<Efficiency<<"+-"<<err_Eff<<std::endl;
 	Double_t stat_sigma = sqrt(pow(err_N/N,2)+pow(err_Eff/Efficiency,2));
@@ -455,6 +455,7 @@ void mini::Run(){
 
 	N*=R;
 	Efficiency*=R;
+	Efficiency=0.00970049;//from MC
 	Double_t sigma = N /(Efficiency*L_int);//fb
 	sigma/=1e3;//pb*
 
