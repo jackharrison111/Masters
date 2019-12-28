@@ -65,13 +65,13 @@ void plot(string product, string histType){
 	TCanvas *c = new TCanvas("c", "c");
 	c->SetTickx();
 	c->SetTicky();
-	c->SetGridx();
-	c->SetGridy();
+	//c->SetGridx();
+	//c->SetGridy();
 	TLegend *legend = new TLegend(1,0.5);
-	legend->SetHeader("ZZllll","c");
-	legend->SetBorderSize(4);
-	legend->SetShadowColor(1);
-	legend->SetDrawOption("br");
+	//legend->SetHeader("ZZllll","c");
+	//legend->SetBorderSize(4);
+	//legend->SetShadowColor(1);
+	//legend->SetDrawOption("br");
 	TH1D *totalHist = new TH1D("totalHist", "Totals", 160, 0, 160);
 	
 	
@@ -217,14 +217,14 @@ void plot(string product, string histType){
 	//legend->Draw();
 
 	re_totalHist->SetTitle(";M_{ll} [GeV];N / [GeV]");
-	re_totalHist->SetLineColor(kBlack);
+	//re_totalHist->SetLineColor(kBlack);
 	legend->AddEntry(re_totalHist,"10 fb^{-1} real","l");
 	re_totalHist->Draw("histsame");
-	totalHist->SetTitle(";M_{ll} [GeV];N / [GeV]");
-	totalHist->SetLineColor(kRed);
-	legend->AddEntry(totalHist,"MC","l");
-	totalHist->Draw("histsame");
-	legend->Draw("same");
+	//totalHist->SetTitle(";M_{ll} [GeV];N / [GeV]");
+	//totalHist->SetLineColor(kRed);
+	//legend->AddEntry(totalHist,"MC","l");
+	//totalHist->Draw("histsame");
+	//legend->Draw("same");
 
 
 
@@ -283,14 +283,14 @@ void plot(string product, string histType){
 	legend->AddEntry(g,"MC Background","l");
 	
 	Double_t backIntegral = backFit->Integral(80/0.8,100/0.8);
-	
+	*/
 	/////////////////////////////
 	//	Re_ background     //
 	//	fitting		   //
 
 	
 	Double_t lower_range1{25};
-	Double_t upper_range1{60};
+	Double_t upper_range1{65};
 
 	TF1 *re_backFit = new TF1("re_backFit",BackFit,lower_range1,upper_range1,order+1); //hardcoded
 	re_backFit->SetParNames("a","b");
@@ -317,15 +317,15 @@ void plot(string product, string histType){
 	background_err1 = sqrt(background_err1);
 
 	TGraph *g1 = new TGraph(200,x1,y1);
-	g1->SetLineColor(kBlue);
+	g1->SetLineColor(kRed);
 	g1->SetLineWidth(2);
-	//g1->Draw("same");
-	legend->AddEntry(g1,"re_Background","l");
+	g1->Draw("same");
+	legend->AddEntry(g1,"Background","l");
 	//legend->Draw();
-
+	legend->Draw("same");
 	Double_t re_backIntegral = re_backFit->Integral(80/0.8,100/0.8);
 	
-
+/*
 	////////////////////////////
 	//	Signal fitting    //
 	
