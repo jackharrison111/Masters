@@ -72,14 +72,24 @@ void plot(string product, string histType){
 
 	//gROOT->SetStyle("ATLAS");
 	gStyle->SetOptStat(0);
+	gROOT->ForceStyle();
 
-	TCanvas *c = new TCanvas("c", "c");	
+	TCanvas *c = new TCanvas("c", "c");
+	c->SetTickx();
+	c->SetTicky();
+	c->SetGridx();
+	c->SetGridy();
 	TLegend *legend = new TLegend(1,0.5);
-	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
-	TH1D *etDist = new TH1D("missEtDist", "EtDist", 100, 0, M_PI);
+	legend->SetHeader("need to set header","c");
+	legend->SetBorderSize(4);
+	legend->SetShadowColor(1);
+	legend->SetDrawOption("br");
+	TH1D *totalHist = new TH1D("totalHist","",160,0,160);
+	TH1D *etDist = new TH1D("missEtDist","",100,-M_PI,M_PI);
 	
 
-	TFile *f = new TFile("rootOutput/mc_output_tau_12-12.root");	//("rootOutput/mc_output.root");
+
+	TFile *f = new TFile("rootOutput/mc_output_tau_21-12.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -130,9 +140,9 @@ void plot(string product, string histType){
 				//myHist->SetLineColor(4 - counter);
 				//myHist->SetDirectory(0);
 			
-				myHist->SetDirectory(0);
-				//std::cout << histName << std::endl;
-				//etDist->Add(myHist);
+			//std::cout << histName << std::endl;
+			//etDist->Add(myHist);
+			//totalHist->Add(myHist);
 				//if(histName != (product + "_" + histType + "_" + "mc15_13TeV.307431.MGPy8EG_A14NNPDF23LO_RS_G_ZZ_llll_c10_m0200.2lep_raw.root")){
 		counter++;
 		}
@@ -148,19 +158,21 @@ void plot(string product, string histType){
 	*/
 	f->Close();
 	
-	TAxis* a = etDist->GetXaxis();
-	a->SetNdivisions(-502);
-	a->ChangeLabel(1,-1,-1,-1,-1,-1,"0");
-	a->ChangeLabel(2,-1,-1,-1,-1,-1,"#frac{#pi}{2}");
+	totalHist->SetTitle(";M_{#tau#tau} [GeV];N / [GeV]");
+	totalHist->Draw("hist");
+
+	/*TAxis* a = etDist->GetXaxis();
+	a->SetNdivisions(-504);
+	a->ChangeLabel(1,-1,-1,-1,-1,-1,"-#pi");
+	
 	a->ChangeLabel(-1,-1,-1,-1,-1,-1,"#pi");
-	//a->ChangeLabel(2,-1,-1,-1,-1,-1,"-#frac{#pi}{2} (l)");
-	//a->ChangeLabel(4,-1,-1,-1,-1,-1,"#frac{#pi}{2} (#tau)");
+	a->ChangeLabel(2,-1,-1,-1,-1,-1,"-#frac{#pi}{2} (l)");
+	a->ChangeLabel(4,-1,-1,-1,-1,-1,"#frac{#pi}{2} (#tau)");
 	a->SetLabelOffset(0.015);
 	a->SetTitleOffset(1.2);
-	etDist->SetTitle(";#Delta/rad; counts/[#pi/100rad]");
-	etDist->SetDirectory(0);
-	//etDist->Draw("hist");
-	/*Double_t gx[2] = {-M_PI/2,-M_PI/2};
+	etDist->SetTitle(";#phi_{m} [radians];N / [2#pi/100 radians]");
+	etDist->Draw("hist");
+	Double_t gx[2] = {-M_PI/2,-M_PI/2};
 	Double_t hx[2] = {M_PI/2,M_PI/2};
 	Double_t y[2] = {0,etDist->GetMaximum()};
 	TGraph *g = new TGraph(2,gx,y);
@@ -170,35 +182,34 @@ void plot(string product, string histType){
 	g->Draw("same");
 	h->Draw("same");*/
 	
-	Double_t lowerMass=40;
-	Double_t higherMass=140;
+	Int_t lowerMass=20;
+	Int_t higherMass=140;
 	TF1 *fit;
 
-	fit = new TF1("fit",Gaussian,lowerMass,higherMass,6);
-	fit->SetParameters(85,10,100,91,5,100);
-	totalHist->SetTitle(";M_{inv}/GeV;counts/0.8GeV");
-	totalHist->Fit("fit","+R");
-
-	/*if(order==1){
+	if(order==1){
 		fit = new TF1("fit",Fit,lowerMass,higherMass,8);
-		fit->SetParameters(91,5,1,80,5,1,1,1);
+		fit->SetParameters(91,4,0.75,85,15,0.1,-0.1,0.01);
+		fit->SetParNames("mu1","sigma1","A1","mu2","sigma2","A2","m","c");
+		fit->SetParLimits(0,89,93);
+		fit->SetParLimits(3,60,88);
 	}else if(order==2){
 		fit = new TF1("fit",Fit,lowerMass,higherMass,9);
 		fit->SetParameters(91,5,1,80,5,1,1,1,1);
 	}
-	totalHist->SetTitle(";M_{inv}/GeV;counts/0.8GeV");
-	totalHist->Fit("fit","+R");
+	totalHist->Draw("hist");
+	totalHist->Fit("fit","+RN");
+	totalHist->SetTitle(";M_{ll,#tau#tau} [GeV];N / [GeV]");
 	
-	Int_t nBins=200;
+	Int_t nBins=higherMass-lowerMass+1;
 	Double_t x[nBins], y1[nBins], y2[nBins], y3[nBins];
-	for(Int_t i=0; i<200; i++){
-		x[i]=0.8*(i+1);
-		y1[i]=fit->GetParameter(2)*exp(-pow((x[i]-fit->GetParameter(0))/fit->GetParameter(1),2)/2);
-		y2[i]=fit->GetParameter(5)*exp(-pow((x[i]-fit->GetParameter(3))/fit->GetParameter(4),2)/2);
+	for(Int_t i=lowerMass; i<=higherMass; i++){
+		x[i-lowerMass]=i;
+		y1[i-lowerMass]=fit->GetParameter(2)*exp(-pow((x[i-lowerMass]-fit->GetParameter(0))/fit->GetParameter(1),2)/2);
+		y2[i-lowerMass]=fit->GetParameter(5)*exp(-pow((x[i-lowerMass]-fit->GetParameter(3))/fit->GetParameter(4),2)/2);
 		if(order==1){
-			y3[i]=fit->GetParameter(6)*x[i]+fit->GetParameter(7);
+			y3[i-lowerMass]=fit->GetParameter(6)*x[i-lowerMass]+fit->GetParameter(7);
 		}else if(order==2){
-			y3[i]=fit->GetParameter(6)*pow(x[i],2)+fit->GetParameter(7)*x[i]+fit->GetParameter(8);
+			y3[i-lowerMass]=fit->GetParameter(6)*pow(x[i-lowerMass],2)+fit->GetParameter(7)*x[i-lowerMass]+fit->GetParameter(8);
 		}
 	}
 	TGraph *g1 = new TGraph(nBins,x,y1);
@@ -210,14 +221,14 @@ void plot(string product, string histType){
 	g2->SetLineWidth(2);
 	g2->Draw("same");
 	TGraph *g3 = new TGraph(nBins,x,y3);
-	g3->SetLineColor(7);
+	g3->SetLineColor(kRed);
 	g3->SetLineWidth(2);
 	g3->Draw("same");
 
-	Double_t backIntegral=0;
-	Double_t background_err=0;
-	for(Int_t i=80/0.8; i<=100/0.8; i++){
-		Double_t xx = 0.8*i;
+	Double_t B=0;
+	Double_t err_B=0;
+	for(Int_t i=lowerMass; i<=higherMass; i++){
+		Double_t xx = i;
 		if(order==1){
 			Double_t mu, Emu, ep, Eep, A, EA;
 			Double_t m = fit->GetParameter(6);
@@ -239,45 +250,49 @@ void plot(string product, string histType){
 				A = fit->GetParameter(5);
 				EA = fit->GetParError(5);
 			}
-			backIntegral += A*exp(-pow((xx-mu)/ep,2)/2) + m*xx + c;
-			background_err += pow(-A/(2*ep)*pow((xx-mu)/ep,3)*exp(-pow((xx-mu)/ep,2)/2)*Emu,2) + pow(-A/(2*ep)*pow((xx-mu)/ep,4)*exp(-pow((xx-mu)/ep,2)/2)*Eep,2) + pow(exp(-pow((xx-mu)/ep,2)/2)*EA,2) + pow(xx*Em,2) + pow(Ec,2); //propagating errors
+			B += /*A*exp(-pow((xx-mu)/ep,2)/2) +*/ m*xx + c;
+			err_B += /*pow(-A/(2*ep)*pow((xx-mu)/ep,3)*exp(-pow((xx-mu)/ep,2)/2)*Emu,2) + pow(-A/(2*ep)*pow((xx-mu)/ep,4)*exp(-pow((xx-mu)/ep,2)/2)*Eep,2) + pow(exp(-pow((xx-mu)/ep,2)/2)*EA,2) + */pow(xx*Em,2) + pow(Ec,2); //propagating errors
 		}else std::cout<<"order==2"<<std::endl;
 	}
-	background_err=sqrt(background_err);
+	err_B=sqrt(err_B);
 	
-	TH1D *signalHist = new TH1D("signalHist","signalHist",200,0,160);
+	TH1D *signalHist = new TH1D("signalHist","signalHist",160,0,160);
 	std::cout<<"check dark blue is the signal gaussian and not green"<<std::endl;
-	for(Int_t i=1; i<=200; i++){
-		signalHist->SetBinContent(i,totalHist->GetBinContent(i)-y2[i]-y3[i]);
-		if(signalHist->GetBinContent(i)<0) signalHist->SetBinContent(i,0);
+	for(Int_t i=0; i<=160; i++){
+		signalHist->SetBinContent(i+1,totalHist->GetBinContent(i+1)-y2[i]-y3[i]);
+		if(signalHist->GetBinContent(i+1)<0) signalHist->SetBinContent(i+1,0);
 	}
 	
 	Double_t efficiency = mc_Eff;
 
-	Double_t err;
-	//Double_t I = totalHist->IntegralAndError(80/0.8,100/0.8,err,"");
-	Double_t I = signalHist->IntegralAndError(80/0.8,100/0.8,err,"");
-	Double_t err_tot;
-	//Double_t I_tot = totalHist->IntegralAndError(0,200,err_tot,"");
-	Double_t I_tot = signalHist->IntegralAndError(0,200,err_tot,"");
-	Double_t N_sig = (2*I-I_tot)/2;
-	//Double_t sigma = pow(2*Br_lep,2)*(N_sig-backIntegral)/(efficiency*L_int);
-	Double_t sigma = pow(Br_lep,1)*N_sig/(efficiency*L_int);
-	//Double_t sigma_sigma = sigma*sqrt((pow(err,2)+pow(err_tot,2)/4+pow(background_err,2))/pow(N_sig-backIntegral,2));
-	Double_t sigma_sigma = sigma*sqrt((pow(err,2)+pow(err_tot,2)/4+pow(background_err,2))/pow(N_sig,2));
-	std::cout<<"eff="<<efficiency<<", Br_lep="<<Br_lep<<", N_sig="<<N_sig<<", bkgnd="<<backIntegral<<", L_int="<<L_int<<std::endl;
-	std::cout<<"sigma = "<<sigma/1e3<<" +- "<<sigma_sigma/1e3<<" pb"<<std::endl;*/
-		
-	//totalHist->SetTitle(";M_{inv}/GeV; counts/0.8GeV");
-	//totalHist->Draw("hist");
+	//stat
+	Double_t err_I;
+	Double_t I = totalHist->IntegralAndError(lowerMass+1,higherMass+1,err_I,"");
+	Double_t N = I/2;
+	Double_t err_N = N*err_I/I;
+	Double_t err_Eff = efficiency*err_N/N;
+	Double_t stat_sigma = sqrt(pow(err_N/N,2)+pow(err_Eff/efficiency,2));
 
+	//sys
+	N -= B/2;
+	Double_t sys_sigma = err_B/B;
+	
+	//lumi
+	Double_t lumi_sigma = 0.017; //1.7%
+
+	Double_t sigma = N/(efficiency*L_int);
+	sigma/=1e3;//pb
+	stat_sigma *= sigma;
+	sys_sigma *= sigma;
+	lumi_sigma *= sigma;
+
+	std::cout<<"I="<<I<<", B="<<B<<", N="<<N<<", eff="<<efficiency<<std::endl;
+	std::cout<<"sigma="<<sigma<<" += "<<stat_sigma<<" (stat) +- "<<sys_sigma<<" (sys) +- "<<lumi_sigma<<" (lumi) pb"<<std::endl;
 		
 		
 		
 		
-		
-		/*
-		TH1D *re_totalHist = new TH1D("re_totalHist", "", 200, 0, 160);
+/*		TH1D *re_totalHist = new TH1D("re_totalHist", "", 200, 0, 160);
 		re_totalHist->SetTitle(";M_{inv}/GeV;counts/0.8GeV");
 		TFile *f2 = new TFile("rootOutput/re_output_4-12_tau.root");
 		if(!f2->IsOpen()){
@@ -367,11 +382,11 @@ void plot(string product, string histType){
 		Double_t x[200], y[200];
 		Double_t background_err{0};
 		for(Int_t i=0; i<200; i++){
-			x[i]=160*i/200;
-			//y[i]=invMassFit->GetParameter(1)*invMassFit->GetParameter(2)/(pow(x[i]-invMassFit->GetParameter(0),2)+pow(0.5*invMassFit->GetParameter(1),2));
-			y[i] = backFit->GetParameter(1) + backFit->GetParameter(0)*x[i];// + backFit->GetParameter(0)*pow(x[i],2);
-			if(x[i]>=80&&x[i]<=100){
-				background_err += pow(x[i]*m_err,2) + pow(c_err,2);
+			x[i-lowerMass]=160*i/200;
+			//y[i]=invMassFit->GetParameter(1)*invMassFit->GetParameter(2)/(pow(x[i-lowerMass]-invMassFit->GetParameter(0),2)+pow(0.5*invMassFit->GetParameter(1),2));
+			y[i] = backFit->GetParameter(1) + backFit->GetParameter(0)*x[i-lowerMass];// + backFit->GetParameter(0)*pow(x[i-lowerMass],2);
+			if(x[i-lowerMass]>=80&&x[i-lowerMass]<=100){
+				background_err += pow(x[i-lowerMass]*m_err,2) + pow(c_err,2);
 			}
 		}
 		background_err = sqrt(background_err);
@@ -463,7 +478,7 @@ void plot(string product, string histType){
 		//}
 		
 		/*Double_t backIntegral = backFit->Integral(80/0.8,100/0.8);
-		Double_t efficiency = re_Eff;   //TODO: Make sure to change this for the correct file
+		Double_t efficiency = mc_Eff;   //TODO: Make sure to change this for the correct file
 		std::cout << "Background integral: " << backIntegral << " +- " << background_err << std::endl;
 		std::cout << "Efficiency used: " << efficiency << std::endl;
 		
@@ -475,12 +490,12 @@ void plot(string product, string histType){
 		Double_t N_sig = (2*I-I_tot)/2;
 		Double_t sigma = pow(2*Br_lep,2)*(N_sig-backIntegral)/(efficiency*L_int);
 		Double_t sigma_sigma = sigma*sqrt((pow(err,2)+pow(err_tot,2)/4+pow(background_err,2))/pow(N_sig-backIntegral,2));
-		std::cout<<"sigma = "<<sigma/1e3<<" +- "<<sigma_sigma/1e3<<" pb"<<std::endl;
-		*/
+		std::cout<<"sigma = "<<sigma/1e3<<" +- "<<sigma_sigma/1e3<<" pb"<<std::endl;*/
+		
 	}
 
 
 	int plottertau(){
-		plot("1lep1tau","invMassleptau");
+		plot("1lep1tau","invMass3lep1tau");
 		return 0;
 	}

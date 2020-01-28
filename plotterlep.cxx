@@ -62,12 +62,20 @@ void plot(string product, string histType){
 	//gROOT->SetStyle("ATLAS");
 	gStyle->SetOptStat(0);
 
-	TCanvas *c = new TCanvas("c", "c");	
+	TCanvas *c = new TCanvas("c", "c");
+	c->SetTickx();
+	c->SetTicky();
+	c->SetGridx();
+	c->SetGridy();
 	TLegend *legend = new TLegend(1,0.5);
-	TH1D *totalHist = new TH1D("totalHist", "Totals", 200, 0, 160);
+	legend->SetHeader("ZZllll","c");
+	legend->SetBorderSize(4);
+	legend->SetShadowColor(1);
+	legend->SetDrawOption("br");
+	TH1D *totalHist = new TH1D("totalHist", "Totals", 160, 0, 160);
 	
 	
-	TFile *f = new TFile("rootOutput/mc_output_tau_4-12.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("rootOutput/mc_output_2lep_15-12.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -119,14 +127,9 @@ void plot(string product, string histType){
 			//myHist->SetDirectory(0);
 			
 			myHist->SetDirectory(0);
+			totalHist->Add(myHist);
 			//std::cout << histName << std::endl;
-			for(Int_t i = 1; i <= myHist->GetNbinsX(); i++){		
-				Double_t content = myHist->GetBinContent(i);
-				if(histName != (product + "_" + histType + "_" + "mc15_13TeV.307431.MGPy8EG_A14NNPDF23LO_RS_G_ZZ_llll_c10_m0200.2lep_raw.root")){
-				totalHist->SetBinContent(i,(totalHist->GetBinContent(i) + content));
-				}
 
-			}
 		counter++;
 		}
 //	}
@@ -141,21 +144,20 @@ void plot(string product, string histType){
 	*/
 	f->Close();
 
-	
-	TH1D *re_totalHist = new TH1D("re_totalHist", "", 200, 0, 2*M_PI);
+	TH1D *re_totalHist = new TH1D("re_totalHist", "", 160, 0, 160);
 	//re_totalHist->SetTitle(";M_{inv}/GeV;counts/0.8GeV");
-	TFile *f2 = new TFile("rootOutput/re_output_openAngle_5-12.root");
+	TFile *f2 = new TFile("rootOutput/re_output_2lep_15-12.root");
 	if(!f2->IsOpen()){
 		std::cout << "Couldn't open re_output.root" << std::endl;
 	}
 		
-	TVectorD *Re_Eff_Vector= (TVectorD*)f2->Get((product+"/Efficiency/efficiency").c_str());
+	/*TVectorD *Re_Eff_Vector= (TVectorD*)f2->Get((product+"/Efficiency/efficiency").c_str());
 	Double_t re_Eff;
 	Double_t double_counts;
 	if(Re_Eff_Vector != NULL){	
 		re_Eff = (*Re_Eff_Vector)[0];
 		double_counts = (*Re_Eff_Vector)[1];
-	}
+	}*/
 
 	f2->cd((product + "/" + histType).c_str());
 	TIter re_next(gDirectory->GetListOfKeys());
@@ -180,20 +182,21 @@ void plot(string product, string histType){
 	}
 
 	delete f2;
-
-	TAxis* a = re_totalHist->GetXaxis();
+	/*
+	TAxis* a = totalHist->GetXaxis();
 	a->SetNdivisions(-504);
-	a->ChangeLabel(1,-1,-1,-1,-1,-1,"-#pi");
-	a->ChangeLabel(-1,-1,-1,-1,-1,-1,"#pi");
-	a->ChangeLabel(2,-1,-1,-1,-1,-1,"-#frac{#pi}{2}");
-	a->ChangeLabel(4,-1,-1,-1,-1,-1,"#frac{#pi}{2}");
+	//a->ChangeLabel(1,-1,-1,-1,-1,-1,"");
+	a->ChangeLabel(-1,-1,-1,-1,-1,-1,"2#pi");
+	a->ChangeLabel(2,-1,-1,-1,-1,-1,"#frac{#pi}{2}");
+	a->ChangeLabel(3,-1,-1,-1,-1,-1,"#pi");
+	a->ChangeLabel(4,-1,-1,-1,-1,-1,"#frac{3#pi}{2}");
 	a->SetLabelOffset(0.015);
 	a->SetTitleOffset(1.2);
-	re_totalHist->SetTitle(";#phi_{rel}/rad; counts/[#pi/100rad]");
-	re_totalHist->SetDirectory(0);
-	re_totalHist->Draw("hist");
+	totalHist->SetTitle(";#Delta#phi/rad; counts/[#pi/100rad]");
+	totalHist->SetDirectory(0);
+	totalHist->Draw("hist");
 
-
+	*/
 
 	/*
 
@@ -203,16 +206,30 @@ void plot(string product, string histType){
 
 
 	totalHist->SetLineColor(kRed);
-	legend->AddEntry(re_totalHist, "Real", "l");
+	//legend->AddEntry(re_totalHist, "Real", "l");
 	totalHist->SetDirectory(0);
 	totalHist->SetTitle(";M_{inv} /GeV; Counts /0.8GeV");
 	//totalHist->Draw("hist");
 	re_totalHist->SetDirectory(0);
 	re_totalHist->SetZTitle("Counts/(1.6GeV)^{2}");
-	re_totalHist->Draw("hist");
-	legend->Draw();
 	*/
-	Int_t upperFit{140};
+	
+	//legend->Draw();
+
+	re_totalHist->SetTitle(";M_{ll} [GeV];N / [GeV]");
+	re_totalHist->SetLineColor(kBlack);
+	legend->AddEntry(re_totalHist,"10 fb^{-1} real","l");
+	re_totalHist->Draw("histsame");
+	totalHist->SetTitle(";M_{ll} [GeV];N / [GeV]");
+	totalHist->SetLineColor(kRed);
+	legend->AddEntry(totalHist,"MC","l");
+	totalHist->Draw("histsame");
+	legend->Draw("same");
+
+
+
+
+	/*Int_t upperFit{140};
 	Int_t lowerFit{50};
 	TF1 *invMassFit = new TF1("invMassFit",Fit,lowerFit,upperFit,order+4); //hardcoded
 	invMassFit->SetParNames("#mu","#gamma","A","a","b");
@@ -231,8 +248,8 @@ void plot(string product, string histType){
 	//	Background fitting 	//
 	
 	
-	Double_t lower_range{15/0.8};
-	Double_t upper_range{60/0.8};
+	Double_t lower_range{110};
+	Double_t upper_range{125};
 	
 	
 	TF1 *backFit = new TF1("backFit",BackFit,lower_range,upper_range,order+1); //hardcoded
@@ -240,7 +257,7 @@ void plot(string product, string histType){
 	//backFit->SetParameters(2,20000);
 	backFit->SetParameters(1,1);
 	backFit->SetParameters(0,-1);
-	re_totalHist->Fit("backFit", "+RN");
+	totalHist->Fit("backFit", "+RN");
 
 	
 	Double_t m_err = backFit->GetParError(0);
@@ -262,14 +279,53 @@ void plot(string product, string histType){
 	TGraph *g = new TGraph(200,x,y);
 	g->SetLineColor(kRed);
 	g->SetLineWidth(2);
-	g->Draw("same");
-	legend->AddEntry(g,"Background","l");
+	//g->Draw("same");
+	legend->AddEntry(g,"MC Background","l");
 	
+	Double_t backIntegral = backFit->Integral(80/0.8,100/0.8);
 	
+	/////////////////////////////
+	//	Re_ background     //
+	//	fitting		   //
+
 	
+	Double_t lower_range1{25};
+	Double_t upper_range1{60};
+
+	TF1 *re_backFit = new TF1("re_backFit",BackFit,lower_range1,upper_range1,order+1); //hardcoded
+	re_backFit->SetParNames("a","b");
+	//backFit->SetParameters(2,20000);
+	re_backFit->SetParameters(1,1);
+	re_backFit->SetParameters(0,-1);
+	re_totalHist->Fit("re_backFit", "+RN");
+
 	
+	Double_t re_m_err = re_backFit->GetParError(0);
+	Double_t re_c_err = re_backFit->GetParError(1);
+
+
+	Double_t x1[200], y1[200];
+	Double_t background_err1{0};
+	for(Int_t i=0; i<200; i++){
+		x1[i]=160*i/200;
+		//y[i]=invMassFit->GetParameter(1)*invMassFit->GetParameter(2)/(pow(x[i]-invMassFit->GetParameter(0),2)+pow(0.5*invMassFit->GetParameter(1),2));
+		y1[i] = re_backFit->GetParameter(1) + re_backFit->GetParameter(0)*x1[i];// + backFit->GetParameter(0)*pow(x[i],2);
+		if(x1[i]>=80&&x1[i]<=100){
+			background_err1 += pow(x1[i]*re_m_err,2) + pow(re_c_err,2);
+		}
+	}
+	background_err1 = sqrt(background_err1);
+
+	TGraph *g1 = new TGraph(200,x1,y1);
+	g1->SetLineColor(kBlue);
+	g1->SetLineWidth(2);
+	//g1->Draw("same");
+	legend->AddEntry(g1,"re_Background","l");
+	//legend->Draw();
+
+	Double_t re_backIntegral = re_backFit->Integral(80/0.8,100/0.8);
 	
-	
+
 	////////////////////////////
 	//	Signal fitting    //
 	
@@ -291,7 +347,7 @@ void plot(string product, string histType){
 
 
 	//OVERALL FITTING::
-	/*Double_t x2[200], y2[200];
+	Double_t x2[200], y2[200];
 	for(Int_t i=0; i<200; i++){
 		x2[i]=160*i/200;
 		//y2[i]=invMassFit->Eval(x2[i]);
@@ -300,7 +356,7 @@ void plot(string product, string histType){
 	TGraph *g2 = new TGraph(200,x2,y2);
 	g2->SetLineColor(kOrange);
 	//g2->Draw("same");
-	*/
+	
 	Double_t x3[200], y3[200];
 	for(Int_t i=0; i<200; i++){
 		x3[i]=160*i/200;
@@ -322,7 +378,7 @@ void plot(string product, string histType){
 
 
 
-	/*Double_t x2[200], y2[200];
+	Double_t x2[200], y2[200];
 	for(Int_t i=0; i<200; i++){
 		x2[i]=160*i/200;
 		//y2[i]=invMassFit->Eval(x2[i]);
@@ -342,28 +398,37 @@ void plot(string product, string histType){
 	g3->SetLineWidth(2);
 	//legend->AddEntry(g3, "Signal", "l");
 	//g3->Draw("same");
-	//legend->Draw();*/
+	//legend->Draw();
 	//}
 	
-	Double_t backIntegral = backFit->Integral(80/0.8,100/0.8);
-	Double_t efficiency = re_Eff;   //TODO: Make sure to change this for the correct file
+	Double_t efficiency = mc_Eff;   //TODO: Make sure to change this for the correct file
+	//efficiency = 4.5e-5;
 	std::cout << "Background integral: " << backIntegral << " +- " << background_err << std::endl;
 	std::cout << "Efficiency used: " << efficiency << std::endl;
 	
+
+
+	//Subtracting MC signal file background fit off the real data:
+	
+
 
 	Double_t err;
 	Double_t I = re_totalHist->IntegralAndError(80/0.8,100/0.8,err,"");
 	Double_t err_tot;
 	Double_t I_tot = re_totalHist->IntegralAndError(0,200,err_tot,"");
 	Double_t N_sig = (2*I-I_tot)/2;
-	Double_t sigma = pow(2*Br_lep,2)*(N_sig-backIntegral)/(efficiency*L_int);
+	
+	N_sig = N_sig - backIntegral; 		//subtract MonteCarlo signal background
+
+	std::cout << "Signal events : " << N_sig << std::endl;
+	Double_t sigma = (N_sig-re_backIntegral)/(efficiency*L_int);
 	Double_t sigma_sigma = sigma*sqrt((pow(err,2)+pow(err_tot,2)/4+pow(background_err,2))/pow(N_sig-backIntegral,2));
 	std::cout<<"sigma = "<<sigma/1e3<<" +- "<<sigma_sigma/1e3<<" pb"<<std::endl;
-	std::cout<<"eff="<<efficiency<<std::endl;
+	std::cout<<"eff="<<efficiency<<std::endl;*/
 }
 
 
 int plotterlep(){
-	plot("2lep","opening_Angle2lep");
+	plot("2lep","invMass2l");
 	return 0;
 }
