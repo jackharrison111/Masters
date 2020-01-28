@@ -1,6 +1,6 @@
 //TODO: make an if statement to check whether dataSets.json contains shortFileName
 #define main_cxx
-#include "mainMCtemp.h" //change this for mc or real data
+#include "mainMC.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
 #include "plottertau.cxx"
 #include <TH2.h>
@@ -386,12 +386,12 @@ void mini::Run(){
 
 			if(invM3<80 && 2*halfAng<=2.5 && 2*halfAng>=0.5 && phi_rel<=3*M_PI/5 && phi_rel>=-7*M_PI/10){
 				eventWeights.push_back(eventWeight);
-				if(eventWeight<0.282935&&eventWeight>-0.0444269){//these event weights are abnormal large in magnitude
+				//if((eventWeight<0.282935&&eventWeight>-0.0444269){//these event weights are abnormal large in magnitude
 					histograms["invMassleptau"]->Fill(invM4,eventWeight);
 					histograms["invMassleplep"]->Fill(invM1,eventWeight);
 					histograms["invMass3lep1tau"]->Fill(invM1,eventWeight);
 					histograms["invMass3lep1tau"]->Fill(invM4,eventWeight);
-				}
+				//}
 				if((MC)&&invM1<100&&invM1>80&&invM4<120&&invM4>40&&eventWeight<0.282935&&eventWeight>-0.0444269){
 					if(sumw!=0) Efficiency+=(eventWeight/lumFactor)/sumw;
 					else std::cout<<"ERROR: sumw=0"<<std::endl;

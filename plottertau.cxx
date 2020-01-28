@@ -77,19 +77,19 @@ void plot(string product, string histType){
 	TCanvas *c = new TCanvas("c", "c");
 	c->SetTickx();
 	c->SetTicky();
-	c->SetGridx();
-	c->SetGridy();
+	//c->SetGridx();
+	//c->SetGridy();
 	TLegend *legend = new TLegend(1,0.5);
-	legend->SetHeader("need to set header","c");
+	/*legend->SetHeader("need to set header","c");
 	legend->SetBorderSize(4);
 	legend->SetShadowColor(1);
-	legend->SetDrawOption("br");
+	legend->SetDrawOption("br");*/
 	TH1D *totalHist = new TH1D("totalHist","",160,0,160);
 	TH1D *etDist = new TH1D("missEtDist","",100,-M_PI,M_PI);
 	
 
 
-	TFile *f = new TFile("rootOutput/mc_output_tau_21-12.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("rootOutput/re_output_tau_28-12.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -158,7 +158,7 @@ void plot(string product, string histType){
 	*/
 	f->Close();
 	
-	totalHist->SetTitle(";M_{#tau#tau} [GeV];N / [GeV]");
+	//totalHist->SetTitle(";M_{ll,#tau#tau} [GeV];N / [GeV]");
 	totalHist->Draw("hist");
 
 	/*TAxis* a = etDist->GetXaxis();
@@ -215,15 +215,15 @@ void plot(string product, string histType){
 	TGraph *g1 = new TGraph(nBins,x,y1);
 	g1->SetLineColor(kBlue);
 	g1->SetLineWidth(2);
-	g1->Draw("same");
+	//g1->Draw("same");
 	TGraph *g2 = new TGraph(nBins,x,y2);
 	g2->SetLineColor(kGreen);
 	g2->SetLineWidth(2);
-	g2->Draw("same");
+	//g2->Draw("same");
 	TGraph *g3 = new TGraph(nBins,x,y3);
 	g3->SetLineColor(kRed);
 	g3->SetLineWidth(2);
-	g3->Draw("same");
+	//g3->Draw("same");
 
 	Double_t B=0;
 	Double_t err_B=0;
@@ -275,7 +275,7 @@ void plot(string product, string histType){
 	Double_t stat_sigma = sqrt(pow(err_N/N,2)+pow(err_Eff/efficiency,2));
 
 	//sys
-	N -= B/2;
+	//N -= B/2;
 	Double_t sys_sigma = err_B/B;
 	
 	//lumi
@@ -286,8 +286,7 @@ void plot(string product, string histType){
 	stat_sigma *= sigma;
 	sys_sigma *= sigma;
 	lumi_sigma *= sigma;
-
-	std::cout<<"I="<<I<<", B="<<B<<", N="<<N<<", eff="<<efficiency<<std::endl;
+	std::cout<<"I="<<I<<", B="<<B<<", N="<<N<< ", err_N = " << err_N << ", eff="<<efficiency<<std::endl;
 	std::cout<<"sigma="<<sigma<<" += "<<stat_sigma<<" (stat) +- "<<sys_sigma<<" (sys) +- "<<lumi_sigma<<" (lumi) pb"<<std::endl;
 		
 		
