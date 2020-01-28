@@ -1,7 +1,9 @@
 //TODO: make an if statement to check whether dataSets.json contains shortFileName
 #define main_cxx
-#include "mainMC.h" //change this for mc or real data
+#include "main.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
+//#include "plotterlep.cxx"
+#include "plotter.cxx"
 #include <TH2.h>
 //#include <TROOT.h>
 //#include <TRint.h>
@@ -15,7 +17,6 @@ const Double_t pi = M_PI;
 Double_t eMass = 0.511;
 Double_t pMass = 938.28;
 Double_t sqrtS = 13e6;
-Double_t zMass = 91.2;
 Double_t totRealLum = 10.064; //inv fb - open data set
 
 //function to return number of chosen lepton type in an event
@@ -79,19 +80,24 @@ void mini::Run(){
 
 	
 
-	TFile output(("rootOutput/" + outputName+"output_2lep_13-12.root").c_str(),"RECREATE");
+	TFile output(("rootOutput/" + outputName+"output_final2lep_23-12.root").c_str(),"RECREATE");
 	TDirectory *TDir1 = output.mkdir("1lep1tau");
 	TDirectory *TDir2 = output.mkdir("2lep");
 	std::map<string,TH1*> histograms;
-	histograms["invMassZee"]=new TH1D("invMassZee","Z->ee",200,0,160);
-	histograms["invMassZmumu"]=new TH1D("invMassZmumu","Z->#mu#mu",200,0,160);
-	histograms["invMass2l"]=new TH1D("invMass2l","Z->ll",200,0,160);
-	histograms["invMass4l"]=new TH1D("invMass4l","Z'->llll",200,0,160);
-	histograms["invMass2D_EMu"]=new TH2D("invMass2D_EMu","ZZ->ee&&#mu#mu",100,0,160,100,0,160);
+	histograms["invMassZee"]=new TH1D("invMassZee","Z->ee",160,0,160);
+	histograms["invMassZmumu"]=new TH1D("invMassZmumu","Z->#mu#mu",160,0,160);
+	histograms["invMass2l"]=new TH1D("invMass2l","Z->ll",160,0,160);
+	histograms["invMass2lB"]=new TH1D("invMass2lB","",160,0,160);
+	histograms["invMass2lR"]=new TH1D("invMass2lR","",160,0,160);
+	histograms["invMass2lG"]=new TH1D("invMass2lG","",160,0,160);
+	histograms["invMass4l"]=new TH1D("invMass4l","Z'->llll",300,0,300);
+	histograms["invMass2D_EMu"]=new TH2D("invMass2D_EMu","ZZ->ee&&#mu#mu",160,0,160,160,0,160);
 	histograms["invMass2D_EE"]=new TH2D("invMass2D_EE","ZZ->ee&&ee",100,0,160,100,0,160);
 	histograms["invMass2D_MuMu"]=new TH2D("invMass2D_MuMu","ZZ->#mu#mu&&#mu#mu",100,0,160,100,0,160);
 	histograms["opAngDist"] = new TH1D("opAngDist", "Opening angle distribution",100,0,M_PI);
 
+	TH1D *tot = new TH1D("tot","",160,0,160);
+	tot->SetTitle(";M_{ll} [GeV];N / [GeV]");
 
 	Int_t counter{0};
 	clock_t startTime = clock();
@@ -102,7 +108,6 @@ void mini::Run(){
 	string products;
 	Double_t lumFactor;
 	
-	Double_t Efficiency;
 	Int_t sumwRec{0};
 	Double_t sumw;
 
@@ -115,6 +120,10 @@ void mini::Run(){
 
 	Int_t fileCounter{1};
 	Bool_t newFile{true};
+
+	double N=0;
+	double Efficiency = 0;
+
 	for (Long64_t i=0; i<n; i++){
 		Long64_t ientry = LoadTree(i);
 		if(ientry < 0) break;
@@ -132,6 +141,7 @@ void mini::Run(){
 			std::cout<<(chain->GetFile())->GetSize()/1e6<<" MB : File "<<fileCounter<<" out of "<<((chain->GetListOfFiles())->GetLast()+1)<<", "<<fileName<<std::endl;
 			fileCounter++;
 			if(i!=0){
+				tot->Add(histograms["invMass2l"]);
 				std::map<string,TH1*>::iterator it=histograms.begin();
 				while(it!=histograms.end()){
 					if(gDirectory->cd(it->first.c_str())){
@@ -159,6 +169,7 @@ void mini::Run(){
 				//TODO: fix this:
 				if(i.infos[shortFileName]["sumw"]==0){
 					lumFactor=0;
+					std::cout<<"ERROR! lum factor is zero"<<std::endl;
 				}
 				sumw = i.infos[shortFileName]["sumw"];
 				
@@ -207,26 +218,37 @@ void mini::Run(){
 				invM2 = sqrt(2*(*lep_pt)[0]*(*lep_pt)[which]*(cosh((*lep_eta)[0]-(*lep_eta)[which])-cos((*lep_phi)[0]-(*lep_phi)[which])))/1000;
 				invM1 = sqrt(2*(*lep_pt)[others[0]]*(*lep_pt)[others[1]]*(cosh((*lep_eta)[others[0]]-(*lep_eta)[others[1]])-cos((*lep_phi)[others[0]]-(*lep_phi)[others[1]])))/1000;
 			}
+			
+			histograms["invMass2D_EMu"]->Fill(invM1,invM2);
+//		if(abs(zMass-invM1)<abs(zMass-invM2)){
+			histograms["invMass2l"]->Fill(invM1,eventWeight);
+//		}else{
+			histograms["invMass2l"]->Fill(invM2,eventWeight);
+//		}
 
 			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
-				if((invM1<100&&invM1>lower)&&(invM2<100&&invM2>80)){
-					if(MC&&sumw!=0){
-						Efficiency+=(eventWeight/lumFactor)/sumw;
-					}
-				}
+				histograms["invMass2lR"]->Fill(invM1);
+				histograms["invMass2lR"]->Fill(invM2);
+				histograms["invMass2lB"]->Fill(invM1);
+				histograms["invMass2lB"]->Fill(invM2);
+				histograms["invMass2lG"]->Fill(invM1);
+				histograms["invMass2lG"]->Fill(invM2);
 				
-				histograms["invMass2l"]->Fill(invM1,eventWeight);
-				histograms["invMass2l"]->Fill(invM2,eventWeight);
-				histograms["invMass2D_EMu"]->Fill(invM1,invM2);
-				
+			
 				histograms["opAngDist"]->Fill(GetOpenAngle((*lep_phi)[0],(*lep_phi)[which]));
 				histograms["opAngDist"]->Fill(GetOpenAngle((*lep_phi)[others[0]],(*lep_phi)[others[1]]));
+			}
+			if((invM1<102&&invM1>80)&&(invM2<102&&invM2>80)){
+				Efficiency+=(eventWeight/lumFactor)/sumw;
+				if(MC&&sumw!=0) N+=eventWeight;
+				else if(!MC) N+=1;
 			}
 
 		}else if(Cut(4,0,0)||Cut(0,4,0)){    //include 4 lepton events of all the same type
 			pair<Int_t,Int_t> pos, neg; //pai positive leptons and negative leptons
 			Bool_t posSet=false;
 			Bool_t negSet=false; //check that the first of the pair hsa been assigned
+	Int_t fileCounter{1};
 			for(Int_t j=0; j<4; j++){
 				if((*lep_charge)[j]==1){
 					if(posSet==false){
@@ -252,6 +274,14 @@ void mini::Run(){
 			invM4 = sqrt(2*(*lep_pt)[pos.second]*(*lep_pt)[neg.first]*(cosh((*lep_eta)[pos.second]-(*lep_eta)[neg.first])-cos((*lep_phi)[pos.second]-(*lep_phi)[neg.first])))/1000;
 	
 			
+			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
+				histograms["invMass2lR"]->Fill(invM1);
+				histograms["invMass2lR"]->Fill(invM2);
+			}else if((invM3<higher&&invM3>lower)||(invM4<higher&&invM4>lower)){
+				histograms["invMass2lR"]->Fill(invM3);
+				histograms["invMass2lR"]->Fill(invM4);
+			}
+
 			// this finds closest reconstruction to M_Z
 			vector<Double_t> deltas;
 			deltas.push_back(abs(invM1-zMass));
@@ -293,47 +323,52 @@ void mini::Run(){
 					}
 				}
 			}
+
+			histograms["invMass2lB"]->Fill(invM1);
+			histograms["invMass2lB"]->Fill(invM2);
+//		if(abs(zMass-invM1)<abs(zMass-invM2)){
+			histograms["invMass2l"]->Fill(invM1,eventWeight);
+//		}else{
+			histograms["invMass2l"]->Fill(invM2,eventWeight);
+//		}
+
+			if((*lep_type)[0]==11){
+				histograms["invMass2D_EE"]->Fill(invM1,invM2);
+			}else{
+				histograms["invMass2D_MuMu"]->Fill(invM1,invM2);
+			}
 			
 			if((invM1<higher&&invM1>lower)||(invM2<higher&&invM2>lower)){ //hardcoded
-				if((invM1<100&&invM1>lower)&&(invM2<100&&invM2>80)){
-					if(MC&&sumw!=0){
-						Efficiency+=(eventWeight/lumFactor)/sumw;
-					}
-				}
-				histograms["invMass2l"]->Fill(invM1,eventWeight);
-				histograms["invMass2l"]->Fill(invM2,eventWeight);
-				
 				//Add the opening angles:
 				histograms["opAngDist"]->Fill(GetOpenAngle((*lep_phi)[chosen_pair1.first],(*lep_phi)[chosen_pair1.second]));
 				histograms["opAngDist"]->Fill(GetOpenAngle((*lep_phi)[chosen_pair2.first],(*lep_phi)[chosen_pair2.second]));
-
-
-				if((*lep_type)[0]==11){
-					histograms["invMass2D_EE"]->Fill(invM1,invM2);
-				}else{
-					histograms["invMass2D_MuMu"]->Fill(invM1,invM2);
-				}
 			}
-		  	/*else if((invM3<higher&&invM3>lower)||(invM4<higher&&invM4>lower)){ //hardcoded
-				if(MC&&sumw!=0&&shortFileName==ZllZll){
-					Efficiency+=eventWeight/sumw;
-			}else if(!MC){
-					Efficiency++;//=1/n;
-				}
-				histograms["invMass2l"]->Fill(invM3,eventWeight);
-				histograms["invMass2l"]->Fill(invM4,eventWeight);	
-				if((*lep_type)[0]==11){
-					histograms["invMass2D_EE"]->Fill(invM3,invM4);
-				}else{
-					histograms["invMass2D_MuMu"]->Fill(invM3,invM4);
-				}
-			}*/
+			if((invM1<102&&invM1>80)&&(invM2<102&&invM2>80)){
+				Efficiency+=(eventWeight/lumFactor)/sumw;
+				if(MC&&sumw!=0) N+=eventWeight;
+				else if(!MC) N+=1;
+			}
+				
+		  	//else if((invM3<higher&&invM3>lower)||(invM4<higher&&invM4>lower)){ //hardcoded
+			//	if(MC&&sumw!=0&&shortFileName==ZllZll){
+			//		Efficiency+=eventWeight/sumw;
+			//}else if(!MC){
+			//		Efficiency++;//=1/n;
+			//	}
+			//	histograms["invMass2l"]->Fill(invM3,eventWeight);
+			//	histograms["invMass2l"]->Fill(invM4,eventWeight);	
+			//	if((*lep_type)[0]==11){
+			//		histograms["invMass2D_EE"]->Fill(invM3,invM4);
+			//	}else{
+			//		histograms["invMass2D_MuMu"]->Fill(invM3,invM4);
+			//	}
+			//}/
 
 		}
 
 		//Finding invariant mass of whole 4 lepton event using Equation [3] in lab book
 		if(lep_n==4){
-			histograms["invMass4l"]->Fill(sqrt(pow((*lep_pt)[0]*cosh((*lep_eta)[0])+(*lep_pt)[1]*cosh((*lep_eta)[1])+(*lep_pt)[2]*cosh((*lep_eta)[2])+(*lep_pt)[3]*cosh((*lep_eta)[3]),2)-pow((*lep_pt)[0]*cos((*lep_phi)[0])+(*lep_pt)[1]*cos((*lep_phi)[1])+(*lep_pt)[2]*cos((*lep_phi)[2])+(*lep_pt)[3]*cos((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sin((*lep_phi)[0])+(*lep_pt)[1]*sin((*lep_phi)[1])+(*lep_pt)[2]*sin((*lep_phi)[2])+(*lep_pt)[3]*sin((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sinh((*lep_eta)[0])+(*lep_pt)[1]*sinh((*lep_eta)[1])+(*lep_pt)[2]*sinh((*lep_eta)[2])+(*lep_pt)[3]*sinh((*lep_eta)[3]),2))/1000,eventWeight);
+			histograms["invMass4l"]->Fill(sqrt(pow((*lep_pt)[0]*cosh((*lep_eta)[0])+(*lep_pt)[1]*cosh((*lep_eta)[1])+(*lep_pt)[2]*cosh((*lep_eta)[2])+(*lep_pt)[3]*cosh((*lep_eta)[3]),2)-pow((*lep_pt)[0]*cos((*lep_phi)[0])+(*lep_pt)[1]*cos((*lep_phi)[1])+(*lep_pt)[2]*cos((*lep_phi)[2])+(*lep_pt)[3]*cos((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sin((*lep_phi)[0])+(*lep_pt)[1]*sin((*lep_phi)[1])+(*lep_pt)[2]*sin((*lep_phi)[2])+(*lep_pt)[3]*sin((*lep_phi)[3]),2)-pow((*lep_pt)[0]*sinh((*lep_eta)[0])+(*lep_pt)[1]*sinh((*lep_eta)[1])+(*lep_pt)[2]*sinh((*lep_eta)[2])+(*lep_pt)[3]*sinh((*lep_eta)[3]),2))/1000);//,eventWeight);
 		}
 		
 		/////////////////////
@@ -341,6 +376,7 @@ void mini::Run(){
 		//to write the last files histograms (loop ends after last event in last file,
 		//but writing normally occurs at start of next loop)
 		if(i==(n-1)){
+			tot->Add(histograms["invMass2l"]);
 			std::map<string,TH1*>::iterator it=histograms.begin();
 			while(it!=histograms.end()){
 				if(gDirectory->cd(it->first.c_str())){
@@ -361,12 +397,75 @@ void mini::Run(){
 	//Print the time taken to run the loop (relies on startTime at beginning of loop)
 	clock_t endTime = clock();
 	std::cout<<"Run time: "<<(endTime-startTime)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
-	
-	if(MC){
-		std::cout<<"efficiency = "<<Efficiency<<std::endl;
-	}else{
-		std::cout<<"efficiency = "<<Efficiency/n<<std::endl;
+
+
+	Double_t lowerMass=25;//40;
+	Double_t higherMass=80;//70;
+	TF1 *fit;
+	fit = new TF1("fit",BackFit,lowerMass,higherMass,2);//3);
+	fit->SetParameters(1,1);//,1);
+	tot->SetDirectory(0);
+	tot->SetTitle(";M_{ll} [GeV];N / [GeV]");
+	tot->Fit("fit","+RN");
+
+	Double_t a = fit->GetParameter(0);
+	Double_t err_a = fit->GetParError(0);
+	Double_t m = fit->GetParameter(1);
+	Double_t err_m = fit->GetParError(1);
+	Double_t cons = fit->GetParameter(2);
+	Double_t err_cons = fit->GetParError(2);
+	std::cout<<"a="<<a<<"+-"<<fit->GetParError(0)<<", m="<<m<<"+-"<<fit->GetParError(1)<<", c="<<cons<<"+-"<<fit->GetParError(2)<<std::endl;
+	Double_t x[160], y[160];
+	Double_t B = 0;
+	Double_t err_B = 0;
+	Double_t lowerRange = 91-11;//80
+	Double_t upperRange = 91+11;//102
+	for(Int_t i{0}; i<160; i++){
+		x[i]=i;
+		y[i]=a*i+m;//pow(x[i],2)+m*x[i]+cons;
+		if(i>=lowerRange&&i<=upperRange){
+			B+=y[i];
+			err_B+=pow(err_a*i,2)+pow(err_m,2);
+		}
 	}
+	err_B=sqrt(err_B);
+	TGraph *g = new TGraph(160,x,y);
+	g->SetLineColor(kRed);
+	g->SetLineWidth(2);
+	tot->Draw("hist");
+	g->Draw("same");
+	
+	//stat
+	Double_t err_N=sqrt(N);
+	Efficiency=0.0105559;//from MC
+	Double_t err_Eff=Efficiency*err_N/N;
+	std::cout<<"eff="<<Efficiency<<"+-"<<err_Eff<<std::endl;
+	Double_t stat_sigma = sqrt(pow(err_N/N,2)+pow(err_Eff/Efficiency,2));
+	
+	//sys
+	Double_t err_I;
+	Double_t I=tot->IntegralAndError(lowerRange+1,upperRange+1,err_I,"");
+	Double_t R=(I-B)/I;
+	Double_t err_R=R*sqrt(pow(err_B/B,2)+pow(err_I/I,2));
+	Double_t sys_sigma = err_R/R;
+	
+	//lumi
+	Double_t err_Lint=1.7/100*L_int;
+	Double_t lumi_sigma=err_Lint/L_int; //ie error is 1.7% of luminosity
+
+	N*=R;
+	Efficiency*=R;
+	Efficiency=0.00970049;//from MC
+	Double_t sigma = N /(Efficiency*L_int);//fb
+	sigma/=1e3;//pb*
+
+	stat_sigma*=sigma;
+	sys_sigma*=sigma;
+	lumi_sigma*=sigma;
+
+	std::cout<<"I="<<I<<", B="<<B<<", N="<<N<<", eff="<<Efficiency<<std::endl;
+	std::cout<<"sigma="<<sigma<<" += "<<stat_sigma<<" (stat) +- "<<sys_sigma<<" (sys) +- "<<lumi_sigma<<" (lumi) pb"<<std::endl;
+
 
 	output.cd();
 	gDirectory->cd(products.c_str());
@@ -392,6 +491,7 @@ void mini::Run(){
 Int_t mainlep(){
 	mini a;
 	a.Run();
+	//plotter();
 
 	return 0;
 }
