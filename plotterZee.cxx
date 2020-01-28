@@ -78,7 +78,7 @@ void plot(string product, string histType){
 	TH1D *totalHist = new TH1D("totalHist","Totals",200,0,160);
 	
 
-	TFile *f = new TFile("rootOutput/mc_output_Zee_allMC_12-12.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("rootOutput/mc_output_Zee_13-12.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -162,10 +162,12 @@ void plot(string product, string histType){
 		//efficiency-=1/n;
 	}
 	Double_t N = I-B;
+	efficiency = (I-B)*efficiency/I;
 	Double_t sigma = Br_lep*N/(efficiency*L_int);//fb
-	sigma/=1e3;//pb
+	sigma/=1e6;//pb
+	
 	std::cout<<"I="<<I<<", B="<<B<<"N="<<N<<", eff="<<efficiency<<std::endl;
-	std::cout<<"sigma="<<sigma<<" pb"<<std::endl;
+	std::cout<<"sigma="<<sigma<<" nb"<<std::endl;
 	//Double_t I = signalHist->IntegralAndError(80/0.8,100/0.8,err,"");
 	//Double_t err_tot;
 	//Double_t I_tot = totalHist->IntegralAndError(0,200,err_tot,"");
