@@ -232,19 +232,11 @@ mini::mini(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      /*TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(filename.c_str());
-      if (!f || !f->IsOpen()) {
-         f = new TFile(("/data/ATLAS/2lep/MC/"+filename).c_str());
-      }
-      f->GetObject("mini",tree);*/
       chain = new TChain("mini");
-      //chain->Add("/data/ATLAS/2lep/MC/mc15_13TeV.361106.PwPy8EG_AZNLOCTEQ6L1_Zee.2lep_raw.root");
-      //chain->Add("/data/ATLAS/2lep/MC/mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.2lep_raw.root");
-      //chain->Add("/data/ATLAS/2lep/MC/*")	
+      chain->Add("/data/ATLAS/1lep1tau/MC/mc15_13TeV.361108.PwPy8EG_AZNLOCTEQ6L1_Ztautau.1lep1tau_raw.root");
       //chain->Add("/data/ATLAS/1lep1tau/MC/mc15_13TeV.363490.Sh_221_NNPDF30NNLO_llll.1lep1tau_raw.root");
-      chain->Add("/data/ATLAS/1lep1tau/Data/*");
+      //chain->Add("/data/ATLAS/1lep1tau/Data/*");
    }
-   //Init(tree);
    Init(chain);
 }
 

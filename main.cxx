@@ -2,7 +2,8 @@
 #define main_cxx
 #include "mainMC.h" //change this for mc or real data
 #include "converter.h" //for usage of infofile.py here
-#include "plottertau.cxx"
+#include "plotter.cxx"
+#include "//athena-21.2/PhysicsAnalysis/TauID/DiTauMassTools/Root/MissingMassCalculatorV2.cxx"
 #include <TH2.h>
 //#include <TROOT.h>
 //#include <TRint.h>
@@ -94,16 +95,19 @@ void mini::Run(){
 		outputName="re_";
 	}
 
+	MissingMassCalculator* tool = new MissingMassCalculator;
 
-	TFile output(("rootOutput/"+outputName+"output_tau_23-12.root").c_str(),"RECREATE");
-
+	TFile output(("rootOutput/"+outputName+"output_28-01.root").c_str(),"RECREATE");
 	TDirectory *TDir = output.mkdir("1lep1tau");
 	std::map<string,TH1*> histograms;
-
-	histograms["invMass"] = new TH1D("invMass3lep1tau","Z->lll#tau",160,0,160);
-	
-
-
+	histograms["visMass"] = new TH1D("visMass","Z->l#tau_{jet}",160,0,160);
+	histograms["invMass"] = new TH1D("invMass","Z->#tau#tau",160,0,160);
+	histograms["invMassCutMissingEt1.5"] = new TH1D("invMassCutMissingEt1.5","Z->#tau#tau",160,0,160);
+	histograms["invMassCutMissingEt1"] = new TH1D("invMassCutMissingEt1","Z->#tau#tau",160,0,160);
+	histograms["invMassCutMissingEt0.5"] = new TH1D("invMassCutMissingEt0.5","Z->#tau#tau",160,0,160);
+	histograms["missingEt"] = new TH1D("missingEt","missing Et",100,-M_PI,M_PI);
+	Double_t nIntervals=50;
+	histograms["etContainedFrac"] = new TH1D("etContainedFrac","Fraction of missing transverse momentum as a function of opening angle",nIntervals,0,M_PI);
 	
 	clock_t startTime = clock();
 	
@@ -119,7 +123,12 @@ void mini::Run(){
 	Int_t fileCounter{1};
 	Bool_t newFile{true};
 	
-
+	vector<Double_t> openingAngle;
+	for(Double_t i=0; i<nIntervals; i++){
+		openingAngle.push_back(i/nIntervals*M_PI);
+	}
+	vector<Double_t> fractionContained(nIntervals,0);
+	vector<Double_t> openingAngleCounter(nIntervals,0);
 
 	for (Long64_t i=0; i<n; i++){
 		Long64_t ientry = LoadTree(i);
@@ -182,44 +191,97 @@ void mini::Run(){
 
 			
 		//Cuts for 2tau	
-		Double_t invM1, invM2; //1&2 for leplep, 3 for vis, 4 for leptau
+		Double_t invM1, invM2; //1 for vis, 2 for full
 		if(Cut(0,1,1)||Cut(1,0,1)){
 			
 			Int_t totalQ = (*lep_charge)[0];
 			if(totalQ+(*tau_charge)[0]!=0) continue;
 
-			Int_t tauPartner;
-			Int_t oddLep;
+			Double_t t_pt = (*tau_pt)[0];
+			Double_t t_phi = (*tau_phi)[0];
+			Double_t t_eta = (*tau_eta)[0];
+			Double_t t_theta = 2*atan(exp(-t_eta));
+			Double_t l_pt = (*lep_pt)[0];
+			Double_t l_phi = (*lep_phi)[0];
+			Double_t l_eta = (*lep_eta)[0];
+			Double_t l_theta = 2*atan(exp(-l_eta));
 			
-			
-			Double_t t = (*tau_phi)[0];
-			Double_t l;
-			Double_t pt_t = (*tau_pt)[0];
-			Double_t pt_l;
-			Double_t theta_t = 2*atan(exp(-(*tau_eta)[0]));
-			Double_t theta_l;
-			l = (*lep_phi)[tauPartner];
 			Double_t x1, x2;
+				
+			invM1 = sqrt(2*l_pt*t_pt*(cosh(l_eta-t_eta)-cos(l_phi-t_phi)))/1000; //visible
+			histograms["visMass"]->Fill(invM1,eventWeight);
+				
+			Double_t nu_T_lep = met_et*(sin(met_phi)-sin(t_phi))/(sin(l_phi)-sin(t_phi));
+			Double_t nu_T_had = met_et*(sin(met_phi)-sin(l_phi))/(sin(t_phi)-sin(l_phi));
 			
-			pt_l = (*lep_pt)[tauPartner];
-			theta_l = 2*atan(exp(-(*lep_eta)[tauPartner]));
-			
-			x1 = (*lep_pt)[tauPartner]/((*lep_pt)[tauPartner]+nu_T_lep);
-			x2 = (*tau_pt)[0]/((*tau_pt)[0]+nu_T_had);
-				
-			invM1 = sqrt(2*(*lep_pt)[oddLep]*(*lep_pt)[sameLeps[0]]*(cosh((*lep_eta)[oddLep]-(*lep_eta)[sameLeps[0]])-cos((*lep_phi)[oddLep]-(*lep_phi)[sameLeps[0]])))/1000;
-				
-				
-			Double_t nu_T_lep = met_et*(sin(met_phi)-sin((*tau_phi)[0]))/(sin((*lep_phi)[tauPartner])-sin((*tau_phi)[0]));
-			Double_t nu_T_had = met_et*(sin(met_phi)-sin((*lep_phi)[tauPartner]))/(sin((*tau_phi)[0])-sin((*lep_phi)[tauPartner]));
+			x1 = l_pt/(l_pt+nu_T_lep);
+			x2 = t_pt/(t_pt+nu_T_had);
 
+			Double_t halfAng = getOpeningAngle(t_phi,l_phi)/2;
+			Double_t rotationAngle;
+			if(t_phi<l_phi){
+				rotationAngle = -t_phi;
+			}else{
+				rotationAngle = -l_phi;
+			}
+			t_phi += rotationAngle;
+			l_phi += rotationAngle;
+			met_phi += rotationAngle;
+			
+			if(t_phi>M_PI) t_phi-=2*M_PI;
+			if(l_phi>M_PI) l_phi-=2*M_PI;
+			if(t_phi<0||l_phi<0){
+				t_phi += halfAng;
+				l_phi += halfAng;
+				met_phi += halfAng;
+			}else{
+				t_phi -= halfAng;
+				l_phi -= halfAng;
+				met_phi -= halfAng;
+			}
+
+			if(met_phi>M_PI) met_phi-=2*M_PI;
+			else if(met_phi<-M_PI) met_phi+=2*M_PI;
+			
+			Bool_t found = false;
+			Int_t index = 0;
+			for(vector<Double_t>::iterator it=openingAngle.begin(); it!=openingAngle.end(); it++){
+				if(2*halfAng<*it && !found){//use this or previous instance of *it
+					found = true;
+					if(abs(*it-2*halfAng)<abs(*(it-1)-2*halfAng) || index==0){//use index
+						openingAngleCounter[index]++; //counts how many events have this opening angle
+						if(abs(met_phi)<=abs(halfAng)) fractionContained[index]++; //counts how many events havethis opening angle AND met_phi contained
+					}else{//use (index-1)
+						openingAngleCounter[index-1]++;
+						if(abs(met_phi)<=abs(halfAng)) fractionContained[index-1]++;
+					}
+				}
+				index++;
+			}
+
+			Double_t phi_rel = met_phi*M_PI/(2*halfAng);
+			//+-1
+			if(t_phi>l_phi){
+				histograms["missingEt"]->Fill(phi_rel,eventWeight);
+			}else{
+				histograms["missingEt"]->Fill(-1*phi_rel,eventWeight);
+			}
+
+			invM2 = invM1/sqrt(x1*x2);
+			//if(getOpeningAngle(t_phi,l_phi)<0.5/*2&&getOpeningAngle(t_phi,l_phi)>0.5*/) histograms["invMass"]->Fill(invM2);
+			histograms["invMass"]->Fill(invM2,eventWeight);
+			if(phi_rel>-7*M_PI/10&&phi_rel<7*M_PI/10){
+				if(getOpeningAngle(t_phi,l_phi)<1.5) histograms["invMassCutMissingEt1.5"]->Fill(invM2,eventWeight);
+				if(getOpeningAngle(t_phi,l_phi)<1) histograms["invMassCutMissingEt1"]->Fill(invM2,eventWeight);
+				if(getOpeningAngle(t_phi,l_phi)<0.5) histograms["invMassCutMissingEt0.5"]->Fill(invM2,eventWeight);
+			}
 			
 			//Sem1 final cuts;
 			//if(invM3<80 && 2*halfAng<=2.5 && 2*halfAng>=0.5 && phi_rel<=3*M_PI/5 && phi_rel>=-7*M_PI/10){
-			if((MC)&&invM1<100&&invM1>80&&invM4<120&&invM4>40){
-				if(sumw!=0) Efficiency+=(eventWeight/lumFactor)/sumw;
-				}
-			}
+			//if((MC)&&invM1<100&&invM1>80&&invM4<120&&invM4>40){
+			//	if(sumw!=0) Efficiency+=(eventWeight/lumFactor)/sumw;
+			//	}
+			//}
 		}
 		
 		//to write the last files histograms (loop ends after last event in last file,
@@ -245,9 +307,18 @@ void mini::Run(){
 	clock_t endTime = clock();
 	std::cout<<"Run time: "<<(endTime-startTime)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
 
+	Int_t index = 0;
+	for(vector<Double_t>::iterator it=fractionContained.begin(); it!=fractionContained.end(); it++){
+		index++;
+		histograms["etContainedFrac"]->SetBinContent(index,*it/openingAngleCounter[index-1]*100);
+	}
 			
-	output.cd();
+	TDir->cd();
+	gDirectory->cd("etContainedFrac");
+	histograms["etContainedFrac"]->SetTitle(";#Delta / rad;\% events with #phi_{missing} within #Delta");
+	histograms["etContainedFrac"]->Write((products+"_etContainedFrac_"+shortFileName).c_str(),TObject::kWriteDelete);
 	
+	output.cd();
 	gDirectory->cd(products.c_str());
 	gDirectory->mkdir("Efficiency");
 	gDirectory->cd("Efficiency");
@@ -258,7 +329,6 @@ void mini::Run(){
 		v[0]=Efficiency/n;
 	}
 	
-	std::cout<<"efficiency from vector = "<<v[0]<<std::endl;
 	v.Write("efficiency");
 	output.Close(); //Close the output file
 
@@ -267,11 +337,10 @@ void mini::Run(){
 
 
 // so we don't need to keep typing it in the terminal
-Int_t maintau(){
+Int_t main(){
 	mini a;
 	a.Run();
-	//plottertau();
-
+	plotter();
 	
 	return 0;
 }
