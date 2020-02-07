@@ -1,0 +1,6 @@
+# Target labels
+ DiTau
+# Source files and their labels
+/afs/cern.ch/user/a/aburke/public/Masters/build/x86_64-centos7-gcc62-opt/jobOptions/DiTau/DiTauAlgJobOptions.py
+/afs/cern.ch/user/a/aburke/public/Masters/source/DiTau/share/DiTauAlgJobOptions.py
+/afs/cern.ch/user/a/aburke/public/Masters/build/x86_64-centos7-gcc62-opt/jobOptions/DiTau/DiTauAlgJobOptions.py.rule

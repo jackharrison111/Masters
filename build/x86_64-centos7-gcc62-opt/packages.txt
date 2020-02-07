@@ -1,0 +1,2 @@
+# Regular package(s) built in WorkDir - 1.0.0
+DiTau DiTau-00-00-01

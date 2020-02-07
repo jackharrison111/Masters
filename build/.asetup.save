@@ -1,0 +1,84 @@
+#Release cmake
+
+export LANG="C"
+export LC_ALL="C"
+export BINARY_TAG="x86_64-slc6-gcc62-opt"
+export CMTCONFIG="x86_64-slc6-gcc62-opt"
+ASETUP_SYSBIN=/tmp/aburke/.asetup-sysbin_$$
+if [ ! -d $ASETUP_SYSBIN ]; then
+    mkdir -p $ASETUP_SYSBIN
+fi
+source $AtlasSetup/scripts/sys_exe-alias.sh ''
+if [ -n "${MAKEFLAGS:+x}" ]; then
+    asetup_flags=`echo ${MAKEFLAGS} | \grep ' -l'`
+    if [ -z "${asetup_flags}" ]; then
+        export MAKEFLAGS="${MAKEFLAGS} -l10"
+    fi
+else
+    export MAKEFLAGS="-j10 -l10"
+fi
+source /cvmfs/atlas.cern.ch/repo/sw/software/21.2/sw/lcg/releases/gcc/6.2binutils/x86_64-slc6-gcc62-opt/setup.sh
+export CC=`which --skip-alias gcc 2>/dev/null`
+[[ -z $CC ]] && unset CC
+export CXX=`which --skip-alias g++ 2>/dev/null`
+[[ -z $CXX ]] && unset CXX
+export FC=`which --skip-alias gfortran 2>/dev/null`
+[[ -z $FC ]] && unset FC
+export CMAKE_NO_VERBOSE="1"
+type lsetup >/dev/null 2>/dev/null
+if [ $? -ne 0 ]; then
+   source ${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh --quiet
+fi
+source $ATLAS_LOCAL_ROOT_BASE/packageSetups/localSetup.sh --quiet cmake
+if [ -z "${AtlasSetup:+x}" ]; then
+    export AtlasSetup="/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase/x86_64/AtlasSetup/V02-00-02/AtlasSetup"
+    export AtlasSetupVersion="AtlasSetup-02-00-02"
+fi
+export TNS_ADMIN="/eos/project/o/oracle/public/admin"
+export FRONTIER_SERVER="(serverurl=http://atlasfrontier-local.cern.ch:8000/atlr)(serverurl=http://atlasfrontier-ai.cern.ch:8000/atlr)(serverurl=http://ccfrontier.in2p3.fr:23128/ccin2p3-AtlasFrontier)(proxyurl=http://ca-proxy-atlas.cern.ch:3128)(proxyurl=http://ca-proxy-meyrin.cern.ch:3128)(proxyurl=http://ca-proxy.cern.ch:3128)(proxyurl=http://atlasbpfrontier.cern.ch:3127)(proxyurl=http://atlasbpfrontier.fnal.gov:3127)"
+export ATLAS_POOLCOND_PATH="/cvmfs/atlas-condb.cern.ch/repo/conditions"
+export ATLAS_DB_AREA="/cvmfs/atlas.cern.ch/repo/sw/database"
+export DBRELEASE_OVERRIDE="current"
+export GAUDI_ROOT="/cvmfs/atlas.cern.ch/repo/sw/software/21.2/GAUDI/21.2.39/InstallArea/x86_64-slc6-gcc62-opt"
+export SITEROOT="/cvmfs/atlas.cern.ch/repo/sw/software/21.2"
+export AtlasBaseDir="/cvmfs/atlas.cern.ch/repo/sw/software/21.2"
+export LCG_RELEASE_BASE="/cvmfs/atlas.cern.ch/repo/sw/software/21.2/sw/lcg/releases"
+export AtlasBuildStamp="2018-07-26T0341"
+export AtlasReleaseType="stable"
+export AtlasBuildBranch="21.2"
+export AtlasProject="AthAnalysis"
+export TDAQ_RELEASE_BASE="/cvmfs/atlas.cern.ch/repo/sw/software/21.2"
+export ATLAS_RELEASE_BASE="/cvmfs/atlas.cern.ch/repo/sw/software/21.2"
+export ATLAS_RELEASEDATA="/cvmfs/atlas.cern.ch/repo/sw/software/21.2/atlas/offline/ReleaseData"
+export AtlasArea="/cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39"
+export AtlasVersion="21.2.39"
+source /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/setup.sh
+asetup_status=$?
+if [ ${asetup_status} -ne 0 ]; then
+    \echo "AtlasSetup(ERROR): sourcing release setup script (/cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/setup.sh) failed"
+fi
+export TestArea="/afs/cern.ch/user/a/aburke/public/Masters/build"
+alias_sys_exe emacs
+echo $LD_LIBRARY_PATH | egrep "LCG_[^/:]*/curl/" >/dev/null
+if [ $? -eq 0 ]; then
+    alias_sys_exe_envU git
+fi
+\expr 1 \* 1 + 1 >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+    echo -e '\nMaking workaround-alias for expr on this *OLD* machine'; alias_sys_exe expr
+fi
+export PATH="${ASETUP_SYSBIN}:${PATH}"
+
+#Release Summary as follows:
+#Release base=/cvmfs/atlas.cern.ch/repo/sw/software/21.2
+#Release project=AthAnalysis
+#Release releaseNum=21.2.39
+#Release asconfig=x86_64-slc6-gcc62-opt
+
+# Execute user-specified epilog
+
+source /cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase/swConfig/asetup/asetupEpilog.sh
+script_status=$?
+if [ ${script_status} -ne 0 ]; then
+    \echo "AtlasSetup(ERROR): User-specified epilog (source /cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase/swConfig/asetup/asetupEpilog.sh) reported failure (error ${script_status})"
+fi
