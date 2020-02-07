@@ -1,0 +1,19 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/afs/cern.ch/user/a/aburke/public/Masters/build/x86_64-centos7-gcc62-opt/include/DiTau"
+		},
+		{
+			"file" : "/afs/cern.ch/user/a/aburke/public/Masters/build/x86_64-centos7-gcc62-opt/include/DiTau.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"DiTau"
+		],
+		"name" : "DiTauHeaderInstall"
+	}
+}

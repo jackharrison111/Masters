@@ -1,0 +1,348 @@
+## opening file [../../../../mc15_13TeV.361108.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Ztautau.recon.AOD.e3601_s2576_s2132_r6630_tid05358802_00/AOD.05358802._004299.pool.root.1]...
+## importing ROOT...
+## importing ROOT... [DONE]
+## opening file [OK]
+
+================================================================================
+         Event data
+================================================================================
+     Mem Size       Disk Size        Size/Evt      Compression  Items  Container Name (Type)
+--------------------------------------------------------------------------------
+       2.539 kb        0.122 kb        0.000 kb       20.800      500  RunNumber (()) [EvtId]
+       2.553 kb        0.126 kb        0.000 kb       20.264      500  EventTimeNanoSec (()) [EvtId]
+       2.547 kb        0.126 kb        0.000 kb       20.217      500  ConditionsRun (()) [EvtId]
+       2.522 kb        0.146 kb        0.000 kb       17.220      500  EventWeight (()) [EvtId]
+       1.246 kb        0.491 kb        0.001 kb        2.537        1  DataHeader (()) [MetaData]
+       2.541 kb        0.604 kb        0.001 kb        4.204      500  LumiBlockN (()) [EvtId]
+       2.539 kb        0.685 kb        0.001 kb        3.709      500  EventTime (()) [EvtId]
+       4.521 kb        1.189 kb        0.002 kb        3.801      500  EventNumber (()) [EvtId]
+       2.535 kb        1.250 kb        0.003 kb        2.028      500  BunchId (()) [EvtId]
+      10.850 kb        1.562 kb        0.003 kb        6.944      500  HLT_MuonFeatureContainer (MuonFeatureContainer_p3) [Trig]
+      10.850 kb        1.582 kb        0.003 kb        6.858      500  MuonCaloEnergyCollection (MuonCaloEnergyContainer_p1) [Muon]
+      10.911 kb        1.616 kb        0.003 kb        6.751      500  HLT_MuonFeatureDetailsContainer (MuonFeatureDetailsContainer_p2) [Trig]
+      10.938 kb        1.626 kb        0.003 kb        6.727      500  HLT_TrigT2MbtsBitsContainer_T2Mbts (TrigT2MbtsBitsContainer_p3) [Trig]
+      10.946 kb        1.626 kb        0.003 kb        6.732      500  HLT_xAOD__JetRoIContainer_L1TopoJet (DataVector<xAOD::JetRoI_v2>) [Trig]
+      10.920 kb        1.626 kb        0.003 kb        6.716      500  HLT_TrigPassFlagsCollection_isEM (TrigPassFlagsCollection_p1) [Trig]
+      10.964 kb        1.646 kb        0.003 kb        6.663      500  HLT_TrigMissingETContainer_EFJetEtSum (TrigMissingETContainer_p3) [Trig]
+      10.964 kb        1.646 kb        0.003 kb        6.663      500  HLT_TrigMissingETContainer_L2JetEtSum (TrigMissingETContainer_p3) [Trig]
+       8.791 kb        1.650 kb        0.003 kb        5.327      500  TrigConfKeys (xAOD::TrigConfKeys_v1) [Trig]
+      10.964 kb        1.650 kb        0.003 kb        6.643      500  HLT_TrigPassFlagsCollection_passflags (TrigPassFlagsCollection_p1) [Trig]
+      10.973 kb        1.650 kb        0.003 kb        6.649      500  HLT_TrigMissingETContainer_T2MissingET (TrigMissingETContainer_p3) [Trig]
+      10.999 kb        1.660 kb        0.003 kb        6.625      500  HLT_xAOD__L2IsoMuonContainer_MuonL2ISInfo (DataVector<xAOD::L2IsoMuon_v1>) [Trig]
+      11.008 kb        1.670 kb        0.003 kb        6.592      500  HLT_TrigMissingETContainer_L2MissingET_FEB (TrigMissingETContainer_p3) [Trig]
+      11.008 kb        1.670 kb        0.003 kb        6.592      500  HLT_TrigMissingETContainer_TrigEFMissingET (TrigMissingETContainer_p3) [Trig]
+      11.043 kb        1.685 kb        0.003 kb        6.555      500  HLT_TrigSpacePointCountsCollection_spacepoints (TrigSpacePointCountsCollection_p4) [Trig]
+      11.043 kb        1.689 kb        0.003 kb        6.536      500  HLT_TrigMissingETContainer_TrigEFMissingET_FEB (TrigMissingETContainer_p3) [Trig]
+      11.052 kb        1.694 kb        0.003 kb        6.523      500  HLT_TrigRoiDescriptorCollection_secondaryRoI_L2 (TrigRoiDescriptorCollection_p3) [Trig]
+      11.052 kb        1.694 kb        0.003 kb        6.523      500  HLT_TrigRoiDescriptorCollection_secondaryRoI_EF (TrigRoiDescriptorCollection_p3) [Trig]
+      11.061 kb        1.699 kb        0.003 kb        6.509      500  HLT_TrigMuonEFIsolationContainer_MuonEFIsolation (TrigMuonEFIsolationContainer_p2) [Trig]
+      11.096 kb        1.709 kb        0.003 kb        6.493      500  HLT_TrigMissingETContainer_TrigEFMissingET_topocl_PS (TrigMissingETContainer_p3) [Trig]
+      11.069 kb        1.709 kb        0.003 kb        6.477      500  HLT_TrigMissingETContainer_TrigEFMissingET_topocl (TrigMissingETContainer_p3) [Trig]
+      34.454 kb        1.880 kb        0.004 kb       18.328      500  HLT_TrigVertexCountsCollection_vertexcounts (TrigVertexCountsCollection_tlp1) [Trig]
+      34.489 kb        1.890 kb        0.004 kb       18.252      500  HLT_TrigMuonClusterFeatureContainer_MuonCluster (TrigMuonClusterFeatureContainer_tlp1) [Trig]
+      42.249 kb        2.178 kb        0.004 kb       19.400      500  HLT_TrigTrackCountsCollection_trackcounts (TrigTrackCountsCollection_tlp1) [Trig]
+      42.267 kb        2.217 kb        0.004 kb       19.067      500  HLT_TrigVertexCollection_TrigBeamSpotVertex (TrigVertexCollection_tlp2) [Trig]
+      42.425 kb        2.295 kb        0.005 kb       18.486      500  HLT_TrigVertexCollection_TrigL2SiTrackFinder_FullScan_ZF_Only (TrigVertexCollection_tlp2) [Trig]
+      23.937 kb        2.575 kb        0.005 kb        9.295      500  ESDtoAOD_mems (RecoTimingObj_p1) [MetaData]
+      73.473 kb        2.593 kb        0.005 kb       28.337      500  HLT_TrigMuonEFInfoContainer_MuonEFInfo (TrigMuonEFInfoContainer_tlp2) [Trig]
+      73.481 kb        2.598 kb        0.005 kb       28.288      500  HLT_TrigMuonEFInfoContainer_MuTagIMO_EF (TrigMuonEFInfoContainer_tlp2) [Trig]
+      73.481 kb        2.598 kb        0.005 kb       28.288      500  HLT_TrigMuonEFInfoContainer_eMuonEFInfo (TrigMuonEFInfoContainer_tlp2) [Trig]
+      62.590 kb        2.612 kb        0.005 kb       23.960      500  TrigInDetTrackTruthMap (TrigInDetTrackTruthMap_tlp2) [Trig]
+      30.725 kb        2.879 kb        0.006 kb       10.672      500  HLT_CombinedMuonFeatureContainer (CombinedMuonFeatureContainer_p4) [Trig]
+      23.937 kb        3.023 kb        0.006 kb        7.917      500  RAWtoESD_mems (RecoTimingObj_p1) [MetaData]
+      36.259 kb        4.018 kb        0.008 kb        9.025      500  InDetTrackParticlesAssociatedClusters_links (CaloClusterCellLinkContainer) [InDet]
+      19.519 kb        4.370 kb        0.009 kb        4.466      500  HLT_TrigRoiDescriptorCollection_forMS (TrigRoiDescriptorCollection_p3) [Trig]
+      12.378 kb        5.901 kb        0.012 kb        2.097      500  HITStoRDO_timings (RecoTimingObj_p1) [MetaData]
+      12.434 kb        5.990 kb        0.012 kb        2.076      500  EVNTtoHITS_timings (RecoTimingObj_p1) [MetaData]
+      65.317 kb        6.372 kb        0.013 kb       10.251      500  LVL1JetEtRoI (xAOD::JetEtRoI_v1) [Trig]
+      16.275 kb        7.679 kb        0.015 kb        2.120      500  ESDtoAOD_timings (RecoTimingObj_p1) [MetaData]
+      69.988 kb        7.759 kb        0.016 kb        9.021      500  HLT_xAOD__TrigT2MbtsBitsContainer_T2Mbts (DataVector<xAOD::TrigT2MbtsBits_v1>) [Trig]
+      70.305 kb        7.881 kb        0.016 kb        8.921      500  HLT_xAOD__TrigT2ZdcSignalsContainer_zdcsignals (DataVector<xAOD::TrigT2ZdcSignals_v1>) [Trig]
+      70.330 kb        7.886 kb        0.016 kb        8.919      500  HLT_xAOD__TrigVertexCountsContainer_vertexcounts (DataVector<xAOD::TrigVertexCounts_v1>) [Trig]
+      71.999 kb        7.914 kb        0.016 kb        9.098      500  HLT_TrigRoiDescriptorCollection_secondaryRoI_HLT (TrigRoiDescriptorCollection_p3) [Trig]
+      73.773 kb        8.334 kb        0.017 kb        8.852      500  InDetTrackParticlesClusterAssociations (DataVector<xAOD::TrackParticleClusterAssociation_v1>) [InDet]
+      87.819 kb        8.627 kb        0.017 kb       10.180      500  Token (()) [MetaData]
+      16.275 kb        9.179 kb        0.018 kb        1.773      500  RAWtoESD_timings (RecoTimingObj_p1) [MetaData]
+      21.469 kb       10.006 kb        0.020 kb        2.146      500  HLT_TrigRoiDescriptorCollection_forID3 (TrigRoiDescriptorCollection_p3) [Trig]
+      21.469 kb       10.027 kb        0.020 kb        2.141      500  HLT_TrigRoiDescriptorCollection_forID2 (TrigRoiDescriptorCollection_p3) [Trig]
+      23.034 kb       10.955 kb        0.022 kb        2.103      500  TileMuObj (TileMuContainer_p1) [Muon]
+      62.400 kb       11.694 kb        0.023 kb        5.336      500  Kt4EMTopoEventShape (xAOD::EventShape_v1) [PFO]
+      62.400 kb       11.694 kb        0.023 kb        5.336      500  Kt4LCTopoEventShape (xAOD::EventShape_v1) [PFO]
+      62.443 kb       11.748 kb        0.023 kb        5.315      500  Kt4EMPFlowEventShape (xAOD::EventShape_v1) [PFO]
+      62.916 kb       11.943 kb        0.024 kb        5.268      500  TopoClusterIsoForwardEventShape (xAOD::EventShape_v1) [PFO]
+      62.916 kb       11.968 kb        0.024 kb        5.257      500  TopoClusterIsoCentralEventShape (xAOD::EventShape_v1) [PFO]
+      62.959 kb       11.988 kb        0.024 kb        5.252      500  ParticleFlowIsoForwardEventShape (xAOD::EventShape_v1) [PFO]
+      62.959 kb       12.007 kb        0.024 kb        5.244      500  ParticleFlowIsoCentralEventShape (xAOD::EventShape_v1) [PFO]
+      63.260 kb       12.056 kb        0.024 kb        5.247      500  NeutralParticleFlowIsoForwardEventShape (xAOD::EventShape_v1) [PFO]
+      63.260 kb       12.183 kb        0.024 kb        5.193      500  NeutralParticleFlowIsoCentralEventShape (xAOD::EventShape_v1) [PFO]
+      96.134 kb       13.018 kb        0.026 kb        7.385      500  HLT_xAOD__MuonRoIContainer_L1TopoMuon (DataVector<xAOD::MuonRoI_v1>) [Trig]
+     115.635 kb       13.291 kb        0.027 kb        8.700      500  HLT_xAOD__TrigCompositeContainer_L1TopoMET (DataVector<xAOD::TrigComposite_v1>) [Trig]
+     116.168 kb       13.535 kb        0.027 kb        8.583      500  HLT_xAOD__TrigCompositeContainer_L1TopoComposite (DataVector<xAOD::TrigComposite_v1>) [Trig]
+     123.565 kb       14.731 kb        0.029 kb        8.388      500  HLT_xAOD__JetContainer_a4tclcwsubFS (DataVector<xAOD::Jet_v1>) [Trig]
+     123.565 kb       14.731 kb        0.029 kb        8.388      500  HLT_xAOD__JetContainer_a10tcemjesPS (DataVector<xAOD::Jet_v1>) [Trig]
+     123.565 kb       14.731 kb        0.029 kb        8.388      500  HLT_xAOD__JetContainer_a4tclcwjesPS (DataVector<xAOD::Jet_v1>) [Trig]
+     123.565 kb       14.731 kb        0.029 kb        8.388      500  HLT_xAOD__JetContainer_a10tcemjesFS (DataVector<xAOD::Jet_v1>) [Trig]
+     123.667 kb       14.790 kb        0.030 kb        8.362      500  HLT_xAOD__JetContainer_a10tclcwjesPS (DataVector<xAOD::Jet_v1>) [Trig]
+     123.667 kb       14.790 kb        0.030 kb        8.362      500  HLT_xAOD__JetContainer_a10tclcwjesFS (DataVector<xAOD::Jet_v1>) [Trig]
+     123.870 kb       14.893 kb        0.030 kb        8.318      500  HLT_xAOD__JetContainer_a10tcemsubjesFS (DataVector<xAOD::Jet_v1>) [Trig]
+     123.972 kb       14.917 kb        0.030 kb        8.311      500  HLT_xAOD__JetContainer_a10tclcwsubjesFS (DataVector<xAOD::Jet_v1>) [Trig]
+     123.972 kb       14.917 kb        0.030 kb        8.311      500  HLT_xAOD__JetContainer_a4tcemnojcalibPS (DataVector<xAOD::Jet_v1>) [Trig]
+     123.972 kb       14.917 kb        0.030 kb        8.311      500  HLT_xAOD__JetContainer_a4TTemnojcalibFS (DataVector<xAOD::Jet_v1>) [Trig]
+     124.073 kb       14.937 kb        0.030 kb        8.307      500  HLT_xAOD__JetContainer_a4TThadnojcalibFS (DataVector<xAOD::Jet_v1>) [Trig]
+     124.073 kb       14.937 kb        0.030 kb        8.307      500  HLT_xAOD__JetContainer_a10TTemnojcalibFS (DataVector<xAOD::Jet_v1>) [Trig]
+     124.073 kb       14.937 kb        0.030 kb        8.307      500  HLT_xAOD__JetContainer_a10tcemnojcalibPS (DataVector<xAOD::Jet_v1>) [Trig]
+     124.073 kb       14.937 kb        0.030 kb        8.307      500  HLT_xAOD__JetContainer_a4tclcwnojcalibPS (DataVector<xAOD::Jet_v1>) [Trig]
+      90.753 kb       14.965 kb        0.030 kb        6.064      500  HLT_xAOD__TrigRNNOutputContainer_TrigTRTHTCounts (DataVector<xAOD::TrigRNNOutput_v1>) [Trig]
+     124.175 kb       14.971 kb        0.030 kb        8.295      500  HLT_xAOD__JetContainer_a10tclcwnojcalibPS (DataVector<xAOD::Jet_v1>) [Trig]
+     124.175 kb       14.971 kb        0.030 kb        8.295      500  HLT_xAOD__JetContainer_a10TThadnojcalibFS (DataVector<xAOD::Jet_v1>) [Trig]
+     125.394 kb       15.459 kb        0.031 kb        8.111      500  HLT_xAOD__JetContainer_TrigHLTJetDSSelectorCollection (DataVector<xAOD::Jet_v1>) [Trig]
+      95.926 kb       15.847 kb        0.032 kb        6.053      500  LVL1MuonRoIs (DataVector<xAOD::MuonRoI_v1>) [Trig]
+      98.656 kb       17.350 kb        0.035 kb        5.686      500  LVL1EnergySumRoI (xAOD::EnergySumRoI_v1) [Trig]
+     129.579 kb       17.518 kb        0.035 kb        7.397      500  HLT_xAOD__JetContainer_a4tcemjesPS (DataVector<xAOD::Jet_v1>) [Trig]
+     129.896 kb       17.545 kb        0.035 kb        7.404      500  HLT_xAOD__JetContainer_a10r_tcemsubjesFS (DataVector<xAOD::Jet_v1>) [Trig]
+      72.310 kb       18.062 kb        0.036 kb        4.003      500  LArNoisyROSummary (LArNoisyROSummary_p3) [Calo]
+      50.417 kb       20.992 kb        0.042 kb        2.402      500  HLT_TrigRoiDescriptorCollection_forID1 (TrigRoiDescriptorCollection_p3) [Trig]
+     146.452 kb       22.461 kb        0.045 kb        6.520      500  MSDisplacedVertex (DataVector<xAOD::Vertex_v1>) [Muon]
+     112.712 kb       25.323 kb        0.051 kb        4.451      500  MET_EMTopo (xAOD::MissingETContainer_v1) [MET]
+     115.021 kb       25.604 kb        0.051 kb        4.492      500  MET_LocHadTopo (xAOD::MissingETContainer_v1) [MET]
+     145.289 kb       25.704 kb        0.051 kb        5.652      500  HLT_xAOD__BTagVertexContainer_BjetVertexFex (DataVector<xAOD::BTagVertex_v1>) [Trig]
+     166.313 kb       26.834 kb        0.054 kb        6.198      500  HLT_xAOD__JetContainer_a4tcemsubFS (DataVector<xAOD::Jet_v1>) [Trig]
+     162.576 kb       26.929 kb        0.054 kb        6.037      500  HLT_xAOD__TrigSpacePointCountsContainer_spacepoints (DataVector<xAOD::TrigSpacePointCounts_v1>) [Trig]
+     166.885 kb       26.948 kb        0.054 kb        6.193      500  HLT_xAOD__EmTauRoIContainer_L1TopoEM (DataVector<xAOD::EmTauRoI_v2>) [Trig]
+     167.075 kb       27.148 kb        0.054 kb        6.154      500  HLT_xAOD__EmTauRoIContainer_L1TopoTau (DataVector<xAOD::EmTauRoI_v2>) [Trig]
+     155.137 kb       27.958 kb        0.056 kb        5.549      500  HLT_xAOD__VertexContainer_BjetSecondaryVertexFex (DataVector<xAOD::Vertex_v1>) [Trig]
+     192.119 kb       27.996 kb        0.056 kb        6.862      500  HLT_xAOD__JetContainer_a10tcemnojcalibFS (DataVector<xAOD::Jet_v1>) [Trig]
+     193.323 kb       28.149 kb        0.056 kb        6.868      500  HLT_xAOD__JetContainer_a10tcemsubFS (DataVector<xAOD::Jet_v1>) [Trig]
+     177.860 kb       29.507 kb        0.059 kb        6.028      500  HLT_xAOD__TrigTrackCountsContainer_trackcounts (DataVector<xAOD::TrigTrackCounts_v1>) [Trig]
+     376.804 kb       29.825 kb        0.060 kb       12.634      500  HLT_TrigPassBitsCollection_passbits (TrigPassBitsCollection_p1) [Trig]
+     201.379 kb       31.376 kb        0.063 kb        6.418      500  HLT_xAOD__JetContainer_a10tclcwnojcalibFS (DataVector<xAOD::Jet_v1>) [Trig]
+     165.630 kb       31.527 kb        0.063 kb        5.254      500  HLT_xAOD__VertexContainer_SecondaryVertex (DataVector<xAOD::Vertex_v1>) [Trig]
+     203.021 kb       31.552 kb        0.063 kb        6.435      500  HLT_xAOD__JetContainer_a10tclcwsubFS (DataVector<xAOD::Jet_v1>) [Trig]
+     166.219 kb       32.110 kb        0.064 kb        5.176      500  HLT_xAOD__L2CombinedMuonContainer_MuonL2CBInfo (DataVector<xAOD::L2CombinedMuon_v1>) [Trig]
+     208.993 kb       34.243 kb        0.068 kb        6.103      500  HLT_xAOD__TrigBphysContainer_EFMuPairs (DataVector<xAOD::TrigBphys_v1>) [Trig]
+     209.234 kb       34.321 kb        0.069 kb        6.096      500  HLT_xAOD__TrigBphysContainer_L2DiMuXFex (DataVector<xAOD::TrigBphys_v1>) [Trig]
+     209.476 kb       34.341 kb        0.069 kb        6.100      500  HLT_xAOD__TrigBphysContainer_EFBMuMuXFex (DataVector<xAOD::TrigBphys_v1>) [Trig]
+     209.476 kb       34.341 kb        0.069 kb        6.100      500  HLT_xAOD__TrigBphysContainer_L2JpsieeFex (DataVector<xAOD::TrigBphys_v1>) [Trig]
+     209.476 kb       34.341 kb        0.069 kb        6.100      500  HLT_xAOD__TrigBphysContainer_L2TrackMass (DataVector<xAOD::TrigBphys_v1>) [Trig]
+     209.476 kb       34.341 kb        0.069 kb        6.100      500  HLT_xAOD__TrigBphysContainer_L2BMuMuXFex (DataVector<xAOD::TrigBphys_v1>) [Trig]
+     209.717 kb       34.463 kb        0.069 kb        6.085      500  HLT_xAOD__TrigBphysContainer_EFMultiMuFex (DataVector<xAOD::TrigBphys_v1>) [Trig]
+     209.717 kb       34.463 kb        0.069 kb        6.085      500  HLT_xAOD__TrigBphysContainer_EFDsPhiPiFex (DataVector<xAOD::TrigBphys_v1>) [Trig]
+     209.717 kb       34.463 kb        0.069 kb        6.085      500  HLT_xAOD__TrigBphysContainer_L2MultiMuFex (DataVector<xAOD::TrigBphys_v1>) [Trig]
+     210.440 kb       34.771 kb        0.070 kb        6.052      500  HLT_xAOD__TrigBphysContainer_L2DsPhiPiFexPhi (DataVector<xAOD::TrigBphys_v1>) [Trig]
+     210.199 kb       34.805 kb        0.070 kb        6.039      500  HLT_xAOD__TrigBphysContainer_L2DsPhiPiFexDs (DataVector<xAOD::TrigBphys_v1>) [Trig]
+     178.120 kb       34.811 kb        0.070 kb        5.117      500  HLT_xAOD__VertexContainer_EFHistoPrmVtx (DataVector<xAOD::Vertex_v1>) [Trig]
+     210.733 kb       36.092 kb        0.072 kb        5.839      500  HLT_xAOD__TrigBphysContainer_EFTrackMass (DataVector<xAOD::TrigBphys_v1>) [Trig]
+     139.258 kb       36.251 kb        0.073 kb        3.841      500  MET_Core_AntiKt4EMPFlow (xAOD::MissingETContainer_v1) [MET]
+     217.859 kb       36.322 kb        0.073 kb        5.998      500  HLT_xAOD__TrigBphysContainer_EFBMuMuFex (DataVector<xAOD::TrigBphys_v1>) [Trig]
+     217.805 kb       36.879 kb        0.074 kb        5.906      500  HLT_xAOD__TrigBphysContainer_L2BMuMuFex (DataVector<xAOD::TrigBphys_v1>) [Trig]
+     213.966 kb       36.924 kb        0.074 kb        5.795      500  HLT_xAOD__TrigMissingETContainer_EFJetEtSum (DataVector<xAOD::TrigMissingET_v1>) [Trig]
+     216.251 kb       37.681 kb        0.075 kb        5.739      500  HLT_xAOD__TrigMissingETContainer_TrigEFMissingET_FEB (DataVector<xAOD::TrigMissingET_v1>) [Trig]
+     233.457 kb       38.276 kb        0.077 kb        6.099      500  SlowMuons (DataVector<xAOD::SlowMuon_v1>) [Muon]
+     117.995 kb       38.479 kb        0.077 kb        3.066      500  HLT_TrigRoiDescriptorCollection_initialRoI (TrigRoiDescriptorCollection_p3) [Trig]
+     119.151 kb       39.180 kb        0.078 kb        3.041      500  MBTSContainer (TileCellVec) [Calo]
+     119.151 kb       39.180 kb        0.078 kb        3.041      500  E4prContainer (TileCellVec) [Calo]
+     220.313 kb       39.229 kb        0.078 kb        5.616      500  HLT_xAOD__TrigMissingETContainer_EFMissingET_Fex_2sidednoiseSupp_PUC (DataVector<xAOD::TrigMissingET_v1>) [Trig]
+     219.650 kb       41.213 kb        0.082 kb        5.330      500  InDetTrackParticlesAssociatedClusters (DataVector<xAOD::CaloCluster_v1>) [InDet]
+     245.940 kb       41.914 kb        0.084 kb        5.868      500  HLT_xAOD__TrigElectronContainer_L2IDCaloFex (DataVector<xAOD::TrigElectron_v1>) [Trig]
+     271.837 kb       44.181 kb        0.088 kb        6.153      500  HLT_xAOD__TrigMissingETContainer_T2MissingET (DataVector<xAOD::TrigMissingET_v1>) [Trig]
+     162.118 kb       48.529 kb        0.097 kb        3.341      500  MET_Core_AntiKt4EMTopo (xAOD::MissingETContainer_v1) [MET]
+     162.118 kb       48.546 kb        0.097 kb        3.339      500  MET_Core_AntiKt4LCTopo (xAOD::MissingETContainer_v1) [MET]
+     162.650 kb       49.151 kb        0.098 kb        3.309      500  MET_EMTopoRegions (xAOD::MissingETContainer_v1) [MET]
+     253.636 kb       49.238 kb        0.098 kb        5.151      500  LVL1JetRoIs (DataVector<xAOD::JetRoI_v2>) [Trig]
+     168.865 kb       49.415 kb        0.099 kb        3.417      500  MET_LocHadTopoRegions (xAOD::MissingETContainer_v1) [MET]
+     201.086 kb       51.477 kb        0.103 kb        3.906      500  BTagging_AntiKt4EMTopoJFVtx (DataVector<xAOD::BTagVertex_v1>) [BTag]
+     947.948 kb       51.760 kb        0.104 kb       18.314      500  HLT_xAOD__JetContainer_TrigTauJet (DataVector<xAOD::Jet_v1>) [Trig]
+     169.264 kb       52.146 kb        0.104 kb        3.246      500  MET_Truth (xAOD::MissingETContainer_v1) [MET]
+     455.079 kb       56.765 kb        0.114 kb        8.017      500  HLT_xAOD__TrigMissingETContainer_TrigEFMissingET_topocl_PS (DataVector<xAOD::TrigMissingET_v1>) [Trig]
+     224.698 kb       57.842 kb        0.116 kb        3.885      500  egammaTruthParticles (DataVector<xAOD::TruthParticle_v1>) [egamma]
+     402.315 kb       59.064 kb        0.118 kb        6.811      500  MuonClusterCollection_links (CaloClusterCellLinkContainer) [Muon]
+     393.876 kb       60.476 kb        0.121 kb        6.513      500  HLT_xAOD__JetContainer_SuperRoi (DataVector<xAOD::Jet_v1>) [Trig]
+     394.704 kb       60.784 kb        0.122 kb        6.494      500  HLT_xAOD__JetContainer_SplitJet (DataVector<xAOD::Jet_v1>) [Trig]
+     227.875 kb       61.146 kb        0.122 kb        3.727      500  BTagging_AntiKt4LCTopoJFVtx (DataVector<xAOD::BTagVertex_v1>) [BTag]
+     256.533 kb       61.779 kb        0.124 kb        4.152      500  MuonTruthSegments (DataVector<xAOD::MuonSegment_v1>) [Muon]
+      92.846 kb       62.293 kb        0.125 kb        1.490      500  RawInfoSummaryForTag (RawInfoSummaryForTag_p1) [MetaData]
+     238.902 kb       65.113 kb        0.130 kb        3.669      500  BTagging_AntiKt2TrackJFVtx (DataVector<xAOD::BTagVertex_v1>) [BTag]
+     260.114 kb       66.897 kb        0.134 kb        3.888      500  TauHadronicParticleFlowObjects (DataVector<xAOD::PFO_v1>) [tau]
+     177.288 kb       68.837 kb        0.138 kb        2.575      500  HLT_TrigRoiDescriptorCollection_forID (TrigRoiDescriptorCollection_p3) [Trig]
+     234.197 kb       69.086 kb        0.138 kb        3.390      500  TauSecondaryVertices (DataVector<xAOD::Vertex_v1>) [tau]
+     296.329 kb       69.220 kb        0.138 kb        4.281      500  HLT_xAOD__TrigMissingETContainer_TrigEFMissingET_mht (DataVector<xAOD::TrigMissingET_v1>) [Trig]
+     257.598 kb       71.642 kb        0.143 kb        3.596      500  BTagging_AntiKt3TrackJFVtx (DataVector<xAOD::BTagVertex_v1>) [BTag]
+     320.567 kb       72.886 kb        0.146 kb        4.398      500  HLT_xAOD__TrigMissingETContainer_TrigEFMissingET_topocl_PUC (DataVector<xAOD::TrigMissingET_v1>) [Trig]
+     322.646 kb       75.744 kb        0.151 kb        4.260      500  LVL1EmTauRoIs (DataVector<xAOD::EmTauRoI_v2>) [Trig]
+     269.270 kb       75.833 kb        0.152 kb        3.551      500  BTagging_AntiKt4TrackJFVtx (DataVector<xAOD::BTagVertex_v1>) [BTag]
+     261.214 kb       76.215 kb        0.152 kb        3.427      500  BTagging_AntiKt4EMTopoSecVtx (DataVector<xAOD::Vertex_v1>) [BTag]
+     272.026 kb       77.144 kb        0.154 kb        3.526      500  MET_Reference_AntiKt4EMPFlow (xAOD::MissingETContainer_v1) [MET]
+     271.938 kb       77.313 kb        0.155 kb        3.517      500  MET_Reference_AntiKt4EMTopo (xAOD::MissingETContainer_v1) [MET]
+     271.938 kb       77.686 kb        0.155 kb        3.500      500  MET_Reference_AntiKt4LCTopo (xAOD::MissingETContainer_v1) [MET]
+     251.501 kb       78.653 kb        0.157 kb        3.198      500  HLT_xAOD__TrigPhotonContainer_L2PhotonFex (DataVector<xAOD::TrigPhoton_v1>) [Trig]
+     265.505 kb       79.184 kb        0.158 kb        3.353      500  BTagging_AntiKt2TrackSecVtx (DataVector<xAOD::Vertex_v1>) [BTag]
+     266.968 kb       79.573 kb        0.159 kb        3.355      500  BTagging_AntiKt4LCTopoSecVtx (DataVector<xAOD::Vertex_v1>) [BTag]
+     272.974 kb       82.929 kb        0.166 kb        3.292      500  BTagging_AntiKt3TrackSecVtx (DataVector<xAOD::Vertex_v1>) [BTag]
+     355.190 kb       83.388 kb        0.167 kb        4.260      500  TauChargedParticleFlowObjects (DataVector<xAOD::PFO_v1>) [tau]
+     275.497 kb       84.188 kb        0.168 kb        3.272      500  BTagging_AntiKt4TrackSecVtx (DataVector<xAOD::Vertex_v1>) [BTag]
+     421.747 kb       86.891 kb        0.174 kb        4.854      500  HLT_xAOD__BTaggingContainer_HLTBjetFex (DataVector<xAOD::BTagging_v1>) [Trig]
+    5279.963 kb       87.922 kb        0.176 kb       60.053      500  xTrigDecision (xAOD::TrigDecision_v1) [Trig]
+     366.175 kb       92.389 kb        0.185 kb        3.963      500  MET_TruthRegions (xAOD::MissingETContainer_v1) [MET]
+     297.105 kb       94.465 kb        0.189 kb        3.145      500  MuonClusterCollection (DataVector<xAOD::CaloCluster_v1>) [Muon]
+     218.491 kb       94.920 kb        0.190 kb        2.302      500  MET_Calo (xAOD::MissingETContainer_v1) [MET]
+     318.532 kb      103.680 kb        0.207 kb        3.072      500  GSFConversionVertices (DataVector<xAOD::Vertex_v1>) [egamma]
+     695.259 kb      132.002 kb        0.264 kb        5.267      500  CombinedStauTrackParticles (DataVector<xAOD::TrackParticle_v1>) [tau]
+     699.017 kb      133.374 kb        0.267 kb        5.241      500  ExtrapolatedStauTrackParticles (DataVector<xAOD::TrackParticle_v1>) [tau]
+     454.317 kb      142.771 kb        0.286 kb        3.182      500  HLT_xAOD__TrigMissingETContainer_TrigEFMissingET_topocl (DataVector<xAOD::TrigMissingET_v1>) [Trig]
+     730.019 kb      145.342 kb        0.291 kb        5.023      500  HLT_xAOD__TrackParticleContainer_MuTagIMO_EF_CombTrackParticles (DataVector<xAOD::TrackParticle_v1>) [Trig]
+     730.019 kb      145.342 kb        0.291 kb        5.023      500  HLT_xAOD__TrackParticleContainer_eMuonEFInfo_CombTrackParticles (DataVector<xAOD::TrackParticle_v1>) [Trig]
+     731.897 kb      146.177 kb        0.292 kb        5.007      500  HLT_xAOD__TrackParticleContainer_MuTagIMO_EF_ExtrapTrackParticles (DataVector<xAOD::TrackParticle_v1>) [Trig]
+     731.897 kb      146.177 kb        0.292 kb        5.007      500  HLT_xAOD__TrackParticleContainer_eMuonEFInfo_ExtrapTrackParticles (DataVector<xAOD::TrackParticle_v1>) [Trig]
+     732.837 kb      146.494 kb        0.293 kb        5.002      500  HLT_xAOD__TrackParticleContainer_InDetTrigTrackingxAODCnv_Bjet_FTF (DataVector<xAOD::TrackParticle_v1>) [Trig]
+     809.980 kb      147.095 kb        0.294 kb        5.507      500  Staus (DataVector<xAOD::Muon_v1>) [Muon]
+     735.655 kb      147.510 kb        0.295 kb        4.987      500  HLT_xAOD__TrackParticleContainer_InDetTrigTrackingxAODCnv_Muon_IDTrig (DataVector<xAOD::TrackParticle_v1>) [Trig]
+    2661.620 kb      156.834 kb        0.314 kb       16.971      500  EventInfo (xAOD::EventInfo_v1) [EvtId]
+     696.128 kb      159.013 kb        0.318 kb        4.378      500  HLT_xAOD__VertexContainer_xPrimVx (DataVector<xAOD::Vertex_v1>) [Trig]
+     843.877 kb      160.103 kb        0.320 kb        5.271      500  HLT_xAOD__MuonContainer_eMuonEFInfo (DataVector<xAOD::Muon_v1>) [Trig]
+     843.877 kb      160.103 kb        0.320 kb        5.271      500  HLT_xAOD__MuonContainer_MuTagIMO_EF (DataVector<xAOD::Muon_v1>) [Trig]
+     737.653 kb      168.575 kb        0.337 kb        4.376      500  InDetPixelPrdAssociationTrackParticles (DataVector<xAOD::TrackParticle_v1>) [InDet]
+     610.782 kb      178.964 kb        0.358 kb        3.413      500  HLT_xAOD__TrigMissingETContainer_TrigL2MissingET_FEB (DataVector<xAOD::TrigMissingET_v1>) [Trig]
+     762.304 kb      181.515 kb        0.363 kb        4.200      500  MSonlyTracklets (DataVector<xAOD::TrackParticle_v1>) [Muon]
+     511.276 kb      183.642 kb        0.367 kb        2.784      500  MuonTruthParticles (DataVector<xAOD::TruthParticle_v1>) [Muon]
+     940.525 kb      193.277 kb        0.387 kb        4.866      500  ForwardElectrons (DataVector<xAOD::Electron_v1>) [egamma]
+     515.184 kb      201.188 kb        0.402 kb        2.561      500  MuonSegments (DataVector<xAOD::MuonSegment_v1>) [Muon]
+     434.386 kb      205.003 kb        0.410 kb        2.119      500  MET_Track (xAOD::MissingETContainer_v1) [MET]
+     852.411 kb      210.767 kb        0.422 kb        4.044      500  HLT_xAOD__TrackParticleContainer_MuonEFInfo_CombTrackParticles (DataVector<xAOD::TrackParticle_v1>) [Trig]
+     723.595 kb      221.176 kb        0.442 kb        3.272      500  HLT_xAOD__TrigElectronContainer_L2ElectronFex (DataVector<xAOD::TrigElectron_v1>) [Trig]
+     947.163 kb      237.066 kb        0.474 kb        3.995      500  HLT_xAOD__TrackParticleContainer_MuonEFInfo_ExtrapTrackParticles (DataVector<xAOD::TrackParticle_v1>) [Trig]
+     897.794 kb      241.089 kb        0.482 kb        3.724      500  HLT_xAOD__TrackParticleContainer_InDetTrigTrackingxAODCnv_Muon_FTF (DataVector<xAOD::TrackParticle_v1>) [Trig]
+    1162.359 kb      247.717 kb        0.495 kb        4.692      500  HLT_xAOD__JetContainer_EFJet (DataVector<xAOD::Jet_v1>) [Trig]
+     898.414 kb      252.979 kb        0.506 kb        3.551      500  TauShotParticleFlowObjects (DataVector<xAOD::PFO_v1>) [tau]
+     890.938 kb      253.079 kb        0.506 kb        3.520      500  ExtrapolatedMuonTrackParticles (DataVector<xAOD::TrackParticle_v1>) [Muon]
+     895.550 kb      254.176 kb        0.508 kb        3.523      500  HLT_xAOD__TrackParticleContainer_InDetTrigTrackingxAODCnv_Muon_EFID (DataVector<xAOD::TrackParticle_v1>) [Trig]
+     896.306 kb      255.477 kb        0.511 kb        3.508      500  MuonSpectrometerTrackParticles (DataVector<xAOD::TrackParticle_v1>) [Muon]
+    1164.835 kb      263.111 kb        0.526 kb        4.427      500  HLT_xAOD__MuonContainer_MuonEFInfo (DataVector<xAOD::Muon_v1>) [Trig]
+     896.083 kb      265.733 kb        0.531 kb        3.372      500  CombinedMuonTrackParticles (DataVector<xAOD::TrackParticle_v1>) [Muon]
+    2346.521 kb      272.611 kb        0.545 kb        8.608      500  egammaClusters_links (CaloClusterCellLinkContainer) [egamma]
+     910.138 kb      279.215 kb        0.558 kb        3.260      500  HLT_xAOD__TrackParticleContainer_InDetTrigTrackingxAODCnv_TauIso_FTF (DataVector<xAOD::TrackParticle_v1>) [Trig]
+     919.334 kb      284.566 kb        0.569 kb        3.231      500  HLT_xAOD__TrackParticleContainer_InDetTrigTrackingxAODCnv_TauCore_FTF (DataVector<xAOD::TrackParticle_v1>) [Trig]
+     875.295 kb      290.657 kb        0.581 kb        3.011      500  METAssoc_AntiKt4EMTopo (xAOD::MissingETAssociationMap_v1) [MET]
+     995.490 kb      319.029 kb        0.638 kb        3.120      500  METAssoc_AntiKt4LCTopo (xAOD::MissingETAssociationMap_v1) [MET]
+     870.311 kb      319.690 kb        0.639 kb        2.722      500  METAssoc_AntiKt4EMPFlow (xAOD::MissingETAssociationMap_v1) [MET]
+     811.915 kb      320.821 kb        0.642 kb        2.531      500  HLT_xAOD__TrigMissingETContainer_TrigEFMissingET (DataVector<xAOD::TrigMissingET_v1>) [Trig]
+    1216.715 kb      341.132 kb        0.682 kb        3.567      500  HLT_xAOD__TrackParticleContainer_InDetTrigTrackingxAODCnv_BjetPrmVtx_FTF (DataVector<xAOD::TrackParticle_v1>) [Trig]
+    1217.451 kb      371.202 kb        0.742 kb        3.280      500  Muons (DataVector<xAOD::Muon_v1>) [Muon]
+    1359.474 kb      425.477 kb        0.851 kb        3.195      500  AntiKt10TruthJets (DataVector<xAOD::Jet_v1>) [Jet]
+    1357.729 kb      427.717 kb        0.855 kb        3.174      500  AntiKt10TruthWZJets (DataVector<xAOD::Jet_v1>) [Jet]
+    1410.566 kb      429.514 kb        0.859 kb        3.284      500  CamKt12TruthWZJets (DataVector<xAOD::Jet_v1>) [Jet]
+    1438.159 kb      434.573 kb        0.869 kb        3.309      500  CamKt12TruthJets (DataVector<xAOD::Jet_v1>) [Jet]
+    1187.358 kb      454.274 kb        0.909 kb        2.614      500  HLT_xAOD__PhotonContainer_egamma_Photons (DataVector<xAOD::Photon_v1>) [Trig]
+    1858.290 kb      478.071 kb        0.956 kb        3.887      500  HLT_xAOD__TauJetContainer_TrigTauRecPreselection (DataVector<xAOD::TauJet_v2>) [Trig]
+    9436.533 kb      484.851 kb        0.970 kb       19.463      500  METMap_Truth (xAOD::MissingETComponentMap_v1) [MET]
+    2064.441 kb      485.651 kb        0.971 kb        4.251      500  HLT_xAOD__L2StandAloneMuonContainer_MuonL2SAInfo (DataVector<xAOD::L2StandAloneMuon_v1>) [Trig]
+     915.295 kb      503.915 kb        1.008 kb        1.816      500  egammaClusters (DataVector<xAOD::CaloCluster_v1>) [egamma]
+    1324.450 kb      520.590 kb        1.041 kb        2.544      500  HLT_xAOD__TrackParticleContainer_InDetTrigTrackingxAODCnv_Tau_EFID (DataVector<xAOD::TrackParticle_v1>) [Trig]
+    1789.951 kb      553.611 kb        1.107 kb        3.233      500  HLT_xAOD__CaloClusterContainer_TrigEFCaloCalibFex (DataVector<xAOD::CaloCluster_v1>) [Trig]
+    1575.268 kb      616.829 kb        1.234 kb        2.554      500  HLT_xAOD__TrackParticleContainer_InDetTrigTrackingxAODCnv_Tau_IDTrig (DataVector<xAOD::TrackParticle_v1>) [Trig]
+    1854.060 kb      631.434 kb        1.263 kb        2.936      500  HLT_xAOD__TrackParticleContainer_InDetTrigTrackingxAODCnv_Bjet_IDTrig (DataVector<xAOD::TrackParticle_v1>) [Trig]
+    1419.156 kb      655.190 kb        1.310 kb        2.166      500  ForwardElectronClusters (DataVector<xAOD::CaloCluster_v1>) [egamma]
+    1783.777 kb      663.548 kb        1.327 kb        2.688      500  HLT_xAOD__ElectronContainer_egamma_Electrons (DataVector<xAOD::Electron_v1>) [Trig]
+    2378.333 kb      673.033 kb        1.346 kb        3.534      500  HLT_xAOD__TauJetContainer_TrigTauRecMerged (DataVector<xAOD::TauJet_v2>) [Trig]
+    1991.063 kb      694.983 kb        1.390 kb        2.865      500  HLT_xAOD__TrackParticleContainer_InDetTrigTrackingxAODCnv_Electron_EFID (DataVector<xAOD::TrackParticle_v1>) [Trig]
+    1637.886 kb      771.159 kb        1.542 kb        2.124      500  TauNeutralParticleFlowObjects (DataVector<xAOD::PFO_v1>) [tau]
+    1643.172 kb      818.200 kb        1.636 kb        2.008      500  GSFTrackParticles (DataVector<xAOD::TrackParticle_v1>) [egamma]
+    1701.654 kb      820.202 kb        1.640 kb        2.075      500  Electrons (DataVector<xAOD::Electron_v1>) [egamma]
+    2101.632 kb      854.678 kb        1.709 kb        2.459      500  HLT_xAOD__TrackParticleContainer_InDetTrigTrackingxAODCnv_Tau_FTF (DataVector<xAOD::TrackParticle_v1>) [Trig]
+    3047.023 kb      901.494 kb        1.803 kb        3.380      500  AntiKt2PV0TrackJets (DataVector<xAOD::Jet_v1>) [Jet]
+    1536.746 kb      917.881 kb        1.836 kb        1.674      500  egammaTopoSeededClusters (DataVector<xAOD::CaloCluster_v1>) [egamma]
+    3080.320 kb      977.942 kb        1.956 kb        3.150      500  AntiKt4TruthWZJets (DataVector<xAOD::Jet_v1>) [Jet]
+    3109.085 kb      989.430 kb        1.979 kb        3.142      500  AntiKt4TruthJets (DataVector<xAOD::Jet_v1>) [Jet]
+    4454.639 kb     1023.750 kb        2.047 kb        4.351      500  HLT_xAOD__JetContainer_a4tcemnojcalibFS (DataVector<xAOD::Jet_v1>) [Trig]
+    3540.059 kb     1058.699 kb        2.117 kb        3.344      500  AntiKt3PV0TrackJets (DataVector<xAOD::Jet_v1>) [Jet]
+    2694.312 kb     1074.191 kb        2.148 kb        2.508      500  InDetForwardTrackParticles (DataVector<xAOD::TrackParticle_v1>) [InDet]
+    5402.467 kb     1107.940 kb        2.216 kb        4.876      500  BTagging_AntiKt4EMTopo (DataVector<xAOD::BTagging_v1>) [BTag]
+    4721.306 kb     1108.741 kb        2.217 kb        4.258      500  HLT_xAOD__JetContainer_a4tcemjesFS (DataVector<xAOD::Jet_v1>) [Trig]
+    4884.438 kb     1165.169 kb        2.330 kb        4.192      500  HLT_xAOD__JetContainer_a4tcemsubjesFS (DataVector<xAOD::Jet_v1>) [Trig]
+    4020.105 kb     1193.437 kb        2.387 kb        3.369      500  AntiKt4PV0TrackJets (DataVector<xAOD::Jet_v1>) [Jet]
+    2293.175 kb     1208.585 kb        2.417 kb        1.897      500  TauPi0Clusters (DataVector<xAOD::CaloCluster_v1>) [tau]
+    3857.196 kb     1229.422 kb        2.459 kb        3.137      500  TauJets (DataVector<xAOD::TauJet_v2>) [tau]
+    5774.326 kb     1327.173 kb        2.654 kb        4.351      500  PrimaryVertices (DataVector<xAOD::Vertex_v1>) [InDet]
+    7255.454 kb     1402.423 kb        2.805 kb        5.174      500  BTagging_AntiKt4LCTopo (DataVector<xAOD::BTagging_v1>) [BTag]
+    7654.777 kb     1616.006 kb        3.232 kb        4.737      500  BTagging_AntiKt2Track (DataVector<xAOD::BTagging_v1>) [BTag]
+    8455.599 kb     1760.601 kb        3.521 kb        4.803      500  BTagging_AntiKt3Track (DataVector<xAOD::BTagging_v1>) [BTag]
+    9102.836 kb     1870.237 kb        3.740 kb        4.867      500  BTagging_AntiKt4Track (DataVector<xAOD::BTagging_v1>) [BTag]
+    8325.266 kb     2004.758 kb        4.010 kb        4.153      500  AntiKt4EMPFlowJets (DataVector<xAOD::Jet_v1>) [PFO]
+    9074.255 kb     2016.016 kb        4.032 kb        4.501      500  AntiKt10LCTopoJets (DataVector<xAOD::Jet_v1>) [Jet]
+    7062.143 kb     2018.824 kb        4.038 kb        3.498      500  AntiKt4EMTopoJets (DataVector<xAOD::Jet_v1>) [Jet]
+    3361.915 kb     2022.206 kb        4.044 kb        1.662      500  Photons (DataVector<xAOD::Photon_v1>) [egamma]
+    9607.761 kb     2084.942 kb        4.170 kb        4.608      500  CamKt12LCTopoJets (DataVector<xAOD::Jet_v1>) [Jet]
+   41113.912 kb     2145.554 kb        4.291 kb       19.162      500  McEventInfo (PileUpEventInfo_p5) [EvtId]
+   11454.558 kb     2271.005 kb        4.542 kb        5.044      500  JetETMissChargedParticleFlowObjects (DataVector<xAOD::PFO_v1>) [PFO]
+    8634.541 kb     2307.096 kb        4.614 kb        3.743      500  HLT_xAOD__JetContainer_a4tclcwnojcalibFS (DataVector<xAOD::Jet_v1>) [Trig]
+    9121.852 kb     2484.423 kb        4.969 kb        3.672      500  HLT_xAOD__JetContainer_a4tclcwjesFS (DataVector<xAOD::Jet_v1>) [Trig]
+    9410.445 kb     2597.292 kb        5.195 kb        3.623      500  HLT_xAOD__JetContainer_a4tclcwsubjesFS (DataVector<xAOD::Jet_v1>) [Trig]
+    3576.972 kb     2641.917 kb        5.284 kb        1.354      500  AODCellContainer (CaloCompactCellContainer) [Calo]
+    9619.904 kb     2678.634 kb        5.357 kb        3.591      500  AntiKt4LCTopoJets (DataVector<xAOD::Jet_v1>) [Jet]
+   13883.156 kb     3081.175 kb        6.162 kb        4.506      500  TrigNavigation (xAOD::TrigNavigation_v1) [Trig]
+   53757.449 kb     4479.732 kb        8.959 kb       12.000      500  TruthEvents (DataVector<xAOD::TruthEvent_v1>) [Truth]
+   28942.584 kb     8977.792 kb       17.956 kb        3.224      500  JetETMissNeutralParticleFlowObjects (DataVector<xAOD::PFO_v1>) [PFO]
+   69941.949 kb     9699.364 kb       19.399 kb        7.211      500  TruthVertices (DataVector<xAOD::TruthVertex_v1>) [Truth]
+   33189.005 kb    10166.783 kb       20.334 kb        3.264        1  DataHeaderForm (()) [MetaData]
+   39739.783 kb    15942.785 kb       31.886 kb        2.493      500  CaloCalTopoClusters (DataVector<xAOD::CaloCluster_v1>) [CaloTopo]
+   50164.410 kb    24295.388 kb       48.591 kb        2.065      500  InDetTrackParticles (DataVector<xAOD::TrackParticle_v1>) [InDet]
+   80070.749 kb    26958.779 kb       53.918 kb        2.970      500  TruthParticles (DataVector<xAOD::TruthParticle_v1>) [Truth]
+--------------------------------------------------------------------------------
+  694308.954 kb   179105.978 kb      358.212 kb        0.000      500  Total
+
+================================================================================
+         Categorized data
+================================================================================
+     Disk Size         Fraction    Category Name
+--------------------------------------------------------------------------------
+       4.295 kb        0.012       Muon
+       4.613 kb        0.013       EvtId
+       4.747 kb        0.013       MET
+       5.477 kb        0.015       Calo
+       7.894 kb        0.022       tau
+      12.730 kb        0.036       egamma
+      16.969 kb        0.047       BTag
+      20.545 kb        0.057       MetaData
+      26.722 kb        0.075       PFO
+      31.273 kb        0.087       Jet
+      31.886 kb        0.089       CaloTopo
+      53.838 kb        0.150       InDet
+      54.948 kb        0.153       Trig
+      82.276 kb        0.230       Truth
+     358.212 kb        1.000       Total
+
+================================================================================
+CSV for categories disk size/evt and fraction:
+Total,Truth,Trig,InDet,CaloTopo,Jet,PFO,MetaData,BTag,egamma,tau,Calo,MET,EvtId,Muon
+358.212,82.276,54.948,53.838,31.886,31.273,26.722,20.545,16.969,12.730,7.894,5.477,4.747,4.613,4.295
+1.000,0.230,0.153,0.150,0.089,0.087,0.075,0.057,0.047,0.036,0.022,0.015,0.013,0.013,0.012
+================================================================================
+
+================================================================================
+         Meta data
+================================================================================
+     Mem Size       Disk Size         Container Name
+--------------------------------------------------------------------------------
+       0.633 kb        0.112 kb       ProcessingCycle3
+       1.074 kb        0.309 kb       _LAR_LArAffectedRegionInfo
+       1.153 kb        0.375 kb       _TRIGGER_HLT_PrescaleKey
+       1.185 kb        0.396 kb       _TRIGGER_LVL1_Lvl1ConfigKey
+       1.236 kb        0.434 kb       _TRIGGER_HLT_HltConfigKeys
+       1.428 kb        0.488 kb       _EXT_DCS_MAGNETS_SENSORDATA
+       1.483 kb        0.520 kb       _GLOBAL_BField_Maps
+      19.263 kb        1.135 kb       _Digitization_Parameters
+       2.608 kb        1.232 kb       _Simulation_Parameters
+       2.921 kb        1.259 kb       _TagInfo
+      24.604 kb        2.219 kb       _TRIGGER_LVL1_Prescales
+      24.758 kb        2.341 kb       CutBookkeepers
+      26.231 kb        2.408 kb       IncompleteCutBookkeepers
+      19.474 kb        4.104 kb       StreamAOD
+      27.140 kb        4.904 kb       _TRIGGER_LVL1_Menu
+      30.311 kb        5.556 kb       EventFormat
+      42.646 kb        6.824 kb       _TRIGGER_LVL1_ItemDef
+      89.037 kb       14.811 kb       _TRIGGER_HLT_Prescales
+     700.899 kb       59.349 kb       TriggerMenu
+     885.577 kb       78.136 kb       _TRIGGER_HLT_Menu
+--------------------------------------------------------------------------------
+    1903.661 kb      186.911 kb       Total
+================================================================================
+## Bye.
