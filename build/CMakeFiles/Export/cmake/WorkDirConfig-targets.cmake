@@ -63,7 +63,7 @@ add_library(WorkDir::DiTauLib SHARED IMPORTED)
 
 set_target_properties(WorkDir::DiTauLib PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "\$<TARGET_PROPERTY:WorkDir::DiTauPkg,INTERFACE_INCLUDE_DIRECTORIES>;${_IMPORT_PREFIX}/\${LCG_RELEASE_BASE}/LCG_93/ROOT/6.12.06/x86_64-slc6-gcc62-opt/include"
-  INTERFACE_LINK_LIBRARIES "\${LCG_RELEASE_BASE}/LCG_93/ROOT/6.12.06/x86_64-slc6-gcc62-opt/lib/libMathCore.so;\${LCG_RELEASE_BASE}/LCG_93/ROOT/6.12.06/x86_64-slc6-gcc62-opt/lib/libRIO.so;\${LCG_RELEASE_BASE}/LCG_93/ROOT/6.12.06/x86_64-slc6-gcc62-opt/lib/libCore.so;\${LCG_RELEASE_BASE}/LCG_93/ROOT/6.12.06/x86_64-slc6-gcc62-opt/lib/libTree.so;\${LCG_RELEASE_BASE}/LCG_93/ROOT/6.12.06/x86_64-slc6-gcc62-opt/lib/libHist.so;AthAnalysisBaseCompsLib;AsgTools;DiTauMassTools;xAODTau"
+  INTERFACE_LINK_LIBRARIES "\${LCG_RELEASE_BASE}/LCG_93/ROOT/6.12.06/x86_64-slc6-gcc62-opt/lib/libMathCore.so;\${LCG_RELEASE_BASE}/LCG_93/ROOT/6.12.06/x86_64-slc6-gcc62-opt/lib/libRIO.so;\${LCG_RELEASE_BASE}/LCG_93/ROOT/6.12.06/x86_64-slc6-gcc62-opt/lib/libCore.so;\${LCG_RELEASE_BASE}/LCG_93/ROOT/6.12.06/x86_64-slc6-gcc62-opt/lib/libTree.so;\${LCG_RELEASE_BASE}/LCG_93/ROOT/6.12.06/x86_64-slc6-gcc62-opt/lib/libHist.so;AthAnalysisBaseCompsLib;AsgTools;xAODEventInfo;DiTauMassTools;xAODTau;xAODEgamma;xAODMuon;xAODJet;xAODMissingET;AthContainers"
   INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "\${LCG_RELEASE_BASE}/LCG_93/ROOT/6.12.06/x86_64-slc6-gcc62-opt/include"
 )
 

@@ -1104,7 +1104,7 @@ DPM_ROOT:PATH=/cvmfs/atlas.cern.ch/repo/sw/software/21.2/sw/lcg/releases/LCG_93/
 DPM_VERSION:STRING=1.8.5-1
 
 //Dependencies for the target
-DiTauLib_LIB_DEPENDS:STATIC=general;AthAnalysisBaseCompsLib;general;AsgTools;general;DiTauMassTools;general;xAODTau;general;dl;
+DiTauLib_LIB_DEPENDS:STATIC=general;AthAnalysisBaseCompsLib;general;AsgTools;general;xAODEventInfo;general;DiTauMassTools;general;xAODTau;general;xAODEgamma;general;xAODMuon;general;xAODJet;general;xAODMissingET;general;AthContainers;general;dl;
 
 //Dependencies for the target
 DiTau_LIB_DEPENDS:STATIC=general;DiTauLib;general;GaudiPluginService;general;dl;

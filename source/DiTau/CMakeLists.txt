@@ -14,7 +14,7 @@ atlas_add_library( DiTauLib src/*.cxx
                    PUBLIC_HEADERS DiTau
                    INCLUDE_DIRS ${ROOT_INCLUDE_DIRS}
                    LINK_LIBRARIES ${ROOT_LIBRARIES}
-                                    AthAnalysisBaseCompsLib AsgTools DiTauMassTools xAODTau
+                                    AthAnalysisBaseCompsLib AsgTools xAODEventInfo DiTauMassTools xAODTau xAODEgamma xAODMuon xAODJet xAODMissingET AthContainers
 )
 
 # if you add athena components (tools, algorithms) to this package
