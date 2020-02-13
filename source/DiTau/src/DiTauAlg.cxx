@@ -1,8 +1,23 @@
+#include <iostream>
+
 // DiTau includes
 #include "DiTauAlg.h"
-#include "xAODTau/versions/TauJet_v2.h"
 
-//#include "xAODEventInfo/EventInfo.h"
+#include "xAODEgamma/ElectronContainer.h"
+
+#include "xAODMuon/MuonContainer.h"
+
+#include "xAODJet/JetContainer.h"
+
+#include "xAODTau/TauJetContainer.h"
+#include "xAODTau/TauJetAuxContainer.h"
+#include "xAODMissingET/MissingETContainer.h"
+
+// core EDM includes
+#include "AthContainers/AuxElement.h"
+#include "AthContainers/DataVector.h"
+
+#include "xAODEventInfo/EventInfo.h"
 
 
 
@@ -70,11 +85,43 @@ StatusCode DiTauAlg::execute() {
   //ATH_MSG_INFO("eventNumber=" << ei->eventNumber() );
   //m_myHist->Fill( ei->averageInteractionsPerCrossing() ); //fill mu into histogram
   
-  
-  const xAOD::TauJet_v2* tj = 0;
-  CHECK(evtStore()->retrieve(tj, "TauJets"));
-  //std::cout<<tj->pt()<<std::endl;
+  const xAOD::ElectronContainer *ec = 0;
+  CHECK(evtStore()->retrieve(ec, "Electrons"));
+//  ATH_MSG_INFO("number of electrons = "<<ec->size());
+  for(xAOD::ElectronContainer::const_iterator it=ec->begin(); it!=ec->end(); it++){
+    const xAOD::Electron *e = *it;
+    if(ec->size()==10) ATH_MSG_INFO("charge = "<<e->charge());
+    //ATH_MSG_INFO("electron charge="<<e->charge());
+  }
 
+  const xAOD::MuonContainer *mc = 0;
+  CHECK(evtStore()->retrieve(mc, "Muons"));
+  for(xAOD::MuonContainer::const_iterator it=mc->begin(); it!=mc->end(); it++){
+    //const xAOD::Muon *m = *it;
+    //ATH_MSG_INFO("muon invariant mass="<<m->m());
+  }
+
+  const xAOD::JetContainer *jc = 0;
+  CHECK(evtStore()->retrieve(jc, "AntiKt4LCTopoJets"));
+  for(xAOD::JetContainer::const_iterator it=jc->begin(); it!=jc->end(); it++){
+    //const xAOD::Jet *j = *it;
+    //ATH_MSG_INFO("jet pt="<<j->pt());
+  }
+
+  const xAOD::TauJetAuxContainer *tjc = 0;
+  CHECK(evtStore()->retrieve(tjc, "TauJets"));
+  /*for(xAOD::TauJetAuxContainer::const_iterator it=tjc->begin(); it!=tjc->end(); it++){
+    const xAOD::TauJet *tj = *it;
+    ATH_MSG_INFO("tau jet pt="<<tj->pt());
+  }*/
+  
+  TVector2 *METVector = new TVector2;
+  const xAOD::MissingETContainer *metc = 0;
+  CHECK(evtStore()->retrieve(metc, "MET_Calo"));
+  for(xAOD::MissingETContainer::const_iterator it=metc->begin(); it!=metc->end(); it++){
+    const xAOD::MissingET *met = *it;
+    METVector->Set(met->mpx(),met->mpy());
+  }
 
   setFilterPassed(true); //if got here, assume that means algorithm passed
   return StatusCode::SUCCESS;

@@ -61,6 +61,7 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "/cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODEventFormat"
   "/cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Control/xAODRootAccessInterfaces"
   "/cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/../../../../AthAnalysisExternals/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/include"
+  "/cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODEventInfo"
   "/cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/PhysicsAnalysis/TauID/DiTauMassTools"
   "/cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/PhysicsAnalysis/AnalysisCommon/PATInterfaces"
   "/cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODMissingET"
@@ -78,9 +79,9 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "/cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/MuonSpectrometer/MuonIdHelpers"
   "/cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODPFlow"
   "/cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODTrigger"
-  "/cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODEventInfo"
   "/cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODTau"
   "/cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODTruth"
+  "/cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODEgamma"
   )
 
 # Targets to which this target links.
