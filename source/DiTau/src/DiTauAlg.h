@@ -46,6 +46,8 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    //TH1D* m_myHist = 0;
    //TTree* m_myTree = 0;
    asg::AnaToolHandle<MissingMassTool> m_mmt;
+   int no_events;
+   int no_events_more_than_2_electrons;
 
 }; 
 

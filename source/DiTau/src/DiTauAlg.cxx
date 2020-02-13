@@ -11,7 +11,7 @@
 #include "xAODJet/JetContainer.h"
 
 #include "xAODTau/TauJetContainer.h"
-#include "xAODTau/TauJetAuxContainer.h"
+
 #include "xAODMissingET/MissingETContainer.h"
 
 // core EDM includes
@@ -52,6 +52,8 @@ StatusCode DiTauAlg::initialize() {
   m_mmt.setTypeAndName("MissingMassTool/MissingMassTool");
   CHECK(m_mmt.initialize());
 
+  no_events = 0;
+  no_events_more_than_2_electrons = 0;
 
   return StatusCode::SUCCESS;
 }
@@ -61,7 +63,11 @@ StatusCode DiTauAlg::finalize() {
   //
   //Things that happen once at the end of the event loop go here
   //
-
+  
+  // PERSONAL OUTPUTS
+  std::cout << "\n\n\nPERSONAL OUTPUTS:\n";
+  std::cout << "no. events with more than 2 electrons = " << no_events_more_than_2_electrons << " out of a total of " << no_events << std::endl;
+  std::cout << "\n\n\n";
 
   return StatusCode::SUCCESS;
 }
@@ -86,15 +92,17 @@ StatusCode DiTauAlg::execute() {
   //ATH_MSG_INFO("eventNumber=" << ei->eventNumber() );
   //m_myHist->Fill( ei->averageInteractionsPerCrossing() ); //fill mu into histogram
 
+  no_events++;
 
   const xAOD::ElectronContainer *ec = 0;
   CHECK(evtStore()->retrieve(ec, "Electrons"));
-//  ATH_MSG_INFO("number of electrons = "<<ec->size());
+  int no_el = 0;
   for(xAOD::ElectronContainer::const_iterator it=ec->begin(); it!=ec->end(); it++){
     const xAOD::Electron *e = *it;
-    if(ec->size()==10) ATH_MSG_INFO("charge = "<<e->charge());
-    //ATH_MSG_INFO("electron charge="<<e->charge());
+    if(e->pt()/1000 >= 7 && abs(e->eta()) <= 2.5) no_el++;
   }
+  if(no_el>2) no_events_more_than_2_electrons++;
+  //ATH_MSG_INFO("no. of electrons in this event with pt>7GeV, eta<2.5 = " << no_el);
 
 
   const xAOD::MuonContainer *mc = 0;
@@ -121,9 +129,9 @@ StatusCode DiTauAlg::execute() {
   }
 
 
-  const xAOD::TauJetAuxContainer *tjc = 0;
+  /*const xAOD::TauJetContainer *tjc = 0;
   CHECK(evtStore()->retrieve(tjc, "TauJets"));
-  /*for(xAOD::TauJetAuxContainer::const_iterator it=tjc->begin(); it!=tjc->end(); it++){
+  for(xAOD::TauJetContainer::const_iterator it=tjc->begin(); it!=tjc->end(); it++){
     const xAOD::TauJet *tj = *it;
     ATH_MSG_INFO("tau jet pt="<<tj->pt());
   }*/
