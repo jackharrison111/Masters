@@ -1,4 +1,0 @@
-SourceArea = /afs/cern.ch/user/a/aburke/public/Masters/build/../source
-TestArea = /afs/cern.ch/user/a/aburke/public/Masters/build
-ACM_GITLAB_PATH_PREFIX = https://:@gitlab.cern.ch:8443/
-asetupArguments = AthAnalysis,21.2.39

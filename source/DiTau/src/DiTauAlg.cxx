@@ -1,4 +1,5 @@
 #include <iostream>
+#include <math.h>
 
 // DiTau includes
 #include "DiTauAlg.h"
@@ -84,7 +85,8 @@ StatusCode DiTauAlg::execute() {
   //CHECK( evtStore()->retrieve( ei , "EventInfo" ) );
   //ATH_MSG_INFO("eventNumber=" << ei->eventNumber() );
   //m_myHist->Fill( ei->averageInteractionsPerCrossing() ); //fill mu into histogram
-  
+
+
   const xAOD::ElectronContainer *ec = 0;
   CHECK(evtStore()->retrieve(ec, "Electrons"));
 //  ATH_MSG_INFO("number of electrons = "<<ec->size());
@@ -94,6 +96,7 @@ StatusCode DiTauAlg::execute() {
     //ATH_MSG_INFO("electron charge="<<e->charge());
   }
 
+
   const xAOD::MuonContainer *mc = 0;
   CHECK(evtStore()->retrieve(mc, "Muons"));
   for(xAOD::MuonContainer::const_iterator it=mc->begin(); it!=mc->end(); it++){
@@ -101,12 +104,22 @@ StatusCode DiTauAlg::execute() {
     //ATH_MSG_INFO("muon invariant mass="<<m->m());
   }
 
+
+  std::vector<TLorentzVector> JetsVector;
   const xAOD::JetContainer *jc = 0;
   CHECK(evtStore()->retrieve(jc, "AntiKt4LCTopoJets"));
   for(xAOD::JetContainer::const_iterator it=jc->begin(); it!=jc->end(); it++){
-    //const xAOD::Jet *j = *it;
+    const xAOD::Jet *j = *it;
     //ATH_MSG_INFO("jet pt="<<j->pt());
+    if(j->pt()>25e3 && abs(j->eta())<4.5){
+      TLorentzVector *temp = new TLorentzVector;
+      double theta = 2*atan(exp(-j->eta()));
+      temp->SetPxPyPzE(j->pt()*cos(j->phi()), j->pt()*sin(j->phi()), j->pt()/tan(theta), j->e());
+      JetsVector.push_back(*temp);
+      delete temp;
+    }
   }
+
 
   const xAOD::TauJetAuxContainer *tjc = 0;
   CHECK(evtStore()->retrieve(tjc, "TauJets"));
@@ -114,7 +127,8 @@ StatusCode DiTauAlg::execute() {
     const xAOD::TauJet *tj = *it;
     ATH_MSG_INFO("tau jet pt="<<tj->pt());
   }*/
-  
+
+
   TVector2 *METVector = new TVector2;
   const xAOD::MissingETContainer *metc = 0;
   CHECK(evtStore()->retrieve(metc, "MET_Calo"));
