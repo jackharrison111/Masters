@@ -92,6 +92,7 @@ DiTau/CMakeFiles/DiTauLib.dir/src/DiTauAlg.cxx.o
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Control/AthContainersInterfaces/AthContainersInterfaces/IAuxSetOption.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Control/AthContainersInterfaces/AthContainersInterfaces/IAuxStore.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Control/AthContainersInterfaces/AthContainersInterfaces/IAuxStoreHolder.h
+ /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Control/AthContainersInterfaces/AthContainersInterfaces/IAuxStoreIO.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Control/AthContainersInterfaces/AthContainersInterfaces/IAuxTypeVector.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Control/AthContainersInterfaces/AthContainersInterfaces/IAuxTypeVectorFactory.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Control/AthContainersInterfaces/AthContainersInterfaces/IConstAuxStore.h
@@ -321,9 +322,13 @@ DiTau/CMakeFiles/DiTauLib.dir/src/DiTauAlg.cxx.o
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODCaloEvent/xAODCaloEvent/versions/CaloClusterBadChannelData_v1.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODCaloEvent/xAODCaloEvent/versions/CaloClusterContainer_v1.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODCaloEvent/xAODCaloEvent/versions/CaloCluster_v1.h
+ /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODCore/xAODCore/AuxContainerBase.h
+ /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODCore/xAODCore/AuxContainerBase.icc
+ /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODCore/xAODCore/AuxSelection.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODCore/xAODCore/BaseInfo.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODCore/xAODCore/CLASS_DEF.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODCore/xAODCore/ClassID_traits.h
+ /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODCore/xAODCore/tools/AuxPersVector.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODEgamma/xAODEgamma/EgammaContainerFwd.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODEgamma/xAODEgamma/EgammaDefs.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODEgamma/xAODEgamma/EgammaEnums.h
@@ -378,12 +383,12 @@ DiTau/CMakeFiles/DiTauLib.dir/src/DiTauAlg.cxx.o
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODPrimitives/xAODPrimitives/IsolationType.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODTau/xAODTau/TauDefs.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODTau/xAODTau/TauJet.h
+ /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODTau/xAODTau/TauJetAuxContainer.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODTau/xAODTau/TauJetContainer.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODTau/xAODTau/TauTrack.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODTau/xAODTau/TauTrackContainer.h
- /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODTau/xAODTau/versions/TauJetContainer_v2.h
+ /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODTau/xAODTau/versions/TauJetAuxContainer_v3.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODTau/xAODTau/versions/TauJetContainer_v3.h
- /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODTau/xAODTau/versions/TauJet_v2.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODTau/xAODTau/versions/TauJet_v3.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODTau/xAODTau/versions/TauTrackContainer_v1.h
  /cvmfs/atlas.cern.ch/repo/sw/software/21.2/AthAnalysis/21.2.39/InstallArea/x86_64-slc6-gcc62-opt/src/Event/xAOD/xAODTau/xAODTau/versions/TauTrack_v1.h

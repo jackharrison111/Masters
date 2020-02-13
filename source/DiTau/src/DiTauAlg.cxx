@@ -10,8 +10,7 @@
 #include "xAODJet/JetContainer.h"
 
 #include "xAODTau/TauJetContainer.h"
-#include "xAODTau/versions/TauJetContainer_v2.h"
-
+#include "xAODTau/TauJetAuxContainer.h"
 #include "xAODMissingET/MissingETContainer.h"
 
 // core EDM includes
@@ -98,20 +97,20 @@ StatusCode DiTauAlg::execute() {
   const xAOD::MuonContainer *mc = 0;
   CHECK(evtStore()->retrieve(mc, "Muons"));
   for(xAOD::MuonContainer::const_iterator it=mc->begin(); it!=mc->end(); it++){
-    const xAOD::Muon *m = *it;
+    //const xAOD::Muon *m = *it;
     //ATH_MSG_INFO("muon invariant mass="<<m->m());
   }
 
   const xAOD::JetContainer *jc = 0;
   CHECK(evtStore()->retrieve(jc, "AntiKt4LCTopoJets"));
   for(xAOD::JetContainer::const_iterator it=jc->begin(); it!=jc->end(); it++){
-    const xAOD::Jet *j = *it;
+    //const xAOD::Jet *j = *it;
     //ATH_MSG_INFO("jet pt="<<j->pt());
   }
 
-  const xAOD::TauJetContainer *tjc = 0;
-  ANA_CHECK(evtStore()->retrieve(tjc, "TauJets"));
-  /*for(xAOD::TauJetContainer::const_iterator it=tjc->begin(); it!=tjc->end(); it++){
+  const xAOD::TauJetAuxContainer *tjc = 0;
+  CHECK(evtStore()->retrieve(tjc, "TauJets"));
+  /*for(xAOD::TauJetAuxContainer::const_iterator it=tjc->begin(); it!=tjc->end(); it++){
     const xAOD::TauJet *tj = *it;
     ATH_MSG_INFO("tau jet pt="<<tj->pt());
   }*/
