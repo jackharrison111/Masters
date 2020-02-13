@@ -1,5 +1,0 @@
-# Target labels
- DiTau
-# Source files and their labels
-/afs/cern.ch/user/a/aburke/public/Masters/source/DiTau/src/components/DiTau_entries.cxx
-/afs/cern.ch/user/a/aburke/public/Masters/source/DiTau/src/components/DiTau_load.cxx
