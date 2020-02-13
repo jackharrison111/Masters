@@ -65,7 +65,6 @@ Double_t Br_lep{0.03454};
 
 void plot(string product, string histType){
 	
-	
 	vector<string> productNames;
 	productNames.push_back("1lep1tau");
 	productNames.push_back("2lep");
@@ -85,10 +84,15 @@ void plot(string product, string histType){
 	legend->SetShadowColor(1);
 	legend->SetDrawOption("br");*/
 	TH1D *totalHist = new TH1D("totalHist","",160,0,160);
+	TH1D *totalHist2 = new TH1D("totalHist2","",160,0,160);
+	TH1D *totalHist3 = new TH1D("totalHist3","",160,0,160);
+	TH1D *totalHist4 = new TH1D("totalHist4","",160,0,160);
+	//TH1D *totalHist = new TH1D("totalHist","",100,-M_PI,M_PI);
+	//TH1D *totalHist = new TH1D("totalHist","",50,0,M_PI);
 	
 
 
-	TFile *f = new TFile("rootOutput/re_output_tau_28-12.root");	//("rootOutput/mc_output.root");
+	TFile *f = new TFile("rootOutput/mc_output_28-01.root");	//("rootOutput/mc_output.root");
 	if(!f->IsOpen()){
 		std::cout << "Couldn't open mc_output.root" << std::endl;
 	}
@@ -102,34 +106,133 @@ void plot(string product, string histType){
 	}
 
 	f->cd((product +"/" + histType).c_str());
-	//gDirectory->pwd();
 	TIter next(gDirectory->GetListOfKeys());
 	TKey *aKey;
 
-		
-	int counter{0};
-		while((aKey = (TKey*)next())){
-			TClass *myClass = gROOT->GetClass(aKey->GetClassName());
-			if(!myClass->InheritsFrom("TH1D")){
-				std::cout << "Skipping..." << std::endl;
-				continue;
-			}
-			TH1D *myHist = new TH1D;
-			myHist = (TH1D*)aKey->ReadObj();
-			string histName = myHist->GetName();
-			
-				myHist->SetDirectory(0);
-				myHist->SetLineWidth(1);
-				totalHist->Add(myHist);
-			
-		counter++;
+	while((aKey = (TKey*)next())){
+		TClass *myClass = gROOT->GetClass(aKey->GetClassName());
+		if(!myClass->InheritsFrom("TH1D")){
+			std::cout << "Skipping..." << std::endl;
+			continue;
 		}
+		TH1D *myHist = new TH1D;
+		myHist = (TH1D*)aKey->ReadObj();
+		string histName = myHist->GetName();
+		
+		myHist->SetDirectory(0);
+		myHist->SetLineWidth(1);
+		totalHist->Add(myHist);
+		
+	}
+	
+	f->cd();
+	f->cd((product +"/invMassCutMissingEt1.5").c_str());
+	TIter next2(gDirectory->GetListOfKeys());
+	TKey *aKey2;
+
+	while((aKey2 = (TKey*)next2())){
+		TClass *myClass = gROOT->GetClass(aKey2->GetClassName());
+		if(!myClass->InheritsFrom("TH1D")){
+			std::cout << "Skipping..." << std::endl;
+			continue;
+		}
+		TH1D *myHist = new TH1D;
+		myHist = (TH1D*)aKey2->ReadObj();
+		string histName = myHist->GetName();
+		
+		myHist->SetDirectory(0);
+		myHist->SetLineWidth(1);
+		totalHist2->Add(myHist);
+		
+	}
+	
+	f->cd();
+	f->cd((product +"/invMassCutMissingEt1").c_str());
+	TIter next3(gDirectory->GetListOfKeys());
+	TKey *aKey3;
+
+	while((aKey3 = (TKey*)next3())){
+		TClass *myClass = gROOT->GetClass(aKey3->GetClassName());
+		if(!myClass->InheritsFrom("TH1D")){
+			std::cout << "Skipping..." << std::endl;
+			continue;
+		}
+		TH1D *myHist = new TH1D;
+		myHist = (TH1D*)aKey3->ReadObj();
+		string histName = myHist->GetName();
+		
+		myHist->SetDirectory(0);
+		myHist->SetLineWidth(1);
+		totalHist3->Add(myHist);
+		
+	}
+	
+	f->cd();
+	f->cd((product +"/invMassCutMissingEt0.5").c_str());
+	TIter next4(gDirectory->GetListOfKeys());
+	TKey *aKey4;
+
+	while((aKey4 = (TKey*)next4())){
+		TClass *myClass = gROOT->GetClass(aKey4->GetClassName());
+		if(!myClass->InheritsFrom("TH1D")){
+			std::cout << "Skipping..." << std::endl;
+			continue;
+		}
+		TH1D *myHist = new TH1D;
+		myHist = (TH1D*)aKey4->ReadObj();
+		string histName = myHist->GetName();
+		
+		myHist->SetDirectory(0);
+		myHist->SetLineWidth(1);
+		totalHist4->Add(myHist);
+		
+	}
 	f->Close();
 	
+	/*TAxis* a = totalHist->GetXaxis();
+	a->SetNdivisions(-504);
+	a->ChangeLabel(1,-1,-1,-1,-1,-1,"-#pi");
+	
+	a->ChangeLabel(-1,-1,-1,-1,-1,-1,"#pi");
+	a->ChangeLabel(2,-1,-1,-1,-1,-1,"-#frac{#pi}{2} (l)");
+	a->ChangeLabel(4,-1,-1,-1,-1,-1,"#frac{#pi}{2} (#tau)");
+	a->SetLabelOffset(0.015);
+	a->SetTitleOffset(1.2);
+	totalHist->SetTitle(";#phi_{m} [radians];N / [2#pi/100 radians]");
 	totalHist->Draw("hist");
+	Double_t gx[2] = {-M_PI/2,-M_PI/2};
+	Double_t hx[2] = {M_PI/2,M_PI/2};
+	Double_t y[2] = {0,totalHist->GetMaximum()};
+	TGraph *g = new TGraph(2,gx,y);
+	TGraph *h = new TGraph(2,hx,y);
+	g->SetLineColor(kRed);
+	h->SetLineColor(kRed);
+	g->Draw("same");
+	h->Draw("same");*/
+	
+	totalHist->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
+	//totalHist->Draw("hist");
+
+	Double_t max = totalHist->GetMaximum();
+	Double_t max2 = totalHist2->GetMaximum();
+	Double_t max3 = totalHist3->GetMaximum();
+	Double_t max4 = totalHist4->GetMaximum();
+	for(Int_t i=1; i<=totalHist->GetNbinsX(); i++){
+		totalHist->SetBinContent(i,totalHist->GetBinContent(i)/max);
+		totalHist2->SetBinContent(i,totalHist2->GetBinContent(i)/max2);
+		totalHist3->SetBinContent(i,totalHist3->GetBinContent(i)/max3);
+		totalHist4->SetBinContent(i,totalHist4->GetBinContent(i)/max4);
+	}
+	totalHist->Draw("hist");
+	totalHist2->SetLineColor(kRed);
+	totalHist2->Draw("histsame");
+	totalHist3->SetLineColor(kGreen);
+	totalHist3->Draw("histsame");
+	totalHist4->SetLineColor(kViolet);
+	totalHist4->Draw("histsame");
 
 	
-	Int_t lowerMass=20;
+	/*Int_t lowerMass=20;
 	Int_t higherMass=140;
 	TF1 *fit;
 
@@ -196,10 +299,10 @@ void plot(string product, string histType){
 				Eep = fit->GetParError(4);
 				A = fit->GetParameter(5);
 				EA = fit->GetParError(5);
-			}
-			B += /*A*exp(-pow((xx-mu)/ep,2)/2) +*/ m*xx + c;
-			err_B += /*pow(-A/(2*ep)*pow((xx-mu)/ep,3)*exp(-pow((xx-mu)/ep,2)/2)*Emu,2) + pow(-A/(2*ep)*pow((xx-mu)/ep,4)*exp(-pow((xx-mu)/ep,2)/2)*Eep,2) + pow(exp(-pow((xx-mu)/ep,2)/2)*EA,2) + */pow(xx*Em,2) + pow(Ec,2); //propagating errors
-		}else std::cout<<"order==2"<<std::endl;
+			}*/
+			//B += /*A*exp(-pow((xx-mu)/ep,2)/2) +*/ m*xx + c;
+			//err_B += /*pow(-A/(2*ep)*pow((xx-mu)/ep,3)*exp(-pow((xx-mu)/ep,2)/2)*Emu,2) + pow(-A/(2*ep)*pow((xx-mu)/ep,4)*exp(-pow((xx-mu)/ep,2)/2)*Eep,2) + pow(exp(-pow((xx-mu)/ep,2)/2)*EA,2) + */pow(xx*Em,2) + pow(Ec,2); //propagating errors
+	/*	}else std::cout<<"order==2"<<std::endl;
 	}
 	err_B=sqrt(err_B);
 	
@@ -233,13 +336,12 @@ void plot(string product, string histType){
 	sys_sigma *= sigma;
 	lumi_sigma *= sigma;
 	std::cout<<"I="<<I<<", B="<<B<<", N="<<N<< ", err_N = " << err_N << ", eff="<<efficiency<<std::endl;
-	std::cout<<"sigma="<<sigma<<" += "<<stat_sigma<<" (stat) +- "<<sys_sigma<<" (sys) +- "<<lumi_sigma<<" (lumi) pb"<<std::endl;
-		
-		
+	std::cout<<"sigma="<<sigma<<" += "<<stat_sigma<<" (stat) +- "<<sys_sigma<<" (sys) +- "<<lumi_sigma<<" (lumi) pb"<<std::endl;	
+	*/	
 	}
 
 
-	int plottertau(){
-		plot("1lep1tau","invMass3lep1tau");
+	int plotter(){
+		plot("1lep1tau","invMass");
 		return 0;
 	}
