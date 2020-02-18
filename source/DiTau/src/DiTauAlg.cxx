@@ -32,6 +32,7 @@ DiTauAlg::DiTauAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthAna
 
 DiTauAlg::~DiTauAlg() {}
 
+
 double DiTauAlg::APPLY(asg::AnaToolHandle<MissingMassTool>m_mmt, const xAOD::EventInfo* ei, const xAOD::IParticle* x, const xAOD::IParticle* y, const xAOD::MissingET* met, double num){	
 
     double mass = -1;
@@ -46,28 +47,16 @@ double DiTauAlg::APPLY(asg::AnaToolHandle<MissingMassTool>m_mmt, const xAOD::Eve
 }
 
 
-
 StatusCode DiTauAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
-  //
-  //This is called once, before the start of the event loop
-  //Retrieves of tools you have configured in the joboptions go here
-  //
-
-  //HERE IS AN EXAMPLE
-  //We will create a histogram and a ttree and register them to the histsvc
-  //Remember to configure the histsvc stream in the joboptions
-  //
-  //m_myHist = new TH1D("myHist","myHist",100,0,100);
-  //CHECK( histSvc()->regHist("/MYSTREAM/myHist", m_myHist) ); //registers histogram to output stream
-  //m_myTree = new TTree("myTree","myTree");
-  //CHECK( histSvc()->regTree("/MYSTREAM/SubDirectory/myTree", m_myTree) ); //registers tree to output stream inside a sub-directory
+  
+  m_myHist = new TH1D("invMass","Invariant Mass Distribution",160,0,160);
+  CHECK( histSvc()->regHist("/MYSTREAM/invMass", m_myHist) ); //registers histogram to output stream
 
   //INITIALISE THE MISSING MASS TOOL
   m_mmt.setTypeAndName("MissingMassTool/MissingMassTool");
   CHECK(m_mmt->setProperty("UseTauProbability", 1));
   CHECK(m_mmt.initialize());
-
 
   pass = 0;
   fail = 0;
@@ -76,36 +65,13 @@ StatusCode DiTauAlg::initialize() {
   return StatusCode::SUCCESS;
 }
 
-StatusCode DiTauAlg::finalize() {
-  ATH_MSG_INFO ("Finalizing " << name() << "...");
-  //
-  //Things that happen once at the end of the event loop go here
-  //
-  
-  std::cout << "Passed : " << pass << " , Failed : " << fail << std::endl;
-  return StatusCode::SUCCESS;
-}
 
 StatusCode DiTauAlg::execute() {  
   ATH_MSG_DEBUG ("Executing " << name() << "...");
   setFilterPassed(false); //optional: start with algorithm not passed
 
-
-
-  //
-  //Your main analysis code goes here
-  //If you will use this algorithm to perform event skimming, you
-  //should ensure the setFilterPassed method is called
-  //If never called, the algorithm is assumed to have 'passed' by default
-  //
-
-
-  //HERE IS AN EXAMPLE
   const xAOD::EventInfo* ei = 0;
   CHECK( evtStore()->retrieve( ei , "EventInfo" ) );
-  //ATH_MSG_INFO("eventNumber=" << ei->eventNumber() );
-  //m_myHist->Fill( ei->averageInteractionsPerCrossing() ); //fill mu into histogram
-
 
   const xAOD::ElectronContainer *ec = 0;
   CHECK(evtStore()->retrieve(ec, "Electrons"));
@@ -127,11 +93,12 @@ StatusCode DiTauAlg::execute() {
       }else if((candidate_e1 != 0)&&(candidate_e2 == 0)){
         candidate_e2 = e;
       }else{
-        std::cout << "More than 2 candidate electrons." << std::endl;
+        //std::cout << "More than 2 candidate electrons." << std::endl;
       }
     }
   }
-  
+
+
   //Get the Muon data from the file
   const xAOD::MuonContainer *mc = 0;
   CHECK(evtStore()->retrieve(mc, "Muons"));
@@ -143,8 +110,7 @@ StatusCode DiTauAlg::execute() {
   int no_mu = 0;
  
   //ConstDataVector<xAOD::MuonContainer> candidateMuons(SG::VIEW_ELEMENTS);
- 
- 
+  
   //Loop over the read in data
   for(xAOD::MuonContainer::const_iterator it=mc->begin(); it!=mc->end(); it++){
     const xAOD::Muon *m = *it;
@@ -157,7 +123,7 @@ StatusCode DiTauAlg::execute() {
       }else if((candidate_m1 != 0)&&(candidate_m2 == 0)){
         candidate_m2 = m;
       }else{
-        std::cout << "More than 2 candidate muons." << std::endl;
+        //std::cout << "More than 2 candidate muons." << std::endl;
       }
     }
   }
@@ -221,7 +187,8 @@ StatusCode DiTauAlg::execute() {
   //ATTEMPT 2:	(CANNOT USE APPLY)
   if(no_el == 2){
     maxw_m = APPLY(m_mmt, ei, candidate_e1, candidate_e2, met1, no_25Jets);
-    std::cout << "MASS : " << maxw_m << std::endl;
+    m_myHist->Fill(maxw_m);
+    //std::cout << "MASS : " << maxw_m << std::endl;
     /*CP::CorrectionCode c = m_mmt->apply(*ei, candidate_e1, candidate_e2, met1, no_25Jets);
     if (c != CP::CorrectionCode::Ok){
       fail++;        
@@ -230,13 +197,25 @@ StatusCode DiTauAlg::execute() {
       maxw_m = m_mmt->GetFittedMass(MMCFitMethod::MAXW);
     }*/
   }else if(no_mu == 2){
+    maxw_m = APPLY(m_mmt, ei, candidate_m1, candidate_m2, met1, no_25Jets);
+    m_myHist->Fill(maxw_m);
   }
   else{
-    std::cout<< no_el << " - candidate electrons" << std::endl;
+    //std::cout<< no_el << " - candidate electrons" << std::endl;
   }
+
   setFilterPassed(true); //if got here, assume that means algorithm passed
   return StatusCode::SUCCESS;
 }
+
+
+StatusCode DiTauAlg::finalize() {
+  ATH_MSG_INFO ("Finalizing " << name() << "...");
+ 
+  std::cout << "Passed : " << pass << " , Failed : " << fail << std::endl;
+  return StatusCode::SUCCESS;
+}
+
 
 StatusCode DiTauAlg::beginInputFile() { 
   //
@@ -252,9 +231,5 @@ StatusCode DiTauAlg::beginInputFile() {
   //float beamEnergy(0); CHECK( retrieveMetadata("/TagInfo","beam_energy",beamEnergy) );
   //std::vector<float> bunchPattern; CHECK( retrieveMetadata("/Digitiation/Parameters","BeamIntensityPattern",bunchPattern) );
 
-
-
   return StatusCode::SUCCESS;
 }
-
-
