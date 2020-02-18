@@ -41,12 +41,13 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
 
    //Example algorithm property, see constructor for declaration:
    //int m_nProperty = 0;
-
+   
    //Example histogram, see initialize method for registration to output histSvc
    //TH1D* m_myHist = 0;
    //TTree* m_myTree = 0;
    asg::AnaToolHandle<MissingMassTool> m_mmt;
-
+   double pass,fail;
+   double maxw_m;
 }; 
 
 #endif //> !DITAU_DITAUALG_H
