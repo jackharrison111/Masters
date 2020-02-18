@@ -38,7 +38,7 @@ double DiTauAlg::APPLY(asg::AnaToolHandle<MissingMassTool>m_mmt, const xAOD::Eve
 
     double mass = -1;
     CP::CorrectionCode c = m_mmt->apply(*ei, x, y, met, num);
-    if (c != CP::CorrectionCode::Ok){
+    if((c != CP::CorrectionCode::Ok)||(m_mmt->GetFittedMass(MMCFitMethod::MAXW)==0)){
       fail++;        
     }else{
       pass++;
@@ -57,6 +57,14 @@ StatusCode DiTauAlg::initialize() {
   //INITIALISE THE MISSING MASS TOOL
   m_mmt.setTypeAndName("MissingMassTool/MissingMassTool");
   CHECK(m_mmt->setProperty("UseTauProbability", 1));
+  CHECK(m_mmt->setProperty("CalibSet", "2016MC15C"));
+  CHECK(m_mmt->setProperty("NiterFit2", 30));
+  CHECK(m_mmt->setProperty("NiterFit3", 10));
+  CHECK(m_mmt->setProperty("NsigmaMET", 4));
+  CHECK(m_mmt->setProperty("alg_version", 3));
+  CHECK(m_mmt->setProperty("UseMETDphiLL", 1));
+
+
   CHECK(m_mmt.initialize());
 
   pass = 0;
@@ -146,11 +154,14 @@ StatusCode DiTauAlg::execute() {
  
   if(no_el == 2){
     maxw_m = APPLY(m_mmt, ei, candidate_els[0], candidate_els[1], met1, no_25Jets);
+    m_myHist->Fill(maxw_m);   
   }else if(no_mu == 2){
     maxw_m = APPLY(m_mmt, ei, candidate_mus[0], candidate_mus[1], met1, no_25Jets);
+    m_myHist->Fill(maxw_m);   
   }
   else if((no_mu == 1)&&(no_el == 1)){
     maxw_m = APPLY(m_mmt, ei, candidate_els[0], candidate_mus[0], met1, no_25Jets);
+    m_myHist->Fill(maxw_m);   
   }else{
     //fail++;
   }
