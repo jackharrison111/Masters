@@ -11,7 +11,7 @@
 #include "xAODJet/JetContainer.h"
 
 #include "xAODTau/TauJetContainer.h"
-#include "xAODTau/TauJetAuxContainer.h"
+
 #include "xAODMissingET/MissingETContainer.h"
 
 // core EDM includes
@@ -54,9 +54,11 @@ StatusCode DiTauAlg::initialize() {
   CHECK(m_mmt->setProperty("UseTauProbability", 1));
   CHECK(m_mmt.initialize());
 
+
   pass = 0;
   fail = 0;
   maxw_m = 0;
+
   return StatusCode::SUCCESS;
 }
 
@@ -65,9 +67,8 @@ StatusCode DiTauAlg::finalize() {
   //
   //Things that happen once at the end of the event loop go here
   //
- 
+  
   std::cout << "Passed : " << pass << " , Failed : " << fail << std::endl;
-
   return StatusCode::SUCCESS;
 }
 
@@ -91,18 +92,20 @@ StatusCode DiTauAlg::execute() {
   //ATH_MSG_INFO("eventNumber=" << ei->eventNumber() );
   //m_myHist->Fill( ei->averageInteractionsPerCrossing() ); //fill mu into histogram
 
+  no_events++;
 
   const xAOD::ElectronContainer *ec = 0;
   CHECK(evtStore()->retrieve(ec, "Electrons"));
-  const xAOD::Electron *e1 = 0;
-//  ATH_MSG_INFO("number of electrons = "<<ec->size());
+
+  int no_el = 0;
+  const xAOD::Electron *candidate_e1 = 0;
+  const xAOD::Electron *candidate_e2 = 0;
   for(xAOD::ElectronContainer::const_iterator it=ec->begin(); it!=ec->end(); it++){
     const xAOD::Electron *e = *it;
-    e1 = *it;
-
-    if(ec->size()==10) ATH_MSG_INFO("charge = "<<e->charge());
-    //ATH_MSG_INFO("electron charge="<<e->charge());
+    if(e->pt()/1000 >= 7 && abs(e->eta()) <= 2.5) no_el++;
   }
+  
+  
 
 
   const xAOD::MuonContainer *mc = 0;
@@ -135,9 +138,10 @@ StatusCode DiTauAlg::execute() {
   }
 
 
-  //const xAOD::TauJetAuxContainer *tjc = 0;
-  //CHECK(evtStore()->retrieve(tjc, "TauJets")); 	//BREAKS WHEN ACCESSING TAUJETS
-  /*for(xAOD::TauJetAuxContainer::const_iterator it=tjc->begin(); it!=tjc->end(); it++){
+
+  /*const xAOD::TauJetContainer *tjc = 0;
+  CHECK(evtStore()->retrieve(tjc, "TauJets"));
+  for(xAOD::TauJetContainer::const_iterator it=tjc->begin(); it!=tjc->end(); it++){
     const xAOD::TauJet *tj = *it;
     ATH_MSG_INFO("tau jet pt="<<tj->pt());
   }*/
