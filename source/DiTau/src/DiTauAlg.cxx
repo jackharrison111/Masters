@@ -1,5 +1,6 @@
 #include <iostream>
 #include <math.h>
+#include <vector>
 
 // DiTau includes
 #include "DiTauAlg.h"
@@ -70,75 +71,46 @@ StatusCode DiTauAlg::execute() {
   ATH_MSG_DEBUG ("Executing " << name() << "...");
   setFilterPassed(false); //optional: start with algorithm not passed
 
+
+  //EVENT INFO:
   const xAOD::EventInfo* ei = 0;
   CHECK( evtStore()->retrieve( ei , "EventInfo" ) );
 
+
+  //ELECTRONS:
   const xAOD::ElectronContainer *ec = 0;
   CHECK(evtStore()->retrieve(ec, "Electrons"));
-
-  //CUTS NEEDED:
-  //Net charge 0
-  //2 electrons with pt > 7GEV and eta < 2.5
-  //
-  
+  std::vector<const xAOD::Electron*> candidate_els; 
   int no_el = 0;
-  const xAOD::Electron *candidate_e1 = 0;
-  const xAOD::Electron *candidate_e2 = 0;
   for(xAOD::ElectronContainer::const_iterator it=ec->begin(); it!=ec->end(); it++){
     const xAOD::Electron *e = *it;
     if(e->pt()/1000 >= 7 && abs(e->eta()) <= 2.5){ 
       no_el++;
-      if(candidate_e1 == 0){
-        candidate_e1 = e;
-      }else if((candidate_e1 != 0)&&(candidate_e2 == 0)){
-        candidate_e2 = e;
-      }else{
-        //std::cout << "More than 2 candidate electrons." << std::endl;
-      }
+      candidate_els.push_back(*it);
     }
   }
-
-
-  //Get the Muon data from the file
+  
+  //MUONS:
   const xAOD::MuonContainer *mc = 0;
   CHECK(evtStore()->retrieve(mc, "Muons"));
-
-  //Make our own container
-  const xAOD::MuonContainer candidate_mc;
-  const xAOD::Muon *candidate_m1 = 0;
-  const xAOD::Muon *candidate_m2 = 0;
-  int no_mu = 0;
- 
-  //ConstDataVector<xAOD::MuonContainer> candidateMuons(SG::VIEW_ELEMENTS);
-  
-  //Loop over the read in data
+  int no_mu = 0; 
+  std::vector<const xAOD::Muon*> candidate_mus; 
   for(xAOD::MuonContainer::const_iterator it=mc->begin(); it!=mc->end(); it++){
     const xAOD::Muon *m = *it;
     if(m->pt()/1000 >= 7 && abs(m->eta()) <= 2.5){ 
       no_mu++;
-      //candidateMuons.push_back(*it);
-      //candidate_mc.push_back(*it);	//TRY AND ADD THE READ IN DATA TO OUR FILE. FAILS DUE TO CONST.
-      if(candidate_m1 == 0){
-        candidate_m1 = m;
-      }else if((candidate_m1 != 0)&&(candidate_m2 == 0)){
-        candidate_m2 = m;
-      }else{
-        //std::cout << "More than 2 candidate muons." << std::endl;
-      }
+      candidate_mus.push_back(*it);	
     }
   }
-  //std::cout << candidate_mc.size() << " - TEST " << std::endl;
 
 
-
-
+  //JETS:
   std::vector<TLorentzVector> JetsVector;
   const xAOD::JetContainer *jc = 0;
   double no_25Jets = 0;
   CHECK(evtStore()->retrieve(jc, "AntiKt4LCTopoJets"));
   for(xAOD::JetContainer::const_iterator it=jc->begin(); it!=jc->end(); it++){
     const xAOD::Jet *j = *it;
-    //ATH_MSG_INFO("jet pt="<<j->pt());
     if(j->pt()>25e3){
       no_25Jets++;
       if( abs(j->eta())<4.5){
@@ -152,7 +124,7 @@ StatusCode DiTauAlg::execute() {
   }
 
 
-
+  //TAU JETS:
   /*const xAOD::TauJetContainer *tjc = 0;
   CHECK(evtStore()->retrieve(tjc, "TauJets"));
   for(xAOD::TauJetContainer::const_iterator it=tjc->begin(); it!=tjc->end(); it++){
@@ -161,47 +133,26 @@ StatusCode DiTauAlg::execute() {
   }*/
 
 
-  TVector2 *METVector = new TVector2;
+  //MISSING ENERGY:
   const xAOD::MissingETContainer *metc = 0;
   CHECK(evtStore()->retrieve(metc, "MET_Calo"));
   const xAOD::MissingET *met1 = 0;
   for(xAOD::MissingETContainer::const_iterator it=metc->begin(); it!=metc->end(); it++){
-    const xAOD::MissingET *met = *it;
-    METVector->Set(met->mpx(),met->mpy());
     met1 = *it;
   }
 
-  //ATTEMPT 1 AT USING MMC:
-  /*
-  MissingMassCalculator MMC;
-  MMC.SetUseEfficiencyRecovery(1);
-  MMC.SetMetVec(*METVector);
-  MMC.SetCalibrationSet(MMCCalibrationSet::MMC2015);
-  int i = MMC.RunMissingMassCalculator();
-  if(i!=0){
-    ATH_MSG_INFO("SUCCESS!");
-  }
-  */
+  //Need to set calibrations: MMC.SetCalibrationSet(MMCCalibrationSet::MMC2015);
  
  
-  //ATTEMPT 2:	(CANNOT USE APPLY)
   if(no_el == 2){
-    maxw_m = APPLY(m_mmt, ei, candidate_e1, candidate_e2, met1, no_25Jets);
-    m_myHist->Fill(maxw_m);
-    //std::cout << "MASS : " << maxw_m << std::endl;
-    /*CP::CorrectionCode c = m_mmt->apply(*ei, candidate_e1, candidate_e2, met1, no_25Jets);
-    if (c != CP::CorrectionCode::Ok){
-      fail++;        
-    }else{
-      pass++;
-      maxw_m = m_mmt->GetFittedMass(MMCFitMethod::MAXW);
-    }*/
+    maxw_m = APPLY(m_mmt, ei, candidate_els[0], candidate_els[1], met1, no_25Jets);
   }else if(no_mu == 2){
-    maxw_m = APPLY(m_mmt, ei, candidate_m1, candidate_m2, met1, no_25Jets);
-    m_myHist->Fill(maxw_m);
+    maxw_m = APPLY(m_mmt, ei, candidate_mus[0], candidate_mus[1], met1, no_25Jets);
   }
-  else{
-    //std::cout<< no_el << " - candidate electrons" << std::endl;
+  else if((no_mu == 1)&&(no_el == 1)){
+    maxw_m = APPLY(m_mmt, ei, candidate_els[0], candidate_mus[0], met1, no_25Jets);
+  }else{
+    //fail++;
   }
 
   setFilterPassed(true); //if got here, assume that means algorithm passed
