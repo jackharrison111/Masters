@@ -56,7 +56,7 @@ StatusCode DiTauAlg::initialize() {
 
   pass = 0;
   fail = 0;
-
+  maxw_m = 0;
   return StatusCode::SUCCESS;
 }
 
@@ -170,10 +170,11 @@ StatusCode DiTauAlg::execute() {
   CP::CorrectionCode c = m_mmt->apply(*ei, e1, m1, met1, no_25Jets);
   if (c != CP::CorrectionCode::Ok){
     fail++;        
-    //ATH_MSG_INFO("ERROR IN APPLY METHOD");
   }else{
     pass++;
     //std::cout << ei->auxdata<double>("mmc_maxw_mass") << std::endl;
+    maxw_m = m_mmt->GetFittedMass(MMCFitMethod::MAXW);
+    std::cout << "MASS : " << maxw_m << std::endl;
   }
 
   setFilterPassed(true); //if got here, assume that means algorithm passed

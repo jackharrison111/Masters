@@ -47,6 +47,7 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    //TTree* m_myTree = 0;
    asg::AnaToolHandle<MissingMassTool> m_mmt;
    double pass,fail;
+   double maxw_m;
 }; 
 
 #endif //> !DITAU_DITAUALG_H
