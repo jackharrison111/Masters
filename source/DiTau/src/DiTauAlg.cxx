@@ -32,6 +32,20 @@ DiTauAlg::DiTauAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthAna
 
 DiTauAlg::~DiTauAlg() {}
 
+double DiTauAlg::APPLY(asg::AnaToolHandle<MissingMassTool>m_mmt, const xAOD::EventInfo* ei, const xAOD::IParticle* x, const xAOD::IParticle* y, const xAOD::MissingET* met, double num){	
+
+    double mass = -1;
+    CP::CorrectionCode c = m_mmt->apply(*ei, x, y, met, num);
+    if (c != CP::CorrectionCode::Ok){
+      fail++;        
+    }else{
+      pass++;
+      mass = m_mmt->GetFittedMass(MMCFitMethod::MAXW);
+    }
+   return mass;
+}
+
+
 
 StatusCode DiTauAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
@@ -92,30 +106,64 @@ StatusCode DiTauAlg::execute() {
   //ATH_MSG_INFO("eventNumber=" << ei->eventNumber() );
   //m_myHist->Fill( ei->averageInteractionsPerCrossing() ); //fill mu into histogram
 
-  no_events++;
 
   const xAOD::ElectronContainer *ec = 0;
   CHECK(evtStore()->retrieve(ec, "Electrons"));
 
+  //CUTS NEEDED:
+  //Net charge 0
+  //2 electrons with pt > 7GEV and eta < 2.5
+  //
+  
   int no_el = 0;
   const xAOD::Electron *candidate_e1 = 0;
   const xAOD::Electron *candidate_e2 = 0;
   for(xAOD::ElectronContainer::const_iterator it=ec->begin(); it!=ec->end(); it++){
     const xAOD::Electron *e = *it;
-    if(e->pt()/1000 >= 7 && abs(e->eta()) <= 2.5) no_el++;
+    if(e->pt()/1000 >= 7 && abs(e->eta()) <= 2.5){ 
+      no_el++;
+      if(candidate_e1 == 0){
+        candidate_e1 = e;
+      }else if((candidate_e1 != 0)&&(candidate_e2 == 0)){
+        candidate_e2 = e;
+      }else{
+        std::cout << "More than 2 candidate electrons." << std::endl;
+      }
+    }
   }
   
-  
-
-
+  //Get the Muon data from the file
   const xAOD::MuonContainer *mc = 0;
   CHECK(evtStore()->retrieve(mc, "Muons"));
-  const xAOD::Muon *m1 = 0;
+
+  //Make our own container
+  const xAOD::MuonContainer candidate_mc;
+  const xAOD::Muon *candidate_m1 = 0;
+  const xAOD::Muon *candidate_m2 = 0;
+  int no_mu = 0;
+ 
+  //ConstDataVector<xAOD::MuonContainer> candidateMuons(SG::VIEW_ELEMENTS);
+ 
+ 
+  //Loop over the read in data
   for(xAOD::MuonContainer::const_iterator it=mc->begin(); it!=mc->end(); it++){
-    //const xAOD::Muon *m = *it;
-    m1 = *it;
-    //ATH_MSG_INFO("muon invariant mass="<<m->m());
+    const xAOD::Muon *m = *it;
+    if(m->pt()/1000 >= 7 && abs(m->eta()) <= 2.5){ 
+      no_mu++;
+      //candidateMuons.push_back(*it);
+      //candidate_mc.push_back(*it);	//TRY AND ADD THE READ IN DATA TO OUR FILE. FAILS DUE TO CONST.
+      if(candidate_m1 == 0){
+        candidate_m1 = m;
+      }else if((candidate_m1 != 0)&&(candidate_m2 == 0)){
+        candidate_m2 = m;
+      }else{
+        std::cout << "More than 2 candidate muons." << std::endl;
+      }
+    }
   }
+  //std::cout << candidate_mc.size() << " - TEST " << std::endl;
+
+
 
 
   std::vector<TLorentzVector> JetsVector;
@@ -171,16 +219,21 @@ StatusCode DiTauAlg::execute() {
  
  
   //ATTEMPT 2:	(CANNOT USE APPLY)
-  CP::CorrectionCode c = m_mmt->apply(*ei, e1, m1, met1, no_25Jets);
-  if (c != CP::CorrectionCode::Ok){
-    fail++;        
-  }else{
-    pass++;
-    //std::cout << ei->auxdata<double>("mmc_maxw_mass") << std::endl;
-    maxw_m = m_mmt->GetFittedMass(MMCFitMethod::MAXW);
+  if(no_el == 2){
+    maxw_m = APPLY(m_mmt, ei, candidate_e1, candidate_e2, met1, no_25Jets);
     std::cout << "MASS : " << maxw_m << std::endl;
+    /*CP::CorrectionCode c = m_mmt->apply(*ei, candidate_e1, candidate_e2, met1, no_25Jets);
+    if (c != CP::CorrectionCode::Ok){
+      fail++;        
+    }else{
+      pass++;
+      maxw_m = m_mmt->GetFittedMass(MMCFitMethod::MAXW);
+    }*/
+  }else if(no_mu == 2){
   }
-
+  else{
+    std::cout<< no_el << " - candidate electrons" << std::endl;
+  }
   setFilterPassed(true); //if got here, assume that means algorithm passed
   return StatusCode::SUCCESS;
 }
