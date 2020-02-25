@@ -4,21 +4,16 @@
 
 // DiTau includes
 #include "DiTauAlg.h"
-
 #include "xAODEgamma/ElectronContainer.h"
-
 #include "xAODMuon/MuonContainer.h"
-
 #include "xAODJet/JetContainer.h"
-
 #include "xAODTau/TauJetContainer.h"
-
 #include "xAODMissingET/MissingETContainer.h"
 
 // core EDM includes
 #include "AthContainers/AuxElement.h"
 #include "AthContainers/DataVector.h"
-//#include "PATInterfaces/CorrectionCode.h"
+#include "PATInterfaces/CorrectionCode.h"
 #include "xAODEventInfo/EventInfo.h"
 
 
@@ -38,7 +33,7 @@ double DiTauAlg::APPLY(asg::AnaToolHandle<MissingMassTool>m_mmt, const xAOD::Eve
 
     double mass = -1;
     CP::CorrectionCode c = m_mmt->apply(*ei, x, y, met, num);
-    if (c != CP::CorrectionCode::Ok){
+    if((c != CP::CorrectionCode::Ok)||(m_mmt->GetFittedMass(MMCFitMethod::MAXW)==0)){
       fail++;        
     }else{
       pass++;
@@ -52,11 +47,21 @@ StatusCode DiTauAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
   
   m_myHist = new TH1D("invMass","Invariant Mass Distribution",160,0,160);
+  m_myHist->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
+  m_myHist->SetStats(0);
   CHECK( histSvc()->regHist("/MYSTREAM/invMass", m_myHist) ); //registers histogram to output stream
 
   //INITIALISE THE MISSING MASS TOOL
   m_mmt.setTypeAndName("MissingMassTool/MissingMassTool");
   CHECK(m_mmt->setProperty("UseTauProbability", 1));
+  CHECK(m_mmt->setProperty("CalibSet", "2016MC15C"));
+  CHECK(m_mmt->setProperty("NiterFit2", 30));
+  CHECK(m_mmt->setProperty("NiterFit3", 10));
+  CHECK(m_mmt->setProperty("NsigmaMET", 4));
+  CHECK(m_mmt->setProperty("alg_version", 3));
+  CHECK(m_mmt->setProperty("UseMETDphiLL", 1));
+
+
   CHECK(m_mmt.initialize());
 
   pass = 0;
@@ -125,12 +130,14 @@ StatusCode DiTauAlg::execute() {
 
 
   //TAU JETS:
-  /*const xAOD::TauJetContainer *tjc = 0;
+  const xAOD::TauJetContainer *tjc = 0;
   CHECK(evtStore()->retrieve(tjc, "TauJets"));
+  
+  std::vector<const xAOD::TauJet>
   for(xAOD::TauJetContainer::const_iterator it=tjc->begin(); it!=tjc->end(); it++){
     const xAOD::TauJet *tj = *it;
     ATH_MSG_INFO("tau jet pt="<<tj->pt());
-  }*/
+  }
 
 
   //MISSING ENERGY:
@@ -146,11 +153,14 @@ StatusCode DiTauAlg::execute() {
  
   if(no_el == 2){
     maxw_m = APPLY(m_mmt, ei, candidate_els[0], candidate_els[1], met1, no_25Jets);
+    m_myHist->Fill(maxw_m);   
   }else if(no_mu == 2){
     maxw_m = APPLY(m_mmt, ei, candidate_mus[0], candidate_mus[1], met1, no_25Jets);
+    m_myHist->Fill(maxw_m);   
   }
   else if((no_mu == 1)&&(no_el == 1)){
     maxw_m = APPLY(m_mmt, ei, candidate_els[0], candidate_mus[0], met1, no_25Jets);
+    m_myHist->Fill(maxw_m);   
   }else{
     //fail++;
   }
