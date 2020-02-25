@@ -136,7 +136,12 @@ StatusCode DiTauAlg::execute() {
   //MISSING ENERGY:
   const xAOD::MissingETContainer *metc = 0;
   CHECK(evtStore()->retrieve(metc, "MET_Calo"));
+  //Get the last one
   const xAOD::MissingET *met1 = 0;
+  met1 = metc->at(metc->size() - 1);
+  
+  /*
+  //Iterate over all (Don't think needed)
   std::vector<xAOD::MissingET> met_vector;
   for(xAOD::MissingETContainer::const_iterator it=metc->begin(); it!=metc->end(); it++){
     met1 = *it;
@@ -144,7 +149,7 @@ StatusCode DiTauAlg::execute() {
     //std::cout<< met1->met() << " - met," << met1->sumet() << " - sumet" << std::endl;
   }
   //std::cout<<std::endl;
-  
+  */
 
 
  
