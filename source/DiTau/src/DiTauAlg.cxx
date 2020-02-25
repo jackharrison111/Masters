@@ -4,21 +4,16 @@
 
 // DiTau includes
 #include "DiTauAlg.h"
-
 #include "xAODEgamma/ElectronContainer.h"
-
 #include "xAODMuon/MuonContainer.h"
-
 #include "xAODJet/JetContainer.h"
-
 #include "xAODTau/TauJetContainer.h"
-
 #include "xAODMissingET/MissingETContainer.h"
 
 // core EDM includes
 #include "AthContainers/AuxElement.h"
 #include "AthContainers/DataVector.h"
-//#include "PATInterfaces/CorrectionCode.h"
+#include "PATInterfaces/CorrectionCode.h"
 #include "xAODEventInfo/EventInfo.h"
 
 
@@ -52,6 +47,8 @@ StatusCode DiTauAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
   
   m_myHist = new TH1D("invMass","Invariant Mass Distribution",160,0,160);
+  m_myHist->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
+  m_myHist->SetStats(0);
   CHECK( histSvc()->regHist("/MYSTREAM/invMass", m_myHist) ); //registers histogram to output stream
 
   //INITIALISE THE MISSING MASS TOOL
@@ -133,12 +130,14 @@ StatusCode DiTauAlg::execute() {
 
 
   //TAU JETS:
-  /*const xAOD::TauJetContainer *tjc = 0;
+  const xAOD::TauJetContainer *tjc = 0;
   CHECK(evtStore()->retrieve(tjc, "TauJets"));
+  
+  std::vector<const xAOD::TauJet>
   for(xAOD::TauJetContainer::const_iterator it=tjc->begin(); it!=tjc->end(); it++){
     const xAOD::TauJet *tj = *it;
     ATH_MSG_INFO("tau jet pt="<<tj->pt());
-  }*/
+  }
 
 
   //MISSING ENERGY:
