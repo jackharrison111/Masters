@@ -110,48 +110,45 @@ StatusCode DiTauAlg::execute() {
 
 
   //JETS:
-  std::vector<TLorentzVector> JetsVector;
   const xAOD::JetContainer *jc = 0;
   double no_25Jets = 0;
   CHECK(evtStore()->retrieve(jc, "AntiKt4LCTopoJets"));
   for(xAOD::JetContainer::const_iterator it=jc->begin(); it!=jc->end(); it++){
     const xAOD::Jet *j = *it;
-    if(j->pt()>25e3){
+    if((j->pt()>25e3)&&( abs(j->eta())<2.5)){
       no_25Jets++;
-      if( abs(j->eta())<4.5){
-      TLorentzVector *temp = new TLorentzVector;
-      double theta = 2*atan(exp(-j->eta()));
-      temp->SetPxPyPzE(j->pt()*cos(j->phi()), j->pt()*sin(j->phi()), j->pt()/tan(theta), j->e());
-      JetsVector.push_back(*temp);
-      delete temp;
       }
     }
-  }
-
+  
 
   //TAU JETS:
   const xAOD::TauJetContainer *tjc = 0;
   CHECK(evtStore()->retrieve(tjc, "TauJets"));
-  
-  std::vector<const xAOD::TauJet>
+  std::vector<const xAOD::TauJet*> candidate_tjs;
   for(xAOD::TauJetContainer::const_iterator it=tjc->begin(); it!=tjc->end(); it++){
     const xAOD::TauJet *tj = *it;
-    ATH_MSG_INFO("tau jet pt="<<tj->pt());
+    if((tj->pt()>7e3)&&( abs(tj->eta())<2.5)){
+      candidate_tjs.push_back(*it);
+    }
   }
-
+  //std::cout << candidate_tjs.size() << std::endl;
 
   //MISSING ENERGY:
   const xAOD::MissingETContainer *metc = 0;
   CHECK(evtStore()->retrieve(metc, "MET_Calo"));
   const xAOD::MissingET *met1 = 0;
+  std::vector<xAOD::MissingET> met_vector;
   for(xAOD::MissingETContainer::const_iterator it=metc->begin(); it!=metc->end(); it++){
     met1 = *it;
+    //met_vector.push_back(*met1);
+    //std::cout<< met1->met() << " - met," << met1->sumet() << " - sumet" << std::endl;
   }
+  //std::cout<<std::endl;
+  
 
-  //Need to set calibrations: MMC.SetCalibrationSet(MMCCalibrationSet::MMC2015);
+
  
- 
-  if(no_el == 2){
+  /*if(no_el == 2){
     maxw_m = APPLY(m_mmt, ei, candidate_els[0], candidate_els[1], met1, no_25Jets);
     m_myHist->Fill(maxw_m);   
   }else if(no_mu == 2){
@@ -163,8 +160,20 @@ StatusCode DiTauAlg::execute() {
     m_myHist->Fill(maxw_m);   
   }else{
     //fail++;
-  }
+  }*/
 
+  if(candidate_tjs.size() == 1){
+    if((no_el == 1)&&(no_mu == 0)){
+    maxw_m = APPLY(m_mmt, ei, candidate_tjs[0], candidate_els[0], met1, no_25Jets);
+    m_myHist->Fill(maxw_m);   
+    }else if((no_el == 0)&&(no_mu == 1)){
+    maxw_m = APPLY(m_mmt, ei, candidate_tjs[0], candidate_mus[0], met1, no_25Jets);
+    m_myHist->Fill(maxw_m);   
+    }
+  }
+  
+
+  //if(maxw_m != 0) std::cout << maxw_m << " = mass " << std::endl;
   setFilterPassed(true); //if got here, assume that means algorithm passed
   return StatusCode::SUCCESS;
 }
