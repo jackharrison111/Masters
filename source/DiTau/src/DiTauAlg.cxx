@@ -15,7 +15,7 @@
 #include "AthContainers/DataVector.h"
 #include "PATInterfaces/CorrectionCode.h"
 #include "xAODEventInfo/EventInfo.h"
-#include "EventLoop/Worker.h"
+//#include "EventLoop/Worker.h"
 
 
 DiTauAlg::DiTauAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthAnalysisAlgorithm( name, pSvcLocator ){
@@ -98,7 +98,7 @@ StatusCode DiTauAlg::execute() {
       candidate_els.push_back(*it);
     }
   }
-  if(no_el > 1) wk()->skipEvent();
+//  if(no_el > 1) wk()->skipEvent();
   
   //MUONS:
   const xAOD::MuonContainer *mc = 0;
@@ -112,7 +112,7 @@ StatusCode DiTauAlg::execute() {
       candidate_mus.push_back(*it);	
     }
   }
-  if(no_mu > 1) wk()->skipEvent();
+//  if(no_mu > 1) wk()->skipEvent();
 
   //JETS:
   const xAOD::JetContainer *jc = 0;
