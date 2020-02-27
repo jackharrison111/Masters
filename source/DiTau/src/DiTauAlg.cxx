@@ -15,7 +15,7 @@
 #include "AthContainers/DataVector.h"
 #include "PATInterfaces/CorrectionCode.h"
 #include "xAODEventInfo/EventInfo.h"
-//#include "EventLoop/Worker.h"
+//#include "EventLoop/Worker.h"  //TODO::FIX SKIPPING EVENTS
 
 
 DiTauAlg::DiTauAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthAnalysisAlgorithm( name, pSvcLocator ){
@@ -127,13 +127,20 @@ StatusCode DiTauAlg::execute() {
   
 
   //TAU JETS:
+
+  double tauJetTotal = 0;
+  double tauJetPass = 0;
+
   const xAOD::TauJetContainer *tjc = 0;
   CHECK(evtStore()->retrieve(tjc, "TauJets"));
   std::vector<const xAOD::TauJet*> candidate_tjs;
   for(xAOD::TauJetContainer::const_iterator it=tjc->begin(); it!=tjc->end(); it++){
     const xAOD::TauJet *tj = *it;
     if((tj->pt()>20e3)&&( abs(tj->eta())<2.5)){
+      if((tj->eta()>1.37)&&(tj->eta()<1.52)){}	//cut introduced due to transition region - found in https://arxiv.org/pdf/1607.05979.pdf p7
+      else{
       candidate_tjs.push_back(*it);
+      }
     }
   }
   
