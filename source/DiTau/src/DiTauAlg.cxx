@@ -46,9 +46,13 @@ StatusCode DiTauAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
   
   m_myHist = new TH1D("invMass","Invariant Mass Distribution",160,0,160);
+  //m_my2DHist = new TH2D("invMassvsRMS","Invariant Mass against RMS/m.p.v",160,0,160,160,0,1);
   m_myHist->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
   m_myHist->SetStats(0);
+  //m_my2DHist->SetTitle(";M_{#tau#tau} [GeV]; RMS/m.p.v");
+  //m_my2DHist->SetStats(0);
   CHECK( histSvc()->regHist("/MYSTREAM/invMass", m_myHist) ); //registers histogram to output stream
+  //CHECK( histSvc()->regHist("/MYSTREAM/2DHist", m_my2DHist) ); //registers histogram to output stream
 
   //INITIALISE THE MISSING MASS TOOL
   m_mmt.setTypeAndName("MissingMassTool/MissingMassTool");
@@ -58,7 +62,8 @@ StatusCode DiTauAlg::initialize() {
   CHECK(m_mmt->setProperty("NiterFit3", 10));
   CHECK(m_mmt->setProperty("NsigmaMET", 4));
   CHECK(m_mmt->setProperty("alg_version", 3));
-  CHECK(m_mmt->setProperty("UseMETDphiLL", 1));
+  //CHECK(m_mmt->setProperty("UseMETDphiLL", 1)); only for leplep
+  CHECK(m_mmt->setProperty("UseEfficiencyRecovery", 1));
 
 
   CHECK(m_mmt.initialize());
@@ -88,7 +93,7 @@ StatusCode DiTauAlg::execute() {
   int no_el = 0;
   for(xAOD::ElectronContainer::const_iterator it=ec->begin(); it!=ec->end(); it++){
     const xAOD::Electron *e = *it;
-    if(e->pt()/1000 >= 7 && abs(e->eta()) <= 2.5){ 
+    if(e->pt()/1000 >= 25 && abs(e->eta()) <= 2.5){ 
       no_el++;
       candidate_els.push_back(*it);
     }
@@ -102,13 +107,12 @@ StatusCode DiTauAlg::execute() {
   std::vector<const xAOD::Muon*> candidate_mus; 
   for(xAOD::MuonContainer::const_iterator it=mc->begin(); it!=mc->end(); it++){
     const xAOD::Muon *m = *it;
-    if(m->pt()/1000 >= 7 && abs(m->eta()) <= 2.5){ 
+    if(m->pt()/1000 >= 25 && abs(m->eta()) <= 2.5){ 
       no_mu++;
       candidate_mus.push_back(*it);	
     }
   }
   if(no_mu > 1) wk()->skipEvent();
-
 
   //JETS:
   const xAOD::JetContainer *jc = 0;
@@ -128,16 +132,16 @@ StatusCode DiTauAlg::execute() {
   std::vector<const xAOD::TauJet*> candidate_tjs;
   for(xAOD::TauJetContainer::const_iterator it=tjc->begin(); it!=tjc->end(); it++){
     const xAOD::TauJet *tj = *it;
-    if((tj->pt()>7e3)&&( abs(tj->eta())<2.5)){
+    if((tj->pt()>20e3)&&( abs(tj->eta())<2.5)){
       candidate_tjs.push_back(*it);
     }
   }
-  //std::cout << candidate_tjs.size() << std::endl;
-
+  
   //MISSING ENERGY:
   const xAOD::MissingETContainer *metc = 0;
   CHECK(evtStore()->retrieve(metc, /*"MET_Calo"));*/"MET_Reference_AntiKt4LCTopo"));
   //Get the last one
+  //std::cout << metc->size() << " = size of metc" << std::endl;
   const xAOD::MissingET *met1 = 0;
   met1 = metc->at(metc->size() - 1);
   //met1 = metc->at(7);
@@ -162,33 +166,47 @@ StatusCode DiTauAlg::execute() {
   */
 
 
- 
+  /*
   if(no_el == 2){
-    maxw_m = APPLY(m_mmt, ei, candidate_els[0], candidate_els[1], met1, no_25Jets);
-    m_myHist->Fill(maxw_m);   
+    if(candidate_els[0]->charge() == -candidate_els[1]->charge()){
+      maxw_m = APPLY(m_mmt, ei, candidate_els[0], candidate_els[1], met1, no_25Jets);
+      m_myHist->Fill(maxw_m);
+    }   
   }else if(no_mu == 2){
-    maxw_m = APPLY(m_mmt, ei, candidate_mus[0], candidate_mus[1], met1, no_25Jets);
-    m_myHist->Fill(maxw_m);   
+    if(candidate_mus[0]->charge() == -candidate_mus[1]->charge()){
+      maxw_m = APPLY(m_mmt, ei, candidate_mus[0], candidate_mus[1], met1, no_25Jets);
+      m_myHist->Fill(maxw_m);   
+    }
   }
   else if((no_mu == 1)&&(no_el == 1)){
-    maxw_m = APPLY(m_mmt, ei, candidate_els[0], candidate_mus[0], met1, no_25Jets);
-    m_myHist->Fill(maxw_m);   
+    if(candidate_els[0]->charge() == -candidate_mus[0]->charge()){
+      maxw_m = APPLY(m_mmt, ei, candidate_els[0], candidate_mus[0], met1, no_25Jets);
+      m_myHist->Fill(maxw_m);   
+    }
   }else{
     //fail++;
-    wk()->skipEvent();
+    //wk()->skipEvent();
   }
-
-  /*if(candidate_tjs.size() == 1){
-    if((no_el == 1)&&(no_mu == 0)){
-    maxw_m = APPLY(m_mmt, ei, candidate_tjs[0], candidate_els[0], met1, no_25Jets);
-    m_myHist->Fill(maxw_m);   
-    }else if((no_el == 0)&&(no_mu == 1)){
-    maxw_m = APPLY(m_mmt, ei, candidate_tjs[0], candidate_mus[0], met1, no_25Jets);
-    m_myHist->Fill(maxw_m);   
-    }
-  }*/
+  */
   
-
+  if(met1->met() > 20e3){
+  if(candidate_tjs.size() == 1){
+    if((no_el == 1)&&(no_mu == 0)){
+      if(candidate_els[0]->charge() == -candidate_tjs[0]->charge()){
+        maxw_m = APPLY(m_mmt, ei, candidate_tjs[0], candidate_els[0], met1, no_25Jets);
+        //std::cout << m_mmt->get()->GetFitSignificance(1) << " - signif. " << std::endl;
+        //double rms2Mpv = m_mmt->get()->GetRms2Mpv();
+        m_myHist->Fill(maxw_m);   
+      }
+    }else if((no_el == 0)&&(no_mu == 1)){
+      if(candidate_mus[0]->charge() == -candidate_tjs[0]->charge()){
+        maxw_m = APPLY(m_mmt, ei, candidate_tjs[0], candidate_mus[0], met1, no_25Jets);
+        //std::cout << m_mmt->get()->GetFitSignificance(1) << " - signif. " << std::endl;
+        m_myHist->Fill(maxw_m);   
+      }
+    }
+  }
+  }
   //if(maxw_m != 0) std::cout << maxw_m << " = mass " << std::endl;
   setFilterPassed(true); //if got here, assume that means algorithm passed
   return StatusCode::SUCCESS;
