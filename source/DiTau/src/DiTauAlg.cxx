@@ -15,8 +15,7 @@
 #include "AthContainers/DataVector.h"
 #include "PATInterfaces/CorrectionCode.h"
 #include "xAODEventInfo/EventInfo.h"
-
-
+#include "EventLoop/Worker.h"
 
 
 DiTauAlg::DiTauAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthAnalysisAlgorithm( name, pSvcLocator ){
@@ -99,6 +98,7 @@ StatusCode DiTauAlg::execute() {
       candidate_els.push_back(*it);
     }
   }
+  if(no_el > 1) wk()->skipEvent();
   
   //MUONS:
   const xAOD::MuonContainer *mc = 0;
@@ -112,6 +112,7 @@ StatusCode DiTauAlg::execute() {
       candidate_mus.push_back(*it);	
     }
   }
+  if(no_mu > 1) wk()->skipEvent();
 
   //JETS:
   const xAOD::JetContainer *jc = 0;
@@ -138,21 +139,30 @@ StatusCode DiTauAlg::execute() {
   
   //MISSING ENERGY:
   const xAOD::MissingETContainer *metc = 0;
-  CHECK(evtStore()->retrieve(metc, "MET_Reference_AntiKt4LCTopo"));//"MET_Calo"));
+  CHECK(evtStore()->retrieve(metc, /*"MET_Calo"));*/"MET_Reference_AntiKt4LCTopo"));
   //Get the last one
   //std::cout << metc->size() << " = size of metc" << std::endl;
   const xAOD::MissingET *met1 = 0;
   met1 = metc->at(metc->size() - 1);
-  
+  //met1 = metc->at(7);
+
   /*
   //Iterate over all (Don't think needed)
   std::vector<xAOD::MissingET> met_vector;
+  double total_met = 0;
+  double total_sumet = 0;
+  int number = 1;
   for(xAOD::MissingETContainer::const_iterator it=metc->begin(); it!=metc->end(); it++){
     met1 = *it;
-    //met_vector.push_back(*met1);
-    //std::cout<< met1->met() << " - met," << met1->sumet() << " - sumet" << std::endl;
+    met_vector.push_back(*met1);
+    std::cout<< met1->met() << " - met," << met1->sumet() << " - sumet" << std::endl;
+    if(number <= 7){
+      total_met += met1->met();
+      total_sumet += met1->sumet();
+    }
+    number++;
   }
-  //std::cout<<std::endl;
+  std::cout << "Total met (first 7) = " << total_met << ", total sumet (first 7) = " << total_sumet << std::endl << std::endl;
   */
 
 
@@ -175,8 +185,10 @@ StatusCode DiTauAlg::execute() {
     }
   }else{
     //fail++;
+    //wk()->skipEvent();
   }
   */
+  
   if(met1->met() > 20e3){
   if(candidate_tjs.size() == 1){
     if((no_el == 1)&&(no_mu == 0)){
