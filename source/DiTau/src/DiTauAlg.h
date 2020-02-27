@@ -39,6 +39,7 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
 
  private: 
    TH1D* m_myHist = 0;
+   TH2D* m_my2DHist = 0;
    asg::AnaToolHandle<MissingMassTool> m_mmt;
    double pass,fail;
    double maxw_m; //reconstructed MMC mass

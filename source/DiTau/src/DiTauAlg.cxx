@@ -47,9 +47,13 @@ StatusCode DiTauAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
   
   m_myHist = new TH1D("invMass","Invariant Mass Distribution",160,0,160);
+  //m_my2DHist = new TH2D("invMassvsRMS","Invariant Mass against RMS/m.p.v",160,0,160,160,0,1);
   m_myHist->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
   m_myHist->SetStats(0);
+  //m_my2DHist->SetTitle(";M_{#tau#tau} [GeV]; RMS/m.p.v");
+  //m_my2DHist->SetStats(0);
   CHECK( histSvc()->regHist("/MYSTREAM/invMass", m_myHist) ); //registers histogram to output stream
+  //CHECK( histSvc()->regHist("/MYSTREAM/2DHist", m_my2DHist) ); //registers histogram to output stream
 
   //INITIALISE THE MISSING MASS TOOL
   m_mmt.setTypeAndName("MissingMassTool/MissingMassTool");
@@ -59,7 +63,8 @@ StatusCode DiTauAlg::initialize() {
   CHECK(m_mmt->setProperty("NiterFit3", 10));
   CHECK(m_mmt->setProperty("NsigmaMET", 4));
   CHECK(m_mmt->setProperty("alg_version", 3));
-  CHECK(m_mmt->setProperty("UseMETDphiLL", 1));
+  //CHECK(m_mmt->setProperty("UseMETDphiLL", 1)); only for leplep
+  CHECK(m_mmt->setProperty("UseEfficiencyRecovery", 1));
 
 
   CHECK(m_mmt.initialize());
@@ -130,7 +135,7 @@ StatusCode DiTauAlg::execute() {
       candidate_tjs.push_back(*it);
     }
   }
-
+  
   //MISSING ENERGY:
   const xAOD::MissingETContainer *metc = 0;
   CHECK(evtStore()->retrieve(metc, "MET_Reference_AntiKt4LCTopo"));//"MET_Calo"));
@@ -172,20 +177,24 @@ StatusCode DiTauAlg::execute() {
     //fail++;
   }
   */
+  if(met1->met() > 20e3){
   if(candidate_tjs.size() == 1){
     if((no_el == 1)&&(no_mu == 0)){
       if(candidate_els[0]->charge() == -candidate_tjs[0]->charge()){
         maxw_m = APPLY(m_mmt, ei, candidate_tjs[0], candidate_els[0], met1, no_25Jets);
-      m_myHist->Fill(maxw_m);   
+        //std::cout << m_mmt->get()->GetFitSignificance(1) << " - signif. " << std::endl;
+        //double rms2Mpv = m_mmt->get()->GetRms2Mpv();
+        m_myHist->Fill(maxw_m);   
       }
     }else if((no_el == 0)&&(no_mu == 1)){
       if(candidate_mus[0]->charge() == -candidate_tjs[0]->charge()){
         maxw_m = APPLY(m_mmt, ei, candidate_tjs[0], candidate_mus[0], met1, no_25Jets);
+        //std::cout << m_mmt->get()->GetFitSignificance(1) << " - signif. " << std::endl;
         m_myHist->Fill(maxw_m);   
       }
     }
   }
-  
+  }
   //if(maxw_m != 0) std::cout << maxw_m << " = mass " << std::endl;
   setFilterPassed(true); //if got here, assume that means algorithm passed
   return StatusCode::SUCCESS;
