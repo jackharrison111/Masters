@@ -15,8 +15,7 @@
 #include "AthContainers/DataVector.h"
 #include "PATInterfaces/CorrectionCode.h"
 #include "xAODEventInfo/EventInfo.h"
-
-
+#include "EventLoop/Worker.h"
 
 
 DiTauAlg::DiTauAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthAnalysisAlgorithm( name, pSvcLocator ){
@@ -94,6 +93,7 @@ StatusCode DiTauAlg::execute() {
       candidate_els.push_back(*it);
     }
   }
+  if(no_el > 1) wk()->skipEvent();
   
   //MUONS:
   const xAOD::MuonContainer *mc = 0;
@@ -107,6 +107,7 @@ StatusCode DiTauAlg::execute() {
       candidate_mus.push_back(*it);	
     }
   }
+  if(no_mu > 1) wk()->skipEvent();
 
 
   //JETS:
@@ -135,25 +136,34 @@ StatusCode DiTauAlg::execute() {
 
   //MISSING ENERGY:
   const xAOD::MissingETContainer *metc = 0;
-  CHECK(evtStore()->retrieve(metc, "MET_Calo"));
+  CHECK(evtStore()->retrieve(metc, /*"MET_Calo"));*/"MET_Reference_AntiKt4LCTopo"));
   //Get the last one
   const xAOD::MissingET *met1 = 0;
   met1 = metc->at(metc->size() - 1);
-  
+  //met1 = metc->at(7);
+
   /*
   //Iterate over all (Don't think needed)
   std::vector<xAOD::MissingET> met_vector;
+  double total_met = 0;
+  double total_sumet = 0;
+  int number = 1;
   for(xAOD::MissingETContainer::const_iterator it=metc->begin(); it!=metc->end(); it++){
     met1 = *it;
-    //met_vector.push_back(*met1);
-    //std::cout<< met1->met() << " - met," << met1->sumet() << " - sumet" << std::endl;
+    met_vector.push_back(*met1);
+    std::cout<< met1->met() << " - met," << met1->sumet() << " - sumet" << std::endl;
+    if(number <= 7){
+      total_met += met1->met();
+      total_sumet += met1->sumet();
+    }
+    number++;
   }
-  //std::cout<<std::endl;
+  std::cout << "Total met (first 7) = " << total_met << ", total sumet (first 7) = " << total_sumet << std::endl << std::endl;
   */
 
 
  
-  /*if(no_el == 2){
+  if(no_el == 2){
     maxw_m = APPLY(m_mmt, ei, candidate_els[0], candidate_els[1], met1, no_25Jets);
     m_myHist->Fill(maxw_m);   
   }else if(no_mu == 2){
@@ -165,9 +175,10 @@ StatusCode DiTauAlg::execute() {
     m_myHist->Fill(maxw_m);   
   }else{
     //fail++;
-  }*/
+    wk()->skipEvent();
+  }
 
-  if(candidate_tjs.size() == 1){
+  /*if(candidate_tjs.size() == 1){
     if((no_el == 1)&&(no_mu == 0)){
     maxw_m = APPLY(m_mmt, ei, candidate_tjs[0], candidate_els[0], met1, no_25Jets);
     m_myHist->Fill(maxw_m);   
@@ -175,7 +186,7 @@ StatusCode DiTauAlg::execute() {
     maxw_m = APPLY(m_mmt, ei, candidate_tjs[0], candidate_mus[0], met1, no_25Jets);
     m_myHist->Fill(maxw_m);   
     }
-  }
+  }*/
   
 
   //if(maxw_m != 0) std::cout << maxw_m << " = mass " << std::endl;
