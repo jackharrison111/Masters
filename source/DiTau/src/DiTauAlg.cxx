@@ -4,10 +4,7 @@
 
 // DiTau includes
 #include "DiTauAlg.h"
-#include "xAODEgamma/ElectronContainer.h"
-#include "xAODMuon/MuonContainer.h"
 #include "xAODJet/JetContainer.h"
-#include "xAODTau/TauJetContainer.h"
 #include "xAODMissingET/MissingETContainer.h"
 
 // core EDM includes
@@ -38,7 +35,52 @@ double DiTauAlg::APPLY(asg::AnaToolHandle<MissingMassTool>m_mmt, const xAOD::Eve
       pass++;
       mass = m_mmt->GetFittedMass(MMCFitMethod::MAXW);
     }
-   return mass;
+    return mass;
+}
+
+
+bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau){
+  
+  //ELECTRONS
+  const xAOD::ElectronContainer *ec = 0;
+  CHECK(evtStore()->retrieve(ec, "Electrons"));
+  for(auto it = ec->begin(); it != ec->end(); it++){
+    const xAOD::Electron *e = *it;
+    if(e->pt()/1000 >= 25 && abs(e->eta()) <= 2.5){
+      Electrons.push_back(e);
+    }
+  }
+  
+  //MUONS
+  const xAOD::MuonContainer *mc = 0;
+  CHECK(evtStore()->retrieve(mc, "Muons"));
+  for(auto it = mc->begin(); it != mc->end(); it++){
+    const xAOD::Muon *mu = *it;
+    if(mu->pt()/1000 >= 25 && abs(mu->eta()) <= 2.5){
+      Muons.push_back(mu);
+    }
+  }
+  
+  //TAUS
+  const xAOD::TauJetContainer *tjc = 0;
+  CHECK(evtStore()->retrieve(tjc, "TauJets"));
+  for(auto it = tjc->begin(); it != tjc->end(); it++){
+    const xAOD::TauJet *tj = *it;
+    if(tj->pt()/1000 >= 20 && abs(tj->eta()) <= 2.5){
+      // https://arxiv.org/pdf/1607.05979.pdf p7 :
+      if(abs(tj->eta()) > 1.37 && abs(tj->eta()) < 1.52){
+        TauJets.push_back(tj);
+      }
+    }
+  }
+
+  if(no_el == (int)Electrons.size() && no_mu == (int)Muons.size() && no_tau == (int)TauJets.size()){
+    return true;
+  } else {
+    // incase (1,0,1) doesn't pass but (0,1,1) will :
+    Electrons.clear(); Muons.clear(); TauJets.clear();
+    return false;
+  }
 }
 
 
@@ -56,6 +98,7 @@ StatusCode DiTauAlg::initialize() {
 
   //INITIALISE THE MISSING MASS TOOL
   m_mmt.setTypeAndName("MissingMassTool/MissingMassTool");
+  CHECK(m_mmt.initialize());
   CHECK(m_mmt->setProperty("UseTauProbability", 1));
   CHECK(m_mmt->setProperty("CalibSet", "2016MC15C"));
   CHECK(m_mmt->setProperty("NiterFit2", 30));
@@ -66,7 +109,9 @@ StatusCode DiTauAlg::initialize() {
   CHECK(m_mmt->setProperty("UseEfficiencyRecovery", 1));
 
 
-  CHECK(m_mmt.initialize());
+  //Electrons.erase(Electrons.begin(), Electrons.end());
+  //Muons.clear();
+  //TauJets.erase(TauJets.begin(), TauJets.end());
 
   pass = 0;
   fail = 0;
@@ -128,30 +173,30 @@ StatusCode DiTauAlg::execute() {
 
   //TAU JETS:
 
-  double tauJetTotal = 0;
-  double tauJetPass = 0;
+  //double tauJetTotal = 0;
+  //double tauJetPass = 0;
 
   const xAOD::TauJetContainer *tjc = 0;
   CHECK(evtStore()->retrieve(tjc, "TauJets"));
   std::vector<const xAOD::TauJet*> candidate_tjs;
   for(xAOD::TauJetContainer::const_iterator it=tjc->begin(); it!=tjc->end(); it++){
     const xAOD::TauJet *tj = *it;
-    if((tj->pt()>20e3)&&( abs(tj->eta())<2.5)){
-      if((tj->eta()>1.37)&&(tj->eta()<1.52)){}	//cut introduced due to transition region - found in https://arxiv.org/pdf/1607.05979.pdf p7
+    if((tj->pt()>20e3)&&( abs(tj->eta())<=2.5)){
+      if((abs(tj->eta())>1.37)&&(abs(tj->eta())<1.52)){}	//cut introduced due to transition region - found in https://arxiv.org/pdf/1607.05979.pdf p7
       else{
-      candidate_tjs.push_back(*it);
+        candidate_tjs.push_back(*it);
       }
     }
   }
   
   //MISSING ENERGY:
   const xAOD::MissingETContainer *metc = 0;
-  CHECK(evtStore()->retrieve(metc, /*"MET_Calo"));*/"MET_Reference_AntiKt4LCTopo"));
+  CHECK(evtStore()->retrieve(metc, "MET_Calo"));
   //Get the last one
   //std::cout << metc->size() << " = size of metc" << std::endl;
   const xAOD::MissingET *met1 = 0;
-  met1 = metc->at(metc->size() - 1);
-  //met1 = metc->at(7);
+  //met1 = metc->at(metc->size() - 1);
+  met1 = metc->at(7);
 
   /*
   //Iterate over all (Don't think needed)
@@ -215,6 +260,31 @@ StatusCode DiTauAlg::execute() {
   }
   }
   //if(maxw_m != 0) std::cout << maxw_m << " = mass " << std::endl;
+
+
+
+
+
+
+  //double invM1, invM2;
+  if(GetCandidates(1,0,1) || GetCandidates(0,1,1)){
+    double total_charge = TauJets[0]->charge();
+    if(Electron.size() == 1){
+      total_charge += Electrons[0]->charge();
+    } else {
+      total_charge += Muons[0]->charge();
+    }
+    if(total_charge != 0) //wk->skipEvent();?????
+
+
+    // reset vectors after event
+    Electrons.clear(); Muons.clear(); TauJets.clear();
+  }
+
+
+
+
+
   setFilterPassed(true); //if got here, assume that means algorithm passed
   return StatusCode::SUCCESS;
 }

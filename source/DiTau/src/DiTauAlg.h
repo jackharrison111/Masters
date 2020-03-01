@@ -4,6 +4,9 @@
 #include "AthAnalysisBaseComps/AthAnalysisAlgorithm.h"
 #include "AsgTools/AnaToolHandle.h"
 #include "DiTauMassTools/MissingMassTool.h"
+#include "xAODEgamma/ElectronContainer.h"
+#include "xAODMuon/MuonContainer.h"
+#include "xAODTau/TauJetContainer.h"
 
 //Example ROOT Includes
 //#include "TTree.h"
@@ -27,6 +30,8 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
   //virtual StatusCode  metaDataStop();   //when outputMetaStore is populated by MetaDataTools
   virtual StatusCode  finalize();       //once, after all events processed
   double APPLY(asg::AnaToolHandle<MissingMassTool>m_mmt, const xAOD::EventInfo* ei, const xAOD::IParticle* x, const xAOD::IParticle* y, const xAOD::MissingET* met, double num);
+  bool GetCandidates(const int no_el, const int no_mu, const int no_tau);
+
 
   ///Other useful methods provided by base class are:
   ///evtStore()        : ServiceHandle to main event data storegate
@@ -37,7 +42,11 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
   ///retrieveMetadata(...): See twiki.cern.ch/twiki/bin/view/AtlasProtected/AthAnalysisBase#ReadingMetaDataInCpp
 
 
- private: 
+ private:
+   std::vector<const xAOD::Electron*> Electrons;
+   std::vector<const xAOD::Muon*> Muons;
+   std::vector<const xAOD::TauJet*> TauJets;
+   
    TH1D* m_myHist = 0;
    TH2D* m_my2DHist = 0;
    asg::AnaToolHandle<MissingMassTool> m_mmt;
