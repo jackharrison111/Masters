@@ -52,7 +52,8 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
       Electrons.push_back(e);
     }
   }
-  
+  if(Electrons.size() != no_el) return false; 
+ 
   //MUONS
   const xAOD::MuonContainer *mc = 0;
   CHECK(evtStore()->retrieve(mc, "Muons"));
@@ -62,6 +63,7 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
       Muons.push_back(mu);
     }
   }
+  if(Electrons.size() != no_el) return false; 
   
   //TAUS
   const xAOD::TauJetContainer *tjc = 0;
