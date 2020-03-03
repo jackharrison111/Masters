@@ -15,6 +15,7 @@
 
 //#include "EventLoop/Worker.h"  //TODO::FIX SKIPPING EVENTS
 
+int no_1lep1tau_events{0};
 
 DiTauAlg::DiTauAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthAnalysisAlgorithm( name, pSvcLocator ){
 
