@@ -12,6 +12,7 @@
 #include "AthContainers/DataVector.h"
 #include "PATInterfaces/CorrectionCode.h"
 #include "xAODEventInfo/EventInfo.h"
+
 //#include "EventLoop/Worker.h"  //TODO::FIX SKIPPING EVENTS
 
 
@@ -108,6 +109,15 @@ StatusCode DiTauAlg::initialize() {
   //CHECK(m_mmt->setProperty("UseMETDphiLL", 1)); only for leplep
   CHECK(m_mmt->setProperty("UseEfficiencyRecovery", 1));
 
+   orFlags.boostedLeptons = true;
+   orFlags.doElectrons = true;
+   orFlags.doMuons = true;
+   orFlags.doJets = true;
+   orFlags.doTaus = true;
+   orFlags.doPhotons = true;//false;
+
+   CHECK( ORUtils::recommendedTools(orFlags, toolBox) );
+   CHECK( toolBox.initialize() );
 
   //Electrons.erase(Electrons.begin(), Electrons.end());
   //Muons.clear();
@@ -269,7 +279,7 @@ StatusCode DiTauAlg::execute() {
   //double invM1, invM2;
   if(GetCandidates(1,0,1) || GetCandidates(0,1,1)){
     double total_charge = TauJets[0]->charge();
-    if(Electron.size() == 1){
+    if(Electrons.size() == 1){
       total_charge += Electrons[0]->charge();
     } else {
       total_charge += Muons[0]->charge();

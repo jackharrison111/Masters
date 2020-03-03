@@ -4,6 +4,7 @@
 #include "AthAnalysisBaseComps/AthAnalysisAlgorithm.h"
 #include "AsgTools/AnaToolHandle.h"
 #include "DiTauMassTools/MissingMassTool.h"
+#include "AssociationUtils/OverlapRemovalInit.h"
 #include "xAODEgamma/ElectronContainer.h"
 #include "xAODMuon/MuonContainer.h"
 #include "xAODTau/TauJetContainer.h"
@@ -50,6 +51,10 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    TH1D* m_myHist = 0;
    TH2D* m_my2DHist = 0;
    asg::AnaToolHandle<MissingMassTool> m_mmt;
+   ORUtils::ORFlags orFlags;
+   ORUtils::ToolBox toolBox;
+   asg::AnaToolHandle<
+
    double pass,fail;
    double maxw_m; //reconstructed MMC mass
 }; 
