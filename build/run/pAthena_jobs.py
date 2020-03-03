@@ -42,7 +42,7 @@ inDSs = [
     
 for i,inDS in enumerate(inDSs):
     
-    command = "pathena  --inDS %s/ --mergeOutput --outDS user.aburke.all_361108_files_%i ~/public/Masters/build/x86_64-centos7-gcc62-opt//DiTauAlgJobOptions.py" % (inDS, i+1) #usr/WorkDir/1.0.0/InstallArea/x86_64-centos7-gcc62-opt/src/DiTau/share/DiTauAlgJobOptions.py" % (inDS, i+1)
+    command = "pathena  --inDS %s/ --mergeOutput --outDS user.jaharris.361108_collinear_MMC_03-03_%i ~/public/Masters/build/x86_64-centos7-gcc62-opt/jobOptions/DiTau/DiTauAlgJobOptions.py" % (inDS, i+1)
     print command
     os.system(command)
     print "\n"
