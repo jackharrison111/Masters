@@ -140,6 +140,11 @@ StatusCode DiTauAlg::execute() {
   ATH_MSG_DEBUG ("Executing " << name() << "...");
   setFilterPassed(false); //optional: start with algorithm not passed
 
+  if(no_1lep1tau_events > 163208){ //163208 is no. events in mc15 Ntuples
+    setFilterPassed(true);
+    return StatusCode::SUCCESS
+  }
+
 
   //EVENT INFO:
   const xAOD::EventInfo* ei = 0;
@@ -318,6 +323,8 @@ StatusCode DiTauAlg::execute() {
  
       collinear_Hist->Fill(invM2); 
       m_myHist->Fill(maxw_m);
+      
+      no_1lep1tau_events++;
     }
     }
   else{
