@@ -88,13 +88,19 @@ StatusCode DiTauAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
   
   m_myHist = new TH1D("invMass","Invariant Mass Distribution",160,0,160);
+  collinear_Hist = new TH1D("col_invMass","Invariant Mass Distribution",160,0,160);
+
+
   //m_my2DHist = new TH2D("invMassvsRMS","Invariant Mass against RMS/m.p.v",160,0,160,160,0,1);
   m_myHist->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
   m_myHist->SetStats(0);
   //m_my2DHist->SetTitle(";M_{#tau#tau} [GeV]; RMS/m.p.v");
   //m_my2DHist->SetStats(0);
+
   CHECK( histSvc()->regHist("/MYSTREAM/invMass", m_myHist) ); //registers histogram to output stream
   //CHECK( histSvc()->regHist("/MYSTREAM/2DHist", m_my2DHist) ); //registers histogram to output stream
+  CHECK( histSvc()->regHist("/MYSTREAM/col_Hist", collinear_Hist) );
+
 
   //INITIALISE THE MISSING MASS TOOL
   m_mmt.setTypeAndName("MissingMassTool/MissingMassTool");
@@ -132,7 +138,7 @@ StatusCode DiTauAlg::execute() {
 
 
   //ELECTRONS:
-  const xAOD::ElectronContainer *ec = 0;
+  /*const xAOD::ElectronContainer *ec = 0;
   CHECK(evtStore()->retrieve(ec, "Electrons"));
   std::vector<const xAOD::Electron*> candidate_els; 
   int no_el = 0;
@@ -158,7 +164,7 @@ StatusCode DiTauAlg::execute() {
     }
   }
 //  if(no_mu > 1) wk()->skipEvent();
-
+*/
   //JETS:
   const xAOD::JetContainer *jc = 0;
   double no_25Jets = 0;
@@ -175,7 +181,7 @@ StatusCode DiTauAlg::execute() {
 
   //double tauJetTotal = 0;
   //double tauJetPass = 0;
-
+/*
   const xAOD::TauJetContainer *tjc = 0;
   CHECK(evtStore()->retrieve(tjc, "TauJets"));
   std::vector<const xAOD::TauJet*> candidate_tjs;
@@ -188,15 +194,15 @@ StatusCode DiTauAlg::execute() {
       }
     }
   }
-  
+  */
   //MISSING ENERGY:
   const xAOD::MissingETContainer *metc = 0;
   CHECK(evtStore()->retrieve(metc, "MET_Calo"));
   //Get the last one
   //std::cout << metc->size() << " = size of metc" << std::endl;
   const xAOD::MissingET *met1 = 0;
-  //met1 = metc->at(metc->size() - 1);
-  met1 = metc->at(7);
+  met1 = metc->at(metc->size() - 1);
+  //met1 = metc->at(7);
 
   /*
   //Iterate over all (Don't think needed)
@@ -239,44 +245,76 @@ StatusCode DiTauAlg::execute() {
     //fail++;
     //wk()->skipEvent();
   }
-  */
+  
   
   if(met1->met() > 20e3){
   if(candidate_tjs.size() == 1){
     if((no_el == 1)&&(no_mu == 0)){
       if(candidate_els[0]->charge() == -candidate_tjs[0]->charge()){
-        maxw_m = APPLY(m_mmt, ei, candidate_tjs[0], candidate_els[0], met1, no_25Jets);
+        //maxw_m = APPLY(m_mmt, ei, candidate_tjs[0], candidate_els[0], met1, no_25Jets);
         //std::cout << m_mmt->get()->GetFitSignificance(1) << " - signif. " << std::endl;
         //double rms2Mpv = m_mmt->get()->GetRms2Mpv();
-        m_myHist->Fill(maxw_m);   
+        //m_myHist->Fill(maxw_m);   
       }
     }else if((no_el == 0)&&(no_mu == 1)){
       if(candidate_mus[0]->charge() == -candidate_tjs[0]->charge()){
-        maxw_m = APPLY(m_mmt, ei, candidate_tjs[0], candidate_mus[0], met1, no_25Jets);
+        //maxw_m = APPLY(m_mmt, ei, candidate_tjs[0], candidate_mus[0], met1, no_25Jets);
         //std::cout << m_mmt->get()->GetFitSignificance(1) << " - signif. " << std::endl;
-        m_myHist->Fill(maxw_m);   
+        //m_myHist->Fill(maxw_m);   
       }
     }
   }
   }
   //if(maxw_m != 0) std::cout << maxw_m << " = mass " << std::endl;
+  */
 
 
 
+  double lep_pt, lep_phi, lep_eta, tau_pt, tau_phi, tau_eta, nu_T_lep, nu_T_had, met_et, met_phi, x1, x2;
 
-
-
-  //double invM1, invM2;
+  double invM1, invM2;
   if(GetCandidates(1,0,1) || GetCandidates(0,1,1)){
     double total_charge = TauJets[0]->charge();
-    if(Electron.size() == 1){
+    if(Electrons.size() == 1){
       total_charge += Electrons[0]->charge();
     } else {
       total_charge += Muons[0]->charge();
     }
-    if(total_charge != 0) //wk->skipEvent();?????
+    if(total_charge == 0){ //wk->skipEvent();?????
+      if(met1->met() > 20e3){
+      if(Electrons.size() == 1){
+        lep_pt = Electrons[0]->pt();
+        lep_phi = Electrons[0]->phi();
+        lep_eta = Electrons[0]->eta();
+        maxw_m = APPLY(m_mmt, ei, TauJets[0], Electrons[0], met1, no_25Jets);
+      }else{
+        lep_pt = Muons[0]->pt();
+        lep_phi = Muons[0]->phi();
+        lep_eta = Muons[0]->eta();
+        maxw_m = APPLY(m_mmt, ei, TauJets[0], Muons[0], met1, no_25Jets);
+      }
+      tau_pt = TauJets[0]->pt();
+      tau_eta = TauJets[0]->eta();
+      tau_phi = TauJets[0]->phi();
+      met_et = met1->met();
+      met_phi = met1->phi();
 
+      nu_T_lep = met_et*(sin(met_phi)-sin(tau_phi))/(sin(lep_phi)-sin(tau_phi));
+      nu_T_had = met_et*(sin(met_phi)-sin(lep_phi))/(sin(tau_phi)-sin(lep_phi));
 
+      invM1 = sqrt(2*lep_pt*tau_pt*(cosh(lep_eta-tau_eta)-cos(lep_phi-tau_phi)))/1000;
+      x1 = lep_pt/(lep_pt+nu_T_lep);
+      x2 = tau_pt/(tau_pt+nu_T_had);
+      invM2 = invM1/sqrt(x1*x2);
+ 
+      collinear_Hist->Fill(invM2); 
+      m_myHist->Fill(maxw_m);
+    }
+    }
+  else{
+    //std::cout << "Skipping event" << std::endl;
+    //wk()->SkipEvent();
+  }
     // reset vectors after event
     Electrons.clear(); Muons.clear(); TauJets.clear();
   }
