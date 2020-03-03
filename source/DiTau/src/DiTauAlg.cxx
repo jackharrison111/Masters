@@ -39,6 +39,9 @@ double DiTauAlg::APPLY(asg::AnaToolHandle<MissingMassTool>m_mmt, const xAOD::Eve
     return mass;
 }
 
+void DiTauAlg::CLEAR(){
+  Electrons.clear(); Muons.clear(); TauJets.clear();
+}
 
 bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau){
   
@@ -51,7 +54,7 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
       Electrons.push_back(e);
     }
   }
-  if(Electrons.size() != no_el) return false; 
+  if(Electrons.size() != no_el){CLEAR(); return false;} 
  
   //MUONS
   const xAOD::MuonContainer *mc = 0;
@@ -62,7 +65,7 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
       Muons.push_back(mu);
     }
   }
-  if(Electrons.size() != no_el) return false; 
+  if(Muons.size() != no_mu){CLEAR(); return false;} 
   
   //TAUS
   const xAOD::TauJetContainer *tjc = 0;
@@ -76,14 +79,8 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
       }
     }
   }
-
-  if(no_el == (int)Electrons.size() && no_mu == (int)Muons.size() && no_tau == (int)TauJets.size()){
-    return true;
-  } else {
-    // incase (1,0,1) doesn't pass but (0,1,1) will :
-    Electrons.clear(); Muons.clear(); TauJets.clear();
-    return false;
-  }
+  if(TauJets.size() != no_tau){CLEAR(); return false;} 
+  return true;
 }
 
 
@@ -148,35 +145,6 @@ StatusCode DiTauAlg::execute() {
   const xAOD::EventInfo* ei = 0;
   CHECK( evtStore()->retrieve( ei , "EventInfo" ) );
 
-
-  //ELECTRONS:
-  /*const xAOD::ElectronContainer *ec = 0;
-  CHECK(evtStore()->retrieve(ec, "Electrons"));
-  std::vector<const xAOD::Electron*> candidate_els; 
-  int no_el = 0;
-  for(xAOD::ElectronContainer::const_iterator it=ec->begin(); it!=ec->end(); it++){
-    const xAOD::Electron *e = *it;
-    if(e->pt()/1000 >= 25 && abs(e->eta()) <= 2.5){ 
-      no_el++;
-      candidate_els.push_back(*it);
-    }
-  }
-//  if(no_el > 1) wk()->skipEvent();
-  
-  //MUONS:
-  const xAOD::MuonContainer *mc = 0;
-  CHECK(evtStore()->retrieve(mc, "Muons"));
-  int no_mu = 0; 
-  std::vector<const xAOD::Muon*> candidate_mus; 
-  for(xAOD::MuonContainer::const_iterator it=mc->begin(); it!=mc->end(); it++){
-    const xAOD::Muon *m = *it;
-    if(m->pt()/1000 >= 25 && abs(m->eta()) <= 2.5){ 
-      no_mu++;
-      candidate_mus.push_back(*it);	
-    }
-  }
-//  if(no_mu > 1) wk()->skipEvent();
-*/
   //JETS:
   const xAOD::JetContainer *jc = 0;
   double no_25Jets = 0;
@@ -188,25 +156,6 @@ StatusCode DiTauAlg::execute() {
       }
     }
   
-
-  //TAU JETS:
-
-  //double tauJetTotal = 0;
-  //double tauJetPass = 0;
-/*
-  const xAOD::TauJetContainer *tjc = 0;
-  CHECK(evtStore()->retrieve(tjc, "TauJets"));
-  std::vector<const xAOD::TauJet*> candidate_tjs;
-  for(xAOD::TauJetContainer::const_iterator it=tjc->begin(); it!=tjc->end(); it++){
-    const xAOD::TauJet *tj = *it;
-    if((tj->pt()>20e3)&&( abs(tj->eta())<=2.5)){
-      if((abs(tj->eta())>1.37)&&(abs(tj->eta())<1.52)){}	//cut introduced due to transition region - found in https://arxiv.org/pdf/1607.05979.pdf p7
-      else{
-        candidate_tjs.push_back(*it);
-      }
-    }
-  }
-  */
   //MISSING ENERGY:
   const xAOD::MissingETContainer *metc = 0;
   CHECK(evtStore()->retrieve(metc, "MET_Calo"));
@@ -216,71 +165,7 @@ StatusCode DiTauAlg::execute() {
   met1 = metc->at(metc->size() - 1);
   //met1 = metc->at(7);
 
-  /*
-  //Iterate over all (Don't think needed)
-  std::vector<xAOD::MissingET> met_vector;
-  double total_met = 0;
-  double total_sumet = 0;
-  int number = 1;
-  for(xAOD::MissingETContainer::const_iterator it=metc->begin(); it!=metc->end(); it++){
-    met1 = *it;
-    met_vector.push_back(*met1);
-    std::cout<< met1->met() << " - met," << met1->sumet() << " - sumet" << std::endl;
-    if(number <= 7){
-      total_met += met1->met();
-      total_sumet += met1->sumet();
-    }
-    number++;
-  }
-  std::cout << "Total met (first 7) = " << total_met << ", total sumet (first 7) = " << total_sumet << std::endl << std::endl;
-  */
-
-
-  /*
-  if(no_el == 2){
-    if(candidate_els[0]->charge() == -candidate_els[1]->charge()){
-      maxw_m = APPLY(m_mmt, ei, candidate_els[0], candidate_els[1], met1, no_25Jets);
-      m_myHist->Fill(maxw_m);
-    }   
-  }else if(no_mu == 2){
-    if(candidate_mus[0]->charge() == -candidate_mus[1]->charge()){
-      maxw_m = APPLY(m_mmt, ei, candidate_mus[0], candidate_mus[1], met1, no_25Jets);
-      m_myHist->Fill(maxw_m);   
-    }
-  }
-  else if((no_mu == 1)&&(no_el == 1)){
-    if(candidate_els[0]->charge() == -candidate_mus[0]->charge()){
-      maxw_m = APPLY(m_mmt, ei, candidate_els[0], candidate_mus[0], met1, no_25Jets);
-      m_myHist->Fill(maxw_m);   
-    }
-  }else{
-    //fail++;
-    //wk()->skipEvent();
-  }
   
-  
-  if(met1->met() > 20e3){
-  if(candidate_tjs.size() == 1){
-    if((no_el == 1)&&(no_mu == 0)){
-      if(candidate_els[0]->charge() == -candidate_tjs[0]->charge()){
-        //maxw_m = APPLY(m_mmt, ei, candidate_tjs[0], candidate_els[0], met1, no_25Jets);
-        //std::cout << m_mmt->get()->GetFitSignificance(1) << " - signif. " << std::endl;
-        //double rms2Mpv = m_mmt->get()->GetRms2Mpv();
-        //m_myHist->Fill(maxw_m);   
-      }
-    }else if((no_el == 0)&&(no_mu == 1)){
-      if(candidate_mus[0]->charge() == -candidate_tjs[0]->charge()){
-        //maxw_m = APPLY(m_mmt, ei, candidate_tjs[0], candidate_mus[0], met1, no_25Jets);
-        //std::cout << m_mmt->get()->GetFitSignificance(1) << " - signif. " << std::endl;
-        //m_myHist->Fill(maxw_m);   
-      }
-    }
-  }
-  }
-  //if(maxw_m != 0) std::cout << maxw_m << " = mass " << std::endl;
-  */
-
-
 
   double lep_pt, lep_phi, lep_eta, tau_pt, tau_phi, tau_eta, nu_T_lep, nu_T_had, met_et, met_phi, x1, x2;
 
@@ -292,7 +177,7 @@ StatusCode DiTauAlg::execute() {
     } else {
       total_charge += Muons[0]->charge();
     }
-    if(total_charge == 0){ //wk->skipEvent();?????
+    if(total_charge == 0){ 
       if(met1->met() > 20e3){
       if(Electrons.size() == 1){
         lep_pt = Electrons[0]->pt();
@@ -323,18 +208,12 @@ StatusCode DiTauAlg::execute() {
       m_myHist->Fill(maxw_m);
     }
     }
-  else{
-    //std::cout << "Skipping event" << std::endl;
-    //wk()->SkipEvent();
-  }
-    // reset vectors after event
-    Electrons.clear(); Muons.clear(); TauJets.clear();
   }
 
 
 
 
-
+  CLEAR();
   setFilterPassed(true); //if got here, assume that means algorithm passed
   return StatusCode::SUCCESS;
 }
