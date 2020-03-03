@@ -125,10 +125,6 @@ StatusCode DiTauAlg::initialize() {
    CHECK( ORUtils::recommendedTools(orFlags, toolBox) );
    CHECK( toolBox.initialize() );
 
-  //Electrons.erase(Electrons.begin(), Electrons.end());
-  //Muons.clear();
-  //TauJets.erase(TauJets.begin(), TauJets.end());
-
   pass = 0;
   fail = 0;
   maxw_m = 0;

@@ -54,7 +54,7 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    asg::AnaToolHandle<MissingMassTool> m_mmt;
    ORUtils::ORFlags orFlags;
    ORUtils::ToolBox toolBox;
-   asg::AnaToolHandle<
+//   asg::AnaToolHandle<
 
    double pass,fail;
    double maxw_m; //reconstructed MMC mass
