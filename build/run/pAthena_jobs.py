@@ -39,10 +39,22 @@ inDSs = [
     'mc16_13TeV.361108.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Ztautau.merge.AOD.e7623_e5984_s3126_r11591_r10726_tid19119295_00',
     'mc16_13TeV.361108.PowhegPythia8EvtGen_AZNLOCTEQ6L1_Ztautau.merge.AOD.e7623_e5984_s3126_r11590_r10726_tid19119260_00',
     ]
-    
+
+command = "pathena --inDS "
+
 for i,inDS in enumerate(inDSs):
+<<<<<<< HEAD
     
     command = "pathena  --inDS %s/ --mergeOutput --outDS user.jaharris.361108_collinear_MMC_03-03_%i ~/public/Masters/build/x86_64-centos7-gcc62-opt/jobOptions/DiTau/DiTauAlgJobOptions.py" % (inDS, i+1)
     print command
     os.system(command)
     print "\n"
+=======
+    command += "%s/,"%(inDS)
+
+command = command[:-1] # take off the last comma
+command += " --mergeOutput --outDS user.aburke.testing_new_pAthena_jobs_command ~/public/Masters/build/x86_64-centos7-gcc62-opt/jobOptions/DiTau/DiTauAlgJobOptions.py"
+print command
+os.system(command)
+print "\n"
+>>>>>>> af5204e61bf54a31883a6753f6ccea941c791787
