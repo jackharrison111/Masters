@@ -12,6 +12,7 @@
 #include "AthContainers/DataVector.h"
 #include "PATInterfaces/CorrectionCode.h"
 #include "xAODEventInfo/EventInfo.h"
+
 //#include "EventLoop/Worker.h"  //TODO::FIX SKIPPING EVENTS
 
 
@@ -114,6 +115,15 @@ StatusCode DiTauAlg::initialize() {
   //CHECK(m_mmt->setProperty("UseMETDphiLL", 1)); only for leplep
   CHECK(m_mmt->setProperty("UseEfficiencyRecovery", 1));
 
+   orFlags.boostedLeptons = true;
+   orFlags.doElectrons = true;
+   orFlags.doMuons = true;
+   orFlags.doJets = true;
+   orFlags.doTaus = true;
+   orFlags.doPhotons = true;//false;
+
+   CHECK( ORUtils::recommendedTools(orFlags, toolBox) );
+   CHECK( toolBox.initialize() );
 
   //Electrons.erase(Electrons.begin(), Electrons.end());
   //Muons.clear();
