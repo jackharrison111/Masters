@@ -46,7 +46,7 @@ for i,inDS in enumerate(inDSs):
     command += "%s/,"%(inDS)
 
 command = command[:-1] # take off the last comma
-command += " --mergeOutput --outDS user.aburke.testing_new_pAthena_jobs_command ~/public/Masters/build/x86_64-centos7-gcc62-opt/jobOptions/DiTau/DiTauAlgJobOptions.py"
+command += " --mergeOutput --outDS user.jaharris.Collinear_MMC_Comparison_03-03 ~/public/Masters/build/x86_64-centos7-gcc62-opt/jobOptions/DiTau/DiTauAlgJobOptions.py"
 print command
 os.system(command)
 print "\n"

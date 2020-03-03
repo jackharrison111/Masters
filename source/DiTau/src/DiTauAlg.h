@@ -32,7 +32,7 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
   virtual StatusCode  finalize();       //once, after all events processed
   double APPLY(asg::AnaToolHandle<MissingMassTool>m_mmt, const xAOD::EventInfo* ei, const xAOD::IParticle* x, const xAOD::IParticle* y, const xAOD::MissingET* met, double num);
   bool GetCandidates(const int no_el, const int no_mu, const int no_tau);
-
+  void CLEAR();
 
   ///Other useful methods provided by base class are:
   ///evtStore()        : ServiceHandle to main event data storegate
