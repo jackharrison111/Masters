@@ -51,22 +51,22 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
   CHECK(evtStore()->retrieve(ec, "Electrons"));
   for(auto it = ec->begin(); it != ec->end(); it++){
     const xAOD::Electron *e = *it;
-    if(e->pt()/1000 >= 25 && abs(e->eta()) <= 2.5){
+    if(e->pt()/1000 >= 7 && abs(e->eta()) <= 2.5){
       Electrons.push_back(e);
     }
   }
-  if(Electrons.size() != no_el){CLEAR(); return false;} 
+  if((int)Electrons.size() != no_el){CLEAR(); return false;} 
  
   //MUONS
   const xAOD::MuonContainer *mc = 0;
   CHECK(evtStore()->retrieve(mc, "Muons"));
   for(auto it = mc->begin(); it != mc->end(); it++){
     const xAOD::Muon *mu = *it;
-    if(mu->pt()/1000 >= 25 && abs(mu->eta()) <= 2.5){
+    if(mu->pt()/1000 >= 7 && abs(mu->eta()) <= 2.5){
       Muons.push_back(mu);
     }
   }
-  if(Muons.size() != no_mu){CLEAR(); return false;} 
+  if((int)Muons.size() != no_mu){CLEAR(); return false;} 
   
   //TAUS
   const xAOD::TauJetContainer *tjc = 0;
@@ -80,7 +80,7 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
       }
     }
   }
-  if(TauJets.size() != no_tau){CLEAR(); return false;} 
+  if((int)TauJets.size() != no_tau){CLEAR(); return false;} 
   return true;
 }
 
@@ -122,8 +122,8 @@ StatusCode DiTauAlg::initialize() {
    orFlags.doTaus = true;
    orFlags.doPhotons = true;//false;
 
-   CHECK( ORUtils::recommendedTools(orFlags, toolBox) );
-   CHECK( toolBox.initialize() );
+  // CHECK( ORUtils::recommendedTools(orFlags, toolBox) );
+  // CHECK( toolBox.initialize() );
 
   pass = 0;
   fail = 0;
@@ -139,7 +139,7 @@ StatusCode DiTauAlg::execute() {
 
   if(no_1lep1tau_events > 163208){ //163208 is no. events in mc15 Ntuples
     setFilterPassed(true);
-    return StatusCode::SUCCESS
+    return StatusCode::SUCCESS;
   }
 
 
@@ -164,8 +164,7 @@ StatusCode DiTauAlg::execute() {
   //Get the last one
   //std::cout << metc->size() << " = size of metc" << std::endl;
   const xAOD::MissingET *met1 = 0;
-  met1 = metc->at(metc->size() - 1);
-  //met1 = metc->at(7);
+  met1 = metc->at(7);
 
   
 
@@ -173,6 +172,7 @@ StatusCode DiTauAlg::execute() {
 
   double invM1, invM2;
   if(GetCandidates(1,0,1) || GetCandidates(0,1,1)){
+    no_1lep1tau_events++;
     double total_charge = TauJets[0]->charge();
     if(Electrons.size() == 1){
       total_charge += Electrons[0]->charge();
@@ -181,40 +181,36 @@ StatusCode DiTauAlg::execute() {
     }
     if(total_charge == 0){ 
       if(met1->met() > 20e3){
-      if(Electrons.size() == 1){
-        lep_pt = Electrons[0]->pt();
-        lep_phi = Electrons[0]->phi();
-        lep_eta = Electrons[0]->eta();
-        maxw_m = APPLY(m_mmt, ei, TauJets[0], Electrons[0], met1, no_25Jets);
-      }else{
-        lep_pt = Muons[0]->pt();
-        lep_phi = Muons[0]->phi();
-        lep_eta = Muons[0]->eta();
-        maxw_m = APPLY(m_mmt, ei, TauJets[0], Muons[0], met1, no_25Jets);
-      }
-      tau_pt = TauJets[0]->pt();
-      tau_eta = TauJets[0]->eta();
-      tau_phi = TauJets[0]->phi();
-      met_et = met1->met();
-      met_phi = met1->phi();
+        if(Electrons.size() == 1){
+          lep_pt = Electrons[0]->pt();
+          lep_phi = Electrons[0]->phi();
+          lep_eta = Electrons[0]->eta();
+          maxw_m = APPLY(m_mmt, ei, TauJets[0], Electrons[0], met1, no_25Jets);
+        }else{
+          lep_pt = Muons[0]->pt();
+          lep_phi = Muons[0]->phi();
+          lep_eta = Muons[0]->eta();
+          maxw_m = APPLY(m_mmt, ei, TauJets[0], Muons[0], met1, no_25Jets);
+        }
+        tau_pt = TauJets[0]->pt();
+        tau_eta = TauJets[0]->eta();
+        tau_phi = TauJets[0]->phi();
+        met_et = met1->met();
+        met_phi = met1->phi();
 
-      nu_T_lep = met_et*(sin(met_phi)-sin(tau_phi))/(sin(lep_phi)-sin(tau_phi));
-      nu_T_had = met_et*(sin(met_phi)-sin(lep_phi))/(sin(tau_phi)-sin(lep_phi));
+        nu_T_lep = met_et*(sin(met_phi)-sin(tau_phi))/(sin(lep_phi)-sin(tau_phi));
+        nu_T_had = met_et*(sin(met_phi)-sin(lep_phi))/(sin(tau_phi)-sin(lep_phi));
 
-      invM1 = sqrt(2*lep_pt*tau_pt*(cosh(lep_eta-tau_eta)-cos(lep_phi-tau_phi)))/1000;
-      x1 = lep_pt/(lep_pt+nu_T_lep);
-      x2 = tau_pt/(tau_pt+nu_T_had);
-      invM2 = invM1/sqrt(x1*x2);
+        invM1 = sqrt(2*lep_pt*tau_pt*(cosh(lep_eta-tau_eta)-cos(lep_phi-tau_phi)))/1000;
+        x1 = lep_pt/(lep_pt+nu_T_lep);
+        x2 = tau_pt/(tau_pt+nu_T_had);
+        invM2 = invM1/sqrt(x1*x2);
  
-      collinear_Hist->Fill(invM2); 
-      m_myHist->Fill(maxw_m);
-      
-      no_1lep1tau_events++;
-    }
+        collinear_Hist->Fill(invM2); 
+        m_myHist->Fill(maxw_m);
+      }
     }
   }
-
-
 
 
   CLEAR();
