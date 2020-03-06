@@ -43,10 +43,11 @@ inDSs = [
 command = "pathena --inDS "
 
 for i,inDS in enumerate(inDSs):
-    command += "%s/,"%(inDS)
+    if i == 0:
+    	command += "%s/,"%(inDS)
 
 command = command[:-1] # take off the last comma
-command += " --mergeOutput --outDS user.jaharris.Collinear_MMC_Comparison_03-03 ~/public/Masters/build/x86_64-centos7-gcc62-opt/jobOptions/DiTau/DiTauAlgJobOptions.py"
+command += " --mergeOutput --outDS user.jaharris.1stAOD_MMC_met7Comparison_05-03 ~/public/Masters/build/x86_64-centos7-gcc62-opt/jobOptions/DiTau/DiTauAlgJobOptions.py"
 print command
 os.system(command)
 print "\n"

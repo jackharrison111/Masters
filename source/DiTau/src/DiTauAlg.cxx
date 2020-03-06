@@ -89,7 +89,7 @@ StatusCode DiTauAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
   
   m_myHist = new TH1D("invMass","Invariant Mass Distribution",160,0,160);
-  collinear_Hist = new TH1D("col_invMass","Invariant Mass Distribution",160,0,160);
+  collinear_Hist = new TH1D("met7_invMass","Invariant Mass Distribution",160,0,15);
 
 
   //m_my2DHist = new TH2D("invMassvsRMS","Invariant Mass against RMS/m.p.v",160,0,160,160,0,1);
@@ -115,7 +115,7 @@ StatusCode DiTauAlg::initialize() {
   //CHECK(m_mmt->setProperty("UseMETDphiLL", 1)); only for leplep
   CHECK(m_mmt->setProperty("UseEfficiencyRecovery", 1));
 
-   orFlags.boostedLeptons = true;
+   /*orFlags.boostedLeptons = true;
    orFlags.doElectrons = true;
    orFlags.doMuons = true;
    orFlags.doJets = true;
@@ -123,7 +123,7 @@ StatusCode DiTauAlg::initialize() {
    orFlags.doPhotons = true;//false;
 
    CHECK( ORUtils::recommendedTools(orFlags, toolBox) );
-   CHECK( toolBox.initialize() );
+   CHECK( toolBox.initialize() );*/
 
   pass = 0;
   fail = 0;
@@ -139,7 +139,7 @@ StatusCode DiTauAlg::execute() {
 
   if(no_1lep1tau_events > 163208){ //163208 is no. events in mc15 Ntuples
     setFilterPassed(true);
-    return StatusCode::SUCCESS
+    return StatusCode::SUCCESS;
   }
 
 
@@ -164,13 +164,15 @@ StatusCode DiTauAlg::execute() {
   //Get the last one
   //std::cout << metc->size() << " = size of metc" << std::endl;
   const xAOD::MissingET *met1 = 0;
+  const xAOD::MissingET *met2 = 0;
   met1 = metc->at(metc->size() - 1);
-  //met1 = metc->at(7);
+  met2 = metc->at(7);
 
   
 
   double lep_pt, lep_phi, lep_eta, tau_pt, tau_phi, tau_eta, nu_T_lep, nu_T_had, met_et, met_phi, x1, x2;
-
+  double mass2 = -1;
+  
   double invM1, invM2;
   if(GetCandidates(1,0,1) || GetCandidates(0,1,1)){
     double total_charge = TauJets[0]->charge();
@@ -185,12 +187,14 @@ StatusCode DiTauAlg::execute() {
         lep_pt = Electrons[0]->pt();
         lep_phi = Electrons[0]->phi();
         lep_eta = Electrons[0]->eta();
-        maxw_m = APPLY(m_mmt, ei, TauJets[0], Electrons[0], met1, no_25Jets);
+        //maxw_m = APPLY(m_mmt, ei, TauJets[0], Electrons[0], met1, no_25Jets);
+        mass2 = APPLY(m_mmt, ei, TauJets[0], Electrons[0], met2, no_25Jets);
       }else{
         lep_pt = Muons[0]->pt();
         lep_phi = Muons[0]->phi();
         lep_eta = Muons[0]->eta();
-        maxw_m = APPLY(m_mmt, ei, TauJets[0], Muons[0], met1, no_25Jets);
+        //maxw_m = APPLY(m_mmt, ei, TauJets[0], Muons[0], met1, no_25Jets);
+        mass2 = APPLY(m_mmt, ei, TauJets[0], Muons[0], met2, no_25Jets);
       }
       tau_pt = TauJets[0]->pt();
       tau_eta = TauJets[0]->eta();
@@ -206,8 +210,8 @@ StatusCode DiTauAlg::execute() {
       x2 = tau_pt/(tau_pt+nu_T_had);
       invM2 = invM1/sqrt(x1*x2);
  
-      collinear_Hist->Fill(invM2); 
-      m_myHist->Fill(maxw_m);
+      collinear_Hist->Fill(m_mmt->get()->GetFitSignificance()); 
+      //m_myHist->Fill(invM2);
       
       no_1lep1tau_events++;
     }
