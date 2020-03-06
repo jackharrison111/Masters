@@ -13,7 +13,6 @@
 #include "PATInterfaces/CorrectionCode.h"
 #include "xAODEventInfo/EventInfo.h"
 
-//#include "EventLoop/Worker.h"  //TODO::FIX SKIPPING EVENTS
 
 int no_1lep1tau_events{0};
 
@@ -89,7 +88,7 @@ StatusCode DiTauAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
   
   m_myHist = new TH1D("invMass","Invariant Mass Distribution",160,0,160);
-  collinear_Hist = new TH1D("met7_invMass","Invariant Mass Distribution",160,0,15);
+  collinear_Hist = new TH1D("met7_invMass","Invariant Mass Distribution",160,0,160);
 
 
   //m_my2DHist = new TH2D("invMassvsRMS","Invariant Mass against RMS/m.p.v",160,0,160,160,0,1);
@@ -165,8 +164,7 @@ StatusCode DiTauAlg::execute() {
   //std::cout << metc->size() << " = size of metc" << std::endl;
   const xAOD::MissingET *met1 = 0;
   const xAOD::MissingET *met2 = 0;
-  met1 = metc->at(metc->size() - 1);
-  met2 = metc->at(7);
+  met1 = metc->at(7);
 
   
 
@@ -187,14 +185,12 @@ StatusCode DiTauAlg::execute() {
         lep_pt = Electrons[0]->pt();
         lep_phi = Electrons[0]->phi();
         lep_eta = Electrons[0]->eta();
-        //maxw_m = APPLY(m_mmt, ei, TauJets[0], Electrons[0], met1, no_25Jets);
-        mass2 = APPLY(m_mmt, ei, TauJets[0], Electrons[0], met2, no_25Jets);
+        maxw_m = APPLY(m_mmt, ei, TauJets[0], Electrons[0], met1, no_25Jets);
       }else{
         lep_pt = Muons[0]->pt();
         lep_phi = Muons[0]->phi();
         lep_eta = Muons[0]->eta();
-        //maxw_m = APPLY(m_mmt, ei, TauJets[0], Muons[0], met1, no_25Jets);
-        mass2 = APPLY(m_mmt, ei, TauJets[0], Muons[0], met2, no_25Jets);
+        maxw_m = APPLY(m_mmt, ei, TauJets[0], Muons[0], met1, no_25Jets);
       }
       tau_pt = TauJets[0]->pt();
       tau_eta = TauJets[0]->eta();
@@ -209,10 +205,11 @@ StatusCode DiTauAlg::execute() {
       x1 = lep_pt/(lep_pt+nu_T_lep);
       x2 = tau_pt/(tau_pt+nu_T_had);
       invM2 = invM1/sqrt(x1*x2);
- 
-      collinear_Hist->Fill(m_mmt->get()->GetFitSignificance()); 
-      //m_myHist->Fill(invM2);
-      
+
+      collinear_Hist->Fill(m_mmt->get()->GetFitSignificance(0)); 
+      if(m_mmt->get()->GetFitSignificance(0) > 6){
+        m_myHist->Fill(invM2);
+      }
       no_1lep1tau_events++;
     }
     }

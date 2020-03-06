@@ -1,11 +1,9 @@
 //change this
-std::string me = "jaharris.Collinear_MMC_Comparison_03-03_MYSTREAM/user.jaharris.";
-const int size{113};
-std::string JEDITaskID[size] = {"20718468" , "20718456"};//,"","","",...};
-std::string bigJobID = "20719143";
+std::string me = "jaharris.10AODS_MMC_met7Comparison_05-03_MYSTREAM/user.jaharris.";
+const int size{1};
+//std::string JEDITaskID[size] = {"20718468" , "20718456"};//,"","","",...};
+std::string bigJobID = "20730472";
 //user.jaharris.20719143.MYSTREAM._000001.root  example big job file
-//user.jaharris/user.jaharris.20719143.MYSTREAM._000001.root
-
 
 void plot(){
 	//gROOT->SetStyle("ATLAS");
@@ -28,8 +26,8 @@ void plot(){
 	
 	double n_entries =0;
 
-	for(int i{}; i < size+1; i++){
-		if(i==0)continue;
+	for(int i{}; i < size; i++){
+		i++;
 		std::string intString = to_string(i);
 		if(i < 10){ intString = "00" + intString;}
                 else if((i>9)&&(i<100)){ intString = "0" + intString;}
@@ -55,23 +53,24 @@ void plot(){
 			if(filenumber!=0){
 				totalHist->Add(myHist);
 				double myHist_entries = myHist->GetEntries();
-				if(myHist_entries > n_entries){ 
+				//Find the biggest file in the histograms::
+				/*if(myHist_entries > n_entries){ 
 					n_entries = myHist_entries;
 					std::cout << i << std::endl;
 				}
-				if(i==46){totalHist_col->Add(myHist);}
+				if(i==46){totalHist_col->Add(myHist);}*/
 			}else{
-				//totalHist_col->Add(myHist);
+				totalHist_col->Add(myHist);
 			}
 			filenumber++;
 		}
 		f->Close();
 		delete f;
 	}
-	legend->AddEntry(totalHist, "MMC", "l");
-	legend->AddEntry(totalHist_col, "46", "l");
+	legend->AddEntry(totalHist, "met(7)", "l");
+	legend->AddEntry(totalHist_col, "met(-1)", "l");
 	totalHist->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
-	//totalHist->Draw("hist");
+	totalHist->Draw("hist");
 	totalHist_col->SetLineColor(2);
 	totalHist_col->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
 	totalHist_col->Draw("histsame");
