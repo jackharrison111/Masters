@@ -43,6 +43,15 @@ void DiTauAlg::CLEAR(){
   Electrons.clear(); Muons.clear(); TauJets.clear();
 }
 
+double DiTauAlg::GetOpenAngle(double ang1, double ang2){
+  double openAngle = abs(ang1 - ang2);
+  if(openAngle > M_PI){
+    openAngle = 2*M_PI - openAngle;
+  }
+  return openAngle;
+}
+
+
 bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau){
   
   //ELECTRONS
@@ -72,11 +81,8 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
   CHECK(evtStore()->retrieve(tjc, "TauJets"));
   for(auto it = tjc->begin(); it != tjc->end(); it++){
     const xAOD::TauJet *tj = *it;
-    if(tj->pt()/1000 >= 20 && abs(tj->eta()) <= 2.5){
-      // https://arxiv.org/pdf/1607.05979.pdf p7 :
-      if(abs(tj->eta()) > 1.37 && abs(tj->eta()) < 1.52){
-        TauJets.push_back(tj);
-      }
+    if(tau_selection_t->accept(*tj)){	//pt>20 , eta0-1.37 1.52-2.5, EOR, |tauCharge|=1,( https://arxiv.org/pdf/1607.05979.pdf p7 )
+      TauJets.push_back(tj);
     }
   }
   if((int)TauJets.size() != no_tau){CLEAR(); return false;} 
@@ -117,6 +123,11 @@ StatusCode DiTauAlg::initialize() {
   //CHECK(m_mmt->setProperty("UseMETDphiLL", 1)); only for leplep
   CHECK(m_mmt->setProperty("UseEfficiencyRecovery", 1));
 
+  //TauAnalysisTools::TauSelectionTool TauSelTool( "TauSelectionTool" );
+  const auto TauSelectionToolName = "TauAnalysisTools::TauSelectionTool/TauSelectionTool";
+  tau_selection_t.setTypeAndName(TauSelectionToolName);
+  CHECK(tau_selection_t.initialize());
+
    /*orFlags.boostedLeptons = true;
    orFlags.doElectrons = true;
    orFlags.doMuons = true;
@@ -150,10 +161,10 @@ StatusCode DiTauAlg::execute() {
   ATH_MSG_DEBUG ("Executing " << name() << "...");
   setFilterPassed(false); //optional: start with algorithm not passed
 
-  //if(no_1lep1tau_events > 163208){ //163208 is no. events in mc15 Ntuples
-    //setFilterPassed(true);
-    //return StatusCode::SUCCESS;
-  //}
+  /*if(no_1lep1tau_events > 163208){ //163208 is no. events in mc15 Ntuples
+    setFilterPassed(true);
+    return StatusCode::SUCCESS;
+  }*/
 
   //EVENT INFO:
   const xAOD::EventInfo* ei = 0;
@@ -213,10 +224,20 @@ StatusCode DiTauAlg::execute() {
           lep_eta = Electrons[0]->eta();
           maxw_m = APPLY(m_mmt, ei, TauJets[0], Electrons[0], met1, no_25Jets);
         }else{
-          lep_pt = Muons[0]->pt();
-          lep_phi = Muons[0]->phi();
-          lep_eta = Muons[0]->eta();
-          maxw_m = APPLY(m_mmt, ei, TauJets[0], Muons[0], met1, no_25Jets);
+          CLEAR();
+          setFilterPassed(true); //if got here, assume that means algorithm passed
+          return StatusCode::SUCCESS;
+        }
+      }else{
+        if(GetOpenAngle(TauJets[0]->phi(), Muons[0]->phi()) < 2){
+        lep_pt = Muons[0]->pt();
+        lep_phi = Muons[0]->phi();
+        lep_eta = Muons[0]->eta();
+        maxw_m = APPLY(m_mmt, ei, TauJets[0], Muons[0], met1, no_25Jets);
+        }else{
+          CLEAR();
+          setFilterPassed(true); //if got here, assume that means algorithm passed
+          return StatusCode::SUCCESS;
         }
         tau_pt = TauJets[0]->pt();
         tau_eta = TauJets[0]->eta();
