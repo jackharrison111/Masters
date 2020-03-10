@@ -8,6 +8,7 @@
 #include "xAODEgamma/ElectronContainer.h"
 #include "xAODMuon/MuonContainer.h"
 #include "xAODTau/TauJetContainer.h"
+#include "TauAnalysisTools/TauSelectionTool.h"
 
 //Example ROOT Includes
 //#include "TTree.h"
@@ -32,6 +33,7 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
   virtual StatusCode  finalize();       //once, after all events processed
   double APPLY(asg::AnaToolHandle<MissingMassTool>m_mmt, const xAOD::EventInfo* ei, const xAOD::IParticle* x, const xAOD::IParticle* y, const xAOD::MissingET* met, double num);
   bool GetCandidates(const int no_el, const int no_mu, const int no_tau);
+  double GetOpenAngle(double ang1, double ang2);
   void CLEAR();
 
   ///Other useful methods provided by base class are:
@@ -52,10 +54,8 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    TH1D* collinear_Hist = 0;
    TH2D* m_my2DHist = 0;
    asg::AnaToolHandle<MissingMassTool> m_mmt;
-   ORUtils::ORFlags orFlags;
-   ORUtils::ToolBox toolBox;
-//   asg::AnaToolHandle<
-
+   asg::AnaToolHandle<TauAnalysisTools::TauSelectionTool> tau_selection_t;
+   //TauAnalysisTools::TauSelectionTool TauSelTool( "TauSelectionTool" );
    double pass,fail;
    double maxw_m; //reconstructed MMC mass
 }; 
