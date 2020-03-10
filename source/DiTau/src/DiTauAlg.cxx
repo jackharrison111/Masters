@@ -115,15 +115,27 @@ StatusCode DiTauAlg::initialize() {
   //CHECK(m_mmt->setProperty("UseMETDphiLL", 1)); only for leplep
   CHECK(m_mmt->setProperty("UseEfficiencyRecovery", 1));
 
-   orFlags.boostedLeptons = true;
+   /*orFlags.boostedLeptons = true;
    orFlags.doElectrons = true;
    orFlags.doMuons = true;
    orFlags.doJets = true;
    orFlags.doTaus = true;
-   orFlags.doPhotons = true;//false;
+   orFlags.doPhotons = true;//false;*/
 
-  // CHECK( ORUtils::recommendedTools(orFlags, toolBox) );
-  // CHECK( toolBox.initialize() );
+   //CHECK( ORUtils::recommendedTools(orFlags, toolBox) );
+   //CHECK( toolBox.initialize() );
+   const auto masterToolName = "ORUtils::OverlapRemovalTool/ORTool3";
+   masterHandle.setType(masterToolName);
+   overlapHandle.setType("");
+
+   const auto overlapToolName = "ORUtils::DeltaROverlapTool/ORTool3.DrORT3";
+   const auto key = "EleJetORT";
+
+   overlapHandle.setTypeAndName(overlapToolName);
+   CHECK( masterHandle.setProperty(key, overlapHandle) );
+   CHECK( masterHandle.initialize() );
+   CHECK( masterHandle.get() != nullptr );
+
 
   pass = 0;
   fail = 0;
@@ -141,7 +153,6 @@ StatusCode DiTauAlg::execute() {
     setFilterPassed(true);
     return StatusCode::SUCCESS;
   }
-
 
   //EVENT INFO:
   const xAOD::EventInfo* ei = 0;
@@ -167,6 +178,18 @@ StatusCode DiTauAlg::execute() {
   met1 = metc->at(7);
 
   
+  const xAOD::ElectronContainer *ec = 0;
+  CHECK(evtStore()->retrieve(ec, "Electrons"));
+  const xAOD::MuonContainer *mc = 0;
+  CHECK(evtStore()->retrieve(mc, "Muons"));
+  const xAOD::TauJetContainer *tjc = 0;
+  CHECK(evtStore()->retrieve(tjc, "TauJets"));
+  if(ec->size()>6){
+    std::cout << "size before = " << ec->size() << std::endl;
+    masterHandle->removeOverlaps(ec, mc, jc);
+    std::cout << "size after = " << ec->size() << std::endl;
+  }
+
 
   double lep_pt, lep_phi, lep_eta, tau_pt, tau_phi, tau_eta, nu_T_lep, nu_T_had, met_et, met_phi, x1, x2;
 

@@ -5,6 +5,8 @@
 #include "AsgTools/AnaToolHandle.h"
 #include "DiTauMassTools/MissingMassTool.h"
 #include "AssociationUtils/OverlapRemovalInit.h"
+#include "AssociationUtils/IOverlapTool.h"
+#include "AssociationUtils/IOverlapRemovalTool.h"
 #include "xAODEgamma/ElectronContainer.h"
 #include "xAODMuon/MuonContainer.h"
 #include "xAODTau/TauJetContainer.h"
@@ -52,9 +54,12 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    TH1D* collinear_Hist = 0;
    TH2D* m_my2DHist = 0;
    asg::AnaToolHandle<MissingMassTool> m_mmt;
-   ORUtils::ORFlags orFlags;
-   ORUtils::ToolBox toolBox;
-//   asg::AnaToolHandle<
+// ORUtils::ORFlags orFlags;
+// ORUtils::ToolBox toolBox;
+   //const std::string/*auto*/ masterToolName = "ORUtils::OverlapRemovalTool/ORTool3";
+
+   asg::AnaToolHandle<ORUtils::IOverlapRemovalTool> masterHandle;
+   asg::AnaToolHandle<ORUtils::IOverlapTool> overlapHandle;
 
    double pass,fail;
    double maxw_m; //reconstructed MMC mass
