@@ -86,20 +86,23 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
 
 StatusCode DiTauAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
-  
-  m_myHist = new TH1D("invMass","Invariant Mass Distribution",160,0,160);
-  collinear_Hist = new TH1D("met7_invMass","Invariant Mass Distribution",160,0,160);
+ 
+  vis_hist = new TH1D("visMass","Visible Mass Distribution",160,0,160);
+  mmc_hist = new TH1D("invMass","Invariant Mass Distribution",160,0,160);
+  collinear_hist = new TH1D("met7_invMass","Invariant Mass Distribution",160,0,160);
 
 
   //m_my2DHist = new TH2D("invMassvsRMS","Invariant Mass against RMS/m.p.v",160,0,160,160,0,1);
-  m_myHist->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
-  m_myHist->SetStats(0);
+  vis_hist->SetTitle("Visible Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
+  mmc_hist->SetTitle("Invariant Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
+  mmc_hist->SetStats(0);
   //m_my2DHist->SetTitle(";M_{#tau#tau} [GeV]; RMS/m.p.v");
   //m_my2DHist->SetStats(0);
 
-  CHECK( histSvc()->regHist("/MYSTREAM/invMass", m_myHist) ); //registers histogram to output stream
+  CHECK( histSvc()->regHist("/MYSTREAM/visMass", vis_hist) );
+  CHECK( histSvc()->regHist("/MYSTREAM/invMass", mmc_hist) ); //registers histogram to output stream
   //CHECK( histSvc()->regHist("/MYSTREAM/2DHist", m_my2DHist) ); //registers histogram to output stream
-  CHECK( histSvc()->regHist("/MYSTREAM/col_Hist", collinear_Hist) );
+  CHECK( histSvc()->regHist("/MYSTREAM/col_Hist", collinear_hist) );
 
 
   //INITIALISE THE MISSING MASS TOOL
@@ -147,10 +150,10 @@ StatusCode DiTauAlg::execute() {
   ATH_MSG_DEBUG ("Executing " << name() << "...");
   setFilterPassed(false); //optional: start with algorithm not passed
 
-  if(no_1lep1tau_events > 163208){ //163208 is no. events in mc15 Ntuples
-    setFilterPassed(true);
-    return StatusCode::SUCCESS;
-  }
+  //if(no_1lep1tau_events > 163208){ //163208 is no. events in mc15 Ntuples
+    //setFilterPassed(true);
+    //return StatusCode::SUCCESS;
+  //}
 
   //EVENT INFO:
   const xAOD::EventInfo* ei = 0;
@@ -184,9 +187,9 @@ StatusCode DiTauAlg::execute() {
   const xAOD::TauJetContainer *tjc = 0;
   CHECK(evtStore()->retrieve(tjc, "TauJets"));
   if(ec->size()>6){
-    std::cout << "size before = " << ec->size() << std::endl;
-    masterHandle->removeOverlaps(ec, mc, jc);
-    std::cout << "size after = " << ec->size() << std::endl;
+    //std::cout << "size before = " << ec->size() << std::endl;
+    //masterHandle->removeOverlaps(ec, mc, jc);
+    //std::cout << "size after = " << ec->size() << std::endl;
   }
 
 
@@ -203,7 +206,7 @@ StatusCode DiTauAlg::execute() {
       total_charge += Muons[0]->charge();
     }
     if(total_charge == 0){ 
-      if(met1->met() > 20e3){
+      //if(met1->met() > 20e3){
         if(Electrons.size() == 1){
           lep_pt = Electrons[0]->pt();
           lep_phi = Electrons[0]->phi();
@@ -229,9 +232,11 @@ StatusCode DiTauAlg::execute() {
         x2 = tau_pt/(tau_pt+nu_T_had);
         invM2 = invM1/sqrt(x1*x2);
  
-        collinear_Hist->Fill(invM2); 
-        m_myHist->Fill(maxw_m);
-      }
+        vis_hist->Fill(invM1);
+	//if(invM1<80)
+	collinear_hist->Fill(invM2); 
+        mmc_hist->Fill(maxw_m);
+      //}
     }
   }
 
