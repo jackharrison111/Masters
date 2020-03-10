@@ -1,8 +1,8 @@
 //change this
-std::string me = "jaharris.10AODS_MMC_met7Comparison_05-03_MYSTREAM/user.jaharris.";
-const int size{1};
+std::string me = "jaharris.1stAOD_MMC_met7Comparison_05-03_MYSTREAM/user.jaharris.";
+const int size{17};
 //std::string JEDITaskID[size] = {"20718468" , "20718456"};//,"","","",...};
-std::string bigJobID = "20730472";
+std::string bigJobID = "20730738";
 //user.jaharris.20719143.MYSTREAM._000001.root  example big job file
 
 void plot(){
@@ -67,8 +67,8 @@ void plot(){
 		f->Close();
 		delete f;
 	}
-	legend->AddEntry(totalHist, "met(7)", "l");
-	legend->AddEntry(totalHist_col, "met(-1)", "l");
+	legend->AddEntry(totalHist, "met(-1)", "l");
+	legend->AddEntry(totalHist_col, "met(7)", "l");
 	totalHist->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
 	totalHist->Draw("hist");
 	totalHist_col->SetLineColor(2);

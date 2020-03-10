@@ -44,11 +44,12 @@ inDSs = [
 command = "pathena --inDS "
 
 for i,inDS in enumerate(inDSs):
-    if i == 0:
+    if i < 4 :
     	command += "%s/,"%(inDS)
 
 command = command[:-1] # take off the last comma
-command += " --mergeOutput --outDS user.aburke.163208_events_Ntuple_metlast_dataset24_"+dt.datetime.now().strftime("%d-%m_%H:%M")+" ~/public/Masters/build/x86_64-centos7-gcc62-opt/jobOptions/DiTau/DiTauAlgJobOptions.py"
+command += " --mergeOutput --outDS user.jaharris.First3xAOD_MMC_Col_OpenAngCut2" + dt.datetime.now().strftime("%d-%m_%H-%M") + " ~/public/Masters/build/x86_64-centos7-gcc62-opt/jobOptions/DiTau/DiTauAlgJobOptions.py"
+
 print command
 os.system(command)
 print "\n"
