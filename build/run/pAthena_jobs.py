@@ -4,6 +4,7 @@
 
 import os
 import commands
+import datetime as dt
 
 # Put the list of datasets you want to run over here (remove the '/' from the end). 
 inDSs = [
@@ -43,7 +44,8 @@ inDSs = [
 command = "pathena --inDS "
 
 for i,inDS in enumerate(inDSs):
-    command += "%s/,"%(inDS)
+    if i == 0:
+    	command += "%s/,"%(inDS)
 
 command = command[:-1] # take off the last comma
 command += " --mergeOutput --outDS user.aburke.163208_events_Ntuple_metlast_dataset24_"+dt.datetime.now().strftime("%d-%m_%H:%M")+" ~/public/Masters/build/x86_64-centos7-gcc62-opt/jobOptions/DiTau/DiTauAlgJobOptions.py"

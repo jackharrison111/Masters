@@ -13,7 +13,6 @@
 #include "PATInterfaces/CorrectionCode.h"
 #include "xAODEventInfo/EventInfo.h"
 
-//#include "EventLoop/Worker.h"  //TODO::FIX SKIPPING EVENTS
 
 int no_1lep1tau_events{0};
 
@@ -89,7 +88,7 @@ StatusCode DiTauAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
   
   m_myHist = new TH1D("invMass","Invariant Mass Distribution",160,0,160);
-  collinear_Hist = new TH1D("col_invMass","Invariant Mass Distribution",160,0,160);
+  collinear_Hist = new TH1D("met7_invMass","Invariant Mass Distribution",160,0,160);
 
 
   //m_my2DHist = new TH2D("invMassvsRMS","Invariant Mass against RMS/m.p.v",160,0,160,160,0,1);
@@ -136,7 +135,6 @@ StatusCode DiTauAlg::initialize() {
    CHECK( masterHandle.initialize() );
    CHECK( masterHandle.get() != nullptr );
 
-
   pass = 0;
   fail = 0;
   maxw_m = 0;
@@ -175,6 +173,7 @@ StatusCode DiTauAlg::execute() {
   //Get the last one
   //std::cout << metc->size() << " = size of metc" << std::endl;
   const xAOD::MissingET *met1 = 0;
+  const xAOD::MissingET *met2 = 0;
   met1 = metc->at(7);
 
   
@@ -192,7 +191,8 @@ StatusCode DiTauAlg::execute() {
 
 
   double lep_pt, lep_phi, lep_eta, tau_pt, tau_phi, tau_eta, nu_T_lep, nu_T_had, met_et, met_phi, x1, x2;
-
+  double mass2 = -1;
+  
   double invM1, invM2;
   if(GetCandidates(1,0,1) || GetCandidates(0,1,1)){
     no_1lep1tau_events++;

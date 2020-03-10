@@ -1,7 +1,9 @@
 //change this
-std::string me = "jaharris/user.jaharris.";
-const int size{2};
-std::string JEDITaskID[size] = {"20718468" , "20718456"};//,"","","",...};
+std::string me = "jaharris.10AODS_MMC_met7Comparison_05-03_MYSTREAM/user.jaharris.";
+const int size{1};
+//std::string JEDITaskID[size] = {"20718468" , "20718456"};//,"","","",...};
+std::string bigJobID = "20730472";
+//user.jaharris.20719143.MYSTREAM._000001.root  example big job file
 
 void plot(){
 	//gROOT->SetStyle("ATLAS");
@@ -21,8 +23,16 @@ void plot(){
 	legend->SetDrawOption("br");*/
 	TH1D *totalHist = new TH1D("totalHist","",160,0,160);
 	TH1D *totalHist_col = new TH1D("totalHist","",160,0,160);
+	
+	double n_entries =0;
+
 	for(int i{}; i < size; i++){
-		TFile *f = new TFile(("user." + me + JEDITaskID[i] + ".MYSTREAM._000001.root").c_str());
+		i++;
+		std::string intString = to_string(i);
+		if(i < 10){ intString = "00" + intString;}
+                else if((i>9)&&(i<100)){ intString = "0" + intString;}
+
+		TFile *f = new TFile(("user." + me + bigJobID + ".MYSTREAM._000" + intString + ".root").c_str());
 		if(!f->IsOpen()){
 			std::cout << "Couldn't open file" << std::endl;
 		}
@@ -42,6 +52,13 @@ void plot(){
 			myHist->SetLineWidth(1);
 			if(filenumber!=0){
 				totalHist->Add(myHist);
+				double myHist_entries = myHist->GetEntries();
+				//Find the biggest file in the histograms::
+				/*if(myHist_entries > n_entries){ 
+					n_entries = myHist_entries;
+					std::cout << i << std::endl;
+				}
+				if(i==46){totalHist_col->Add(myHist);}*/
 			}else{
 				totalHist_col->Add(myHist);
 			}
@@ -50,8 +67,8 @@ void plot(){
 		f->Close();
 		delete f;
 	}
-	legend->AddEntry(totalHist, "MMC", "l");
-	legend->AddEntry(totalHist_col, "Collinear approx.", "l");
+	legend->AddEntry(totalHist, "met(7)", "l");
+	legend->AddEntry(totalHist_col, "met(-1)", "l");
 	totalHist->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
 	totalHist->Draw("hist");
 	totalHist_col->SetLineColor(2);
