@@ -6,6 +6,7 @@
 #include "DiTauAlg.h"
 #include "xAODJet/JetContainer.h"
 #include "xAODMissingET/MissingETContainer.h"
+#include "METInterface/IMETMaker.h"
 
 // core EDM includes
 #include "AthContainers/AuxElement.h"
