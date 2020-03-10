@@ -219,8 +219,8 @@ StatusCode DiTauAlg::execute() {
       total_charge += Muons[0]->charge();
     }
     if(total_charge == 0){ 
-      //if(met1->met() > 20e3){
-        if(Electrons.size() == 1){
+      if(Electrons.size() == 1){
+        if(GetOpenAngle(TauJets[0]->phi(), Electrons[0]->phi()) < 2){
           lep_pt = Electrons[0]->pt();
           lep_phi = Electrons[0]->phi();
           lep_eta = Electrons[0]->eta();
@@ -241,56 +241,56 @@ StatusCode DiTauAlg::execute() {
           setFilterPassed(true); //if got here, assume that means algorithm passed
           return StatusCode::SUCCESS;
         }
-        tau_pt = TauJets[0]->pt();
-        tau_eta = TauJets[0]->eta();
-        tau_phi = TauJets[0]->phi();
-        met_et = met1->met();
-        met_phi = met1->phi();
+      }
+      tau_pt = TauJets[0]->pt();
+      tau_eta = TauJets[0]->eta();
+      tau_phi = TauJets[0]->phi();
+      met_et = met1->met();
+      met_phi = met1->phi();
 
-        nu_T_lep = met_et*(sin(met_phi)-sin(tau_phi))/(sin(lep_phi)-sin(tau_phi));
-        nu_T_had = met_et*(sin(met_phi)-sin(lep_phi))/(sin(tau_phi)-sin(lep_phi));
+      nu_T_lep = met_et*(sin(met_phi)-sin(tau_phi))/(sin(lep_phi)-sin(tau_phi));
+      nu_T_had = met_et*(sin(met_phi)-sin(lep_phi))/(sin(tau_phi)-sin(lep_phi));
 
-        invM1 = sqrt(2*lep_pt*tau_pt*(cosh(lep_eta-tau_eta)-cos(lep_phi-tau_phi)))/1000;
-        x1 = lep_pt/(lep_pt+nu_T_lep);
-        x2 = tau_pt/(tau_pt+nu_T_had);
-        invM2 = invM1/sqrt(x1*x2);
+      invM1 = sqrt(2*lep_pt*tau_pt*(cosh(lep_eta-tau_eta)-cos(lep_phi-tau_phi)))/1000;
+      x1 = lep_pt/(lep_pt+nu_T_lep);
+      x2 = tau_pt/(tau_pt+nu_T_had);
+      invM2 = invM1/sqrt(x1*x2);
         
-	Double_t halfAng = GetOpenAngle(tau_phi,lep_phi)/2;
-	Double_t rotationAngle;
-	if(tau_phi<lep_phi){
-	  rotationAngle = -tau_phi;
-	}else{
-	  rotationAngle = -lep_phi;
-	}
-	tau_phi += rotationAngle;
-	lep_phi += rotationAngle;
-	met_phi += rotationAngle;
-        if(tau_phi > M_PI) tau_phi -= 2 * M_PI;
-	if(lep_phi > M_PI) lep_phi -= 2 * M_PI;
-	if(tau_phi < 0 || lep_phi < 0){
-	  tau_phi += halfAng;
-	  lep_phi += halfAng;
-	  met_phi += halfAng;
-	}else{
-	  tau_phi -= halfAng;
-	  lep_phi -= halfAng;
-	  met_phi -= halfAng;
-	}
-	if(met_phi > M_PI) met_phi -= 2 * M_PI;
-	else if(met_phi < -M_PI) met_phi += 2 * M_PI;
-	Double_t phi_rel = met_phi * M_PI / (2 * halfAng);
-        if(tau_phi > lep_phi){
-	  phi_rel_hist->Fill(phi_rel);
-	}else{
-	  phi_rel_hist->Fill(-1 * phi_rel);
-	}
+      Double_t halfAng = GetOpenAngle(tau_phi,lep_phi)/2;
+      Double_t rotationAngle;
+      if(tau_phi<lep_phi){
+        rotationAngle = -tau_phi;
+      }else{
+        rotationAngle = -lep_phi;
+      }
+      tau_phi += rotationAngle;
+      lep_phi += rotationAngle;
+      met_phi += rotationAngle;
+      if(tau_phi > M_PI) tau_phi -= 2 * M_PI;
+      if(lep_phi > M_PI) lep_phi -= 2 * M_PI;
+      if(tau_phi < 0 || lep_phi < 0){
+        tau_phi += halfAng;
+        lep_phi += halfAng;
+        met_phi += halfAng;
+      }else{
+        tau_phi -= halfAng;
+	lep_phi -= halfAng;
+	met_phi -= halfAng;
+      }
+      if(met_phi > M_PI) met_phi -= 2 * M_PI;
+      else if(met_phi < -M_PI) met_phi += 2 * M_PI;
+      Double_t phi_rel = met_phi * M_PI / (2 * halfAng);
+      if(tau_phi > lep_phi){
+	phi_rel_hist->Fill(phi_rel);
+      }else{
+	phi_rel_hist->Fill(-1 * phi_rel);
+      }
 	
-        vis_hist->Fill(invM1);
-	//if(invM1<80)
-	collinear_hist->Fill(invM2); 
-        mmc_hist->Fill(maxw_m);
-      //}
-    }
+      vis_hist->Fill(invM1);
+      //if(invM1<80)
+      collinear_hist->Fill(invM2); 
+      mmc_hist->Fill(maxw_m);
+      }
   }
 
 
