@@ -59,22 +59,22 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
   CHECK(evtStore()->retrieve(ec, "Electrons"));
   for(auto it = ec->begin(); it != ec->end(); it++){
     const xAOD::Electron *e = *it;
-    if(e->pt()/1000 >= 25 && abs(e->eta()) <= 2.5){
+    if(e->pt()/1000 >= 7 && abs(e->eta()) <= 2.5){
       Electrons.push_back(e);
     }
   }
-  if(Electrons.size() != no_el){CLEAR(); return false;} 
+  if((int)Electrons.size() != no_el){CLEAR(); return false;} 
  
   //MUONS
   const xAOD::MuonContainer *mc = 0;
   CHECK(evtStore()->retrieve(mc, "Muons"));
   for(auto it = mc->begin(); it != mc->end(); it++){
     const xAOD::Muon *mu = *it;
-    if(mu->pt()/1000 >= 25 && abs(mu->eta()) <= 2.5){
+    if(mu->pt()/1000 >= 7 && abs(mu->eta()) <= 2.5){
       Muons.push_back(mu);
     }
   }
-  if(Muons.size() != no_mu){CLEAR(); return false;} 
+  if((int)Muons.size() != no_mu){CLEAR(); return false;} 
   
   //TAUS
   const xAOD::TauJetContainer *tjc = 0;
@@ -85,7 +85,7 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
       TauJets.push_back(tj);
     }
   }
-  if(TauJets.size() != no_tau){CLEAR(); return false;} 
+  if((int)TauJets.size() != no_tau){CLEAR(); return false;} 
   return true;
 }
 
@@ -130,10 +130,21 @@ StatusCode DiTauAlg::initialize() {
    orFlags.doMuons = true;
    orFlags.doJets = true;
    orFlags.doTaus = true;
-   orFlags.doPhotons = true;//false;
+   orFlags.doPhotons = true;//false;*/
 
-   CHECK( ORUtils::recommendedTools(orFlags, toolBox) );
-   CHECK( toolBox.initialize() );*/
+   //CHECK( ORUtils::recommendedTools(orFlags, toolBox) );
+   //CHECK( toolBox.initialize() );
+   const auto masterToolName = "ORUtils::OverlapRemovalTool/ORTool3";
+   masterHandle.setType(masterToolName);
+   overlapHandle.setType("");
+
+   const auto overlapToolName = "ORUtils::DeltaROverlapTool/ORTool3.DrORT3";
+   const auto key = "EleJetORT";
+
+   overlapHandle.setTypeAndName(overlapToolName);
+   CHECK( masterHandle.setProperty(key, overlapHandle) );
+   CHECK( masterHandle.initialize() );
+   CHECK( masterHandle.get() != nullptr );
 
   pass = 0;
   fail = 0;
@@ -151,7 +162,6 @@ StatusCode DiTauAlg::execute() {
     setFilterPassed(true);
     return StatusCode::SUCCESS;
   }*/
-
 
   //EVENT INFO:
   const xAOD::EventInfo* ei = 0;
@@ -178,12 +188,25 @@ StatusCode DiTauAlg::execute() {
   met1 = metc->at(7);
 
   
+  const xAOD::ElectronContainer *ec = 0;
+  CHECK(evtStore()->retrieve(ec, "Electrons"));
+  const xAOD::MuonContainer *mc = 0;
+  CHECK(evtStore()->retrieve(mc, "Muons"));
+  const xAOD::TauJetContainer *tjc = 0;
+  CHECK(evtStore()->retrieve(tjc, "TauJets"));
+  if(ec->size()>6){
+    std::cout << "size before = " << ec->size() << std::endl;
+    masterHandle->removeOverlaps(ec, mc, jc);
+    std::cout << "size after = " << ec->size() << std::endl;
+  }
+
 
   double lep_pt, lep_phi, lep_eta, tau_pt, tau_phi, tau_eta, nu_T_lep, nu_T_had, met_et, met_phi, x1, x2;
   double mass2 = -1;
   
   double invM1, invM2;
   if(GetCandidates(1,0,1) || GetCandidates(0,1,1)){
+    no_1lep1tau_events++;
     double total_charge = TauJets[0]->charge();
     if(Electrons.size() == 1){
       total_charge += Electrons[0]->charge();
@@ -235,6 +258,7 @@ StatusCode DiTauAlg::execute() {
       //}
       no_1lep1tau_events++;
     }
+
     }
   }
 
