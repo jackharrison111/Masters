@@ -92,20 +92,25 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
 
 StatusCode DiTauAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
-  
-  m_myHist = new TH1D("invMass","Invariant Mass Distribution",160,0,160);
-  collinear_Hist = new TH1D("col_invMass","Invariant Mass Distribution",160,0,160);
+ 
+  vis_hist = new TH1D("visMass","Visible Mass Distribution",160,0,160);
+  mmc_hist = new TH1D("invMass","Invariant Mass Distribution",160,0,160);
+  collinear_hist = new TH1D("met7_invMass","Invariant Mass Distribution",160,0,160);
+  phi_rel_hist = new TH1D("phi_rel_hist","Missing Energy Distribution",100,-M_PI,M_PI);
 
 
   //m_my2DHist = new TH2D("invMassvsRMS","Invariant Mass against RMS/m.p.v",160,0,160,160,0,1);
-  m_myHist->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
-  m_myHist->SetStats(0);
+  vis_hist->SetTitle("Visible Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
+  mmc_hist->SetTitle("Invariant Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
+  mmc_hist->SetStats(0);
   //m_my2DHist->SetTitle(";M_{#tau#tau} [GeV]; RMS/m.p.v");
   //m_my2DHist->SetStats(0);
 
-  CHECK( histSvc()->regHist("/MYSTREAM/invMass", m_myHist) ); //registers histogram to output stream
+  CHECK( histSvc()->regHist("/MYSTREAM/visMass", vis_hist) );
+  CHECK( histSvc()->regHist("/MYSTREAM/invMass", mmc_hist) ); //registers histogram to output stream
   //CHECK( histSvc()->regHist("/MYSTREAM/2DHist", m_my2DHist) ); //registers histogram to output stream
-  CHECK( histSvc()->regHist("/MYSTREAM/col_Hist", collinear_Hist) );
+  CHECK( histSvc()->regHist("/MYSTREAM/col_Hist", collinear_hist) );
+  CHECK( histSvc()->regHist("/MYSTREAM/phi_rel_hist", phi_rel_hist) );
 
 
   //INITIALISE THE MISSING MASS TOOL
@@ -133,7 +138,7 @@ StatusCode DiTauAlg::initialize() {
 
    //CHECK( ORUtils::recommendedTools(orFlags, toolBox) );
    //CHECK( toolBox.initialize() );
-   const auto masterToolName = "ORUtils::OverlapRemovalTool/ORTool3";
+   /*const auto masterToolName = "ORUtils::OverlapRemovalTool/ORTool3";
    masterHandle.setType(masterToolName);
    overlapHandle.setType("");
 
@@ -143,7 +148,7 @@ StatusCode DiTauAlg::initialize() {
    overlapHandle.setTypeAndName(overlapToolName);
    CHECK( masterHandle.setProperty(key, overlapHandle) );
    CHECK( masterHandle.initialize() );
-   CHECK( masterHandle.get() != nullptr );
+   CHECK( masterHandle.get() != nullptr );*/
 
   pass = 0;
   fail = 0;
@@ -194,9 +199,9 @@ StatusCode DiTauAlg::execute() {
   const xAOD::TauJetContainer *tjc = 0;
   CHECK(evtStore()->retrieve(tjc, "TauJets"));
   if(ec->size()>6){
-    std::cout << "size before = " << ec->size() << std::endl;
-    masterHandle->removeOverlaps(ec, mc, jc);
-    std::cout << "size after = " << ec->size() << std::endl;
+    //std::cout << "size before = " << ec->size() << std::endl;
+    //masterHandle->removeOverlaps(ec, mc, jc);
+    //std::cout << "size after = " << ec->size() << std::endl;
   }
 
 
@@ -213,13 +218,12 @@ StatusCode DiTauAlg::execute() {
       total_charge += Muons[0]->charge();
     }
     if(total_charge == 0){ 
-      if(met1->met() > 20e3){
-      if(Electrons.size() == 1){
-        if(GetOpenAngle(TauJets[0]->phi(), Electrons[0]->phi()) < 2){
-        lep_pt = Electrons[0]->pt();
-        lep_phi = Electrons[0]->phi();
-        lep_eta = Electrons[0]->eta();
-        maxw_m = APPLY(m_mmt, ei, TauJets[0], Electrons[0], met1, no_25Jets);
+      //if(met1->met() > 20e3){
+        if(Electrons.size() == 1){
+          lep_pt = Electrons[0]->pt();
+          lep_phi = Electrons[0]->phi();
+          lep_eta = Electrons[0]->eta();
+          maxw_m = APPLY(m_mmt, ei, TauJets[0], Electrons[0], met1, no_25Jets);
         }else{
           CLEAR();
           setFilterPassed(true); //if got here, assume that means algorithm passed
@@ -227,37 +231,64 @@ StatusCode DiTauAlg::execute() {
         }
       }else{
         if(GetOpenAngle(TauJets[0]->phi(), Muons[0]->phi()) < 2){
-        lep_pt = Muons[0]->pt();
-        lep_phi = Muons[0]->phi();
-        lep_eta = Muons[0]->eta();
-        maxw_m = APPLY(m_mmt, ei, TauJets[0], Muons[0], met1, no_25Jets);
+          lep_pt = Muons[0]->pt();
+          lep_phi = Muons[0]->phi();
+          lep_eta = Muons[0]->eta();
+          maxw_m = APPLY(m_mmt, ei, TauJets[0], Muons[0], met1, no_25Jets);
         }else{
           CLEAR();
           setFilterPassed(true); //if got here, assume that means algorithm passed
           return StatusCode::SUCCESS;
         }
-      }
-      tau_pt = TauJets[0]->pt();
-      tau_eta = TauJets[0]->eta();
-      tau_phi = TauJets[0]->phi();
-      met_et = met1->met();
-      met_phi = met1->phi();
+        tau_pt = TauJets[0]->pt();
+        tau_eta = TauJets[0]->eta();
+        tau_phi = TauJets[0]->phi();
+        met_et = met1->met();
+        met_phi = met1->phi();
 
-      nu_T_lep = met_et*(sin(met_phi)-sin(tau_phi))/(sin(lep_phi)-sin(tau_phi));
-      nu_T_had = met_et*(sin(met_phi)-sin(lep_phi))/(sin(tau_phi)-sin(lep_phi));
+        nu_T_lep = met_et*(sin(met_phi)-sin(tau_phi))/(sin(lep_phi)-sin(tau_phi));
+        nu_T_had = met_et*(sin(met_phi)-sin(lep_phi))/(sin(tau_phi)-sin(lep_phi));
 
-      invM1 = sqrt(2*lep_pt*tau_pt*(cosh(lep_eta-tau_eta)-cos(lep_phi-tau_phi)))/1000;
-      x1 = lep_pt/(lep_pt+nu_T_lep);
-      x2 = tau_pt/(tau_pt+nu_T_had);
-      invM2 = invM1/sqrt(x1*x2);
-
-      collinear_Hist->Fill(invM2); 
-      //if(m_mmt->get()->GetFitSignificance(0) > 6){
-      m_myHist->Fill(maxw_m);
+        invM1 = sqrt(2*lep_pt*tau_pt*(cosh(lep_eta-tau_eta)-cos(lep_phi-tau_phi)))/1000;
+        x1 = lep_pt/(lep_pt+nu_T_lep);
+        x2 = tau_pt/(tau_pt+nu_T_had);
+        invM2 = invM1/sqrt(x1*x2);
+        
+	Double_t halfAng = GetOpenAngle(tau_phi,lep_phi)/2;
+	Double_t rotationAngle;
+	if(tau_phi<lep_phi){
+	  rotationAngle = -tau_phi;
+	}else{
+	  rotationAngle = -lep_phi;
+	}
+	tau_phi += rotationAngle;
+	lep_phi += rotationAngle;
+	met_phi += rotationAngle;
+        if(tau_phi > M_PI) tau_phi -= 2 * M_PI;
+	if(lep_phi > M_PI) lep_phi -= 2 * M_PI;
+	if(tau_phi < 0 || lep_phi < 0){
+	  tau_phi += halfAng;
+	  lep_phi += halfAng;
+	  met_phi += halfAng;
+	}else{
+	  tau_phi -= halfAng;
+	  lep_phi -= halfAng;
+	  met_phi -= halfAng;
+	}
+	if(met_phi > M_PI) met_phi -= 2 * M_PI;
+	else if(met_phi < -M_PI) met_phi += 2 * M_PI;
+	Double_t phi_rel = met_phi * M_PI / (2 * halfAng);
+        if(tau_phi > lep_phi){
+	  phi_rel_hist->Fill(phi_rel);
+	}else{
+	  phi_rel_hist->Fill(-1 * phi_rel);
+	}
+	
+        vis_hist->Fill(invM1);
+	//if(invM1<80)
+	collinear_hist->Fill(invM2); 
+        mmc_hist->Fill(maxw_m);
       //}
-      no_1lep1tau_events++;
-    }
-
     }
   }
 

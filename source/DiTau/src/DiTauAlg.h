@@ -52,8 +52,10 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    std::vector<const xAOD::Muon*> Muons;
    std::vector<const xAOD::TauJet*> TauJets;
    
-   TH1D* m_myHist = 0;
-   TH1D* collinear_Hist = 0;
+   TH1D* vis_hist;
+   TH1D* mmc_hist;
+   TH1D* collinear_hist;
+   TH1D* phi_rel_hist;
    TH2D* m_my2DHist = 0;
    asg::AnaToolHandle<MissingMassTool> m_mmt;
 
