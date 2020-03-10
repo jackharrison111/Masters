@@ -125,7 +125,6 @@ StatusCode DiTauAlg::initialize() {
   //CHECK(m_mmt->setProperty("UseMETDphiLL", 1)); only for leplep
   CHECK(m_mmt->setProperty("UseEfficiencyRecovery", 1));
 
-  //TauAnalysisTools::TauSelectionTool TauSelTool( "TauSelectionTool" );
   const auto TauSelectionToolName = "TauAnalysisTools::TauSelectionTool/TauSelectionTool";
   tau_selection_t.setTypeAndName(TauSelectionToolName);
   CHECK(tau_selection_t.initialize());
@@ -215,7 +214,7 @@ StatusCode DiTauAlg::execute() {
     double total_charge = TauJets[0]->charge();
     if(Electrons.size() == 1){
       total_charge += Electrons[0]->charge();
-    } else {
+    }else {
       total_charge += Muons[0]->charge();
     }
     if(total_charge == 0){ 
