@@ -96,6 +96,7 @@ StatusCode DiTauAlg::initialize() {
   vis_hist = new TH1D("visMass","Visible Mass Distribution",160,0,160);
   mmc_hist = new TH1D("invMass","Invariant Mass Distribution",160,0,160);
   collinear_hist = new TH1D("met7_invMass","Invariant Mass Distribution",160,0,160);
+  phi_rel_hist = new TH1D("phi_rel_hist","Missing Energy Distribution",100,-M_PI,M_PI);
 
 
   //m_my2DHist = new TH2D("invMassvsRMS","Invariant Mass against RMS/m.p.v",160,0,160,160,0,1);
@@ -109,6 +110,7 @@ StatusCode DiTauAlg::initialize() {
   CHECK( histSvc()->regHist("/MYSTREAM/invMass", mmc_hist) ); //registers histogram to output stream
   //CHECK( histSvc()->regHist("/MYSTREAM/2DHist", m_my2DHist) ); //registers histogram to output stream
   CHECK( histSvc()->regHist("/MYSTREAM/col_Hist", collinear_hist) );
+  CHECK( histSvc()->regHist("/MYSTREAM/phi_rel_hist", phi_rel_hist) );
 
 
   //INITIALISE THE MISSING MASS TOOL
@@ -137,7 +139,7 @@ StatusCode DiTauAlg::initialize() {
 
    //CHECK( ORUtils::recommendedTools(orFlags, toolBox) );
    //CHECK( toolBox.initialize() );
-   const auto masterToolName = "ORUtils::OverlapRemovalTool/ORTool3";
+   /*const auto masterToolName = "ORUtils::OverlapRemovalTool/ORTool3";
    masterHandle.setType(masterToolName);
    overlapHandle.setType("");
 
@@ -147,7 +149,7 @@ StatusCode DiTauAlg::initialize() {
    overlapHandle.setTypeAndName(overlapToolName);
    CHECK( masterHandle.setProperty(key, overlapHandle) );
    CHECK( masterHandle.initialize() );
-   CHECK( masterHandle.get() != nullptr );
+   CHECK( masterHandle.get() != nullptr );*/
 
   pass = 0;
   fail = 0;
@@ -230,10 +232,10 @@ StatusCode DiTauAlg::execute() {
         }
       }else{
         if(GetOpenAngle(TauJets[0]->phi(), Muons[0]->phi()) < 2){
-        lep_pt = Muons[0]->pt();
-        lep_phi = Muons[0]->phi();
-        lep_eta = Muons[0]->eta();
-        maxw_m = APPLY(m_mmt, ei, TauJets[0], Muons[0], met1, no_25Jets);
+          lep_pt = Muons[0]->pt();
+          lep_phi = Muons[0]->phi();
+          lep_eta = Muons[0]->eta();
+          maxw_m = APPLY(m_mmt, ei, TauJets[0], Muons[0], met1, no_25Jets);
         }else{
           CLEAR();
           setFilterPassed(true); //if got here, assume that means algorithm passed
@@ -252,7 +254,37 @@ StatusCode DiTauAlg::execute() {
         x1 = lep_pt/(lep_pt+nu_T_lep);
         x2 = tau_pt/(tau_pt+nu_T_had);
         invM2 = invM1/sqrt(x1*x2);
- 
+        
+	Double_t halfAng = GetOpenAngle(tau_phi,lep_phi)/2;
+	Double_t rotationAngle;
+	if(tau_phi<lep_phi){
+	  rotationAngle = -tau_phi;
+	}else{
+	  rotationAngle = -lep_phi;
+	}
+	tau_phi += rotationAngle;
+	lep_phi += rotationAngle;
+	met_phi += rotationAngle;
+        if(tau_phi > M_PI) tau_phi -= 2 * M_PI;
+	if(lep_phi > M_PI) lep_phi -= 2 * M_PI;
+	if(tau_phi < 0 || lep_phi < 0){
+	  tau_phi += halfAng;
+	  lep_phi += halfAng;
+	  met_phi += halfAng;
+	}else{
+	  tau_phi -= halfAng;
+	  lep_phi -= halfAng;
+	  met_phi -= halfAng;
+	}
+	if(met_phi > M_PI) met_phi -= 2 * M_PI;
+	else if(met_phi < -M_PI) met_phi += 2 * M_PI;
+	Double_t phi_rel = met_phi * M_PI / (2 * halfAng);
+        if(tau_phi > lep_phi){
+	  phi_rel_hist->Fill(phi_rel);
+	}else{
+	  phi_rel_hist->Fill(-1 * phi_rel);
+	}
+	
         vis_hist->Fill(invM1);
 	//if(invM1<80)
 	collinear_hist->Fill(invM2); 
