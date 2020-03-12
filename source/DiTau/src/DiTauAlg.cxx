@@ -129,6 +129,10 @@ StatusCode DiTauAlg::initialize() {
   tau_selection_t.setTypeAndName(TauSelectionToolName);
   CHECK(tau_selection_t.initialize());
 
+  const auto met_tool_name = "IMETMaker/IMETMaker";
+  met_tool.setTypeAndName("met::METMaker/METMaker");
+  CHECK(met_tool.initialize());
+
    /*orFlags.boostedLeptons = true;
    orFlags.doElectrons = true;
    orFlags.doMuons = true;
@@ -219,11 +223,12 @@ StatusCode DiTauAlg::execute() {
     }
     if(total_charge == 0){ 
       //if(met1->met() > 20e3){
-        if(Electrons.size() == 1){
-          lep_pt = Electrons[0]->pt();
-          lep_phi = Electrons[0]->phi();
-          lep_eta = Electrons[0]->eta();
-          maxw_m = APPLY(m_mmt, ei, TauJets[0], Electrons[0], met1, no_25Jets);
+      if(Electrons.size() == 1){
+        if(GetOpenAngle(TauJets[0]->phi(), Muons[0]->phi()) < 2){
+            lep_pt = Electrons[0]->pt();
+            lep_phi = Electrons[0]->phi();
+            lep_eta = Electrons[0]->eta();
+            maxw_m = APPLY(m_mmt, ei, TauJets[0], Electrons[0], met1, no_25Jets);
         }else{
           CLEAR();
           setFilterPassed(true); //if got here, assume that means algorithm passed
@@ -240,6 +245,7 @@ StatusCode DiTauAlg::execute() {
           setFilterPassed(true); //if got here, assume that means algorithm passed
           return StatusCode::SUCCESS;
         }
+      }
         tau_pt = TauJets[0]->pt();
         tau_eta = TauJets[0]->eta();
         tau_phi = TauJets[0]->phi();
@@ -264,8 +270,8 @@ StatusCode DiTauAlg::execute() {
 	tau_phi += rotationAngle;
 	lep_phi += rotationAngle;
 	met_phi += rotationAngle;
-        if(tau_phi > M_PI) tau_phi -= 2 * M_PI;
-	if(lep_phi > M_PI) lep_phi -= 2 * M_PI;
+        if(tau_phi > M_PI){ tau_phi -= 2 * M_PI;}
+	if(lep_phi > M_PI){ lep_phi -= 2 * M_PI;}
 	if(tau_phi < 0 || lep_phi < 0){
 	  tau_phi += halfAng;
 	  lep_phi += halfAng;
