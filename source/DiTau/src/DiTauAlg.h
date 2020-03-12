@@ -11,6 +11,7 @@
 #include "xAODMuon/MuonContainer.h"
 #include "xAODTau/TauJetContainer.h"
 #include "TauAnalysisTools/TauSelectionTool.h"
+#include "METUtilities/METMaker.h"
 
 //Example ROOT Includes
 //#include "TTree.h"
@@ -60,6 +61,7 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    asg::AnaToolHandle<MissingMassTool> m_mmt;
 
    asg::AnaToolHandle<TauAnalysisTools::TauSelectionTool> tau_selection_t;
+   asg::AnaToolHandle<met::METMaker> met_tool;
   
    //asg::AnaToolHandle<ORUtils::IOverlapRemovalTool> masterHandle;
    //asg::AnaToolHandle<ORUtils::IOverlapTool> overlapHandle;
