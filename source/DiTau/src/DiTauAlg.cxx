@@ -83,9 +83,11 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
     const xAOD::TauJet *tj = *it;
     if(tau_selection_t->accept(*tj)){	//pt>20 , eta0-1.37 1.52-2.5, EOR, |tauCharge|=1,( https://arxiv.org/pdf/1607.05979.pdf p7 )
       TauJets.push_back(tj);
+      std::cout<<"pt="<<tj->pt()/1000<<"GeV,eta="<<abs(tj->eta())<<",q="<<tj->charge()<<std::endl;
     }
   }
-  if((int)TauJets.size() != no_tau){CLEAR(); return false;} 
+  if((int)TauJets.size() != no_tau){CLEAR(); return false;}
+
   return true;
 }
 
