@@ -54,10 +54,10 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    std::vector<const xAOD::TauJet*> TauJets;
    
    TH1D* vis_hist;
+   TH1D* col_hist;
    TH1D* mmc_hist;
-   TH1D* collinear_hist;
-   TH1D* phi_rel_hist;
-   TH2D* m_my2DHist = 0;
+   TH1D* m_phi_rel_hist;
+   TH2D* m_my2DHist;
    asg::AnaToolHandle<MissingMassTool> m_mmt;
 
    asg::AnaToolHandle<TauAnalysisTools::TauSelectionTool> tau_selection_t;

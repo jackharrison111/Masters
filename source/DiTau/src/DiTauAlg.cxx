@@ -59,7 +59,7 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
   CHECK(evtStore()->retrieve(ec, "Electrons"));
   for(auto it = ec->begin(); it != ec->end(); it++){
     const xAOD::Electron *e = *it;
-    if(e->pt()/1000 >= 7 && abs(e->eta()) <= 2.5){
+    if(e->pt()/1000 >= 25 && abs(e->eta()) <= 2.5){
       Electrons.push_back(e);
     }
   }
@@ -70,7 +70,7 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
   CHECK(evtStore()->retrieve(mc, "Muons"));
   for(auto it = mc->begin(); it != mc->end(); it++){
     const xAOD::Muon *mu = *it;
-    if(mu->pt()/1000 >= 7 && abs(mu->eta()) <= 2.5){
+    if(mu->pt()/1000 >= 25 && abs(mu->eta()) <= 2.5){
       Muons.push_back(mu);
     }
   }
@@ -83,11 +83,9 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
     const xAOD::TauJet *tj = *it;
     if(tau_selection_t->accept(*tj)){	//pt>20 , eta0-1.37 1.52-2.5, EOR, |tauCharge|=1,( https://arxiv.org/pdf/1607.05979.pdf p7 )
       TauJets.push_back(tj);
-      std::cout<<"pt="<<tj->pt()/1000<<"GeV,eta="<<abs(tj->eta())<<",q="<<tj->charge()<<std::endl;
     }
   }
   if((int)TauJets.size() != no_tau){CLEAR(); return false;}
-
   return true;
 }
 
@@ -95,24 +93,26 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
 StatusCode DiTauAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
  
-  vis_hist = new TH1D("visMass","Visible Mass Distribution",160,0,160);
-  mmc_hist = new TH1D("invMass","Invariant Mass Distribution",160,0,160);
-  collinear_hist = new TH1D("met7_invMass","Invariant Mass Distribution",160,0,160);
-  phi_rel_hist = new TH1D("phi_rel_hist","Missing Energy Distribution",100,-M_PI,M_PI);
+  vis_hist = new TH1D("vis_hist","Visible Mass Distribution",160,0,160);
+  col_hist = new TH1D("col_hist","Collinear Mass Distribution",160,0,160);
+  mmc_hist = new TH1D("mmc_hist","MMC Mass Distribution",160,0,160);
+  m_phi_rel_hist = new TH1D("m_phi_rel_hist","Missing Energy Distribution",100,-M_PI,M_PI);
 
 
   //m_my2DHist = new TH2D("invMassvsRMS","Invariant Mass against RMS/m.p.v",160,0,160,160,0,1);
   vis_hist->SetTitle("Visible Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
-  mmc_hist->SetTitle("Invariant Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
+  vis_hist->SetTitle("Collinear Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
+  mmc_hist->SetTitle("MMC Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
+  m_phi_rel_hist->SetTitle("Missing Energy Distribution;#phi_{rel} [rad];N / [#pi/50]");
   mmc_hist->SetStats(0);
   //m_my2DHist->SetTitle(";M_{#tau#tau} [GeV]; RMS/m.p.v");
   //m_my2DHist->SetStats(0);
 
-  CHECK( histSvc()->regHist("/MYSTREAM/visMass", vis_hist) );
-  CHECK( histSvc()->regHist("/MYSTREAM/invMass", mmc_hist) ); //registers histogram to output stream
+  CHECK( histSvc()->regHist("/MYSTREAM/vis_hist", vis_hist) );
+  CHECK( histSvc()->regHist("/MYSTREAM/col_hist", col_hist) );
+  CHECK( histSvc()->regHist("/MYSTREAM/mmc_hist", mmc_hist) );
+  CHECK( histSvc()->regHist("/MYSTREAM/m_phi_rel_hist", m_phi_rel_hist) );
   //CHECK( histSvc()->regHist("/MYSTREAM/2DHist", m_my2DHist) ); //registers histogram to output stream
-  CHECK( histSvc()->regHist("/MYSTREAM/col_Hist", collinear_hist) );
-  CHECK( histSvc()->regHist("/MYSTREAM/phi_rel_hist", phi_rel_hist) );
 
 
   //INITIALISE THE MISSING MASS TOOL
@@ -173,7 +173,7 @@ StatusCode DiTauAlg::execute() {
   const xAOD::EventInfo* ei = 0;
   CHECK( evtStore()->retrieve( ei , "EventInfo" ) );
 
-  //JETS:
+  /*//JETS:
   const xAOD::JetContainer *jc = 0;
   double no_25Jets = 0;
   CHECK(evtStore()->retrieve(jc, "AntiKt4LCTopoJets"));
@@ -190,11 +190,10 @@ StatusCode DiTauAlg::execute() {
   //Get the last one
   //std::cout << metc->size() << " = size of metc" << std::endl;
   const xAOD::MissingET *met1 = 0;
-  const xAOD::MissingET *met2 = 0;
-  met1 = metc->at(7);
+  met1 = metc->at(7);*/
 
   
-  const xAOD::ElectronContainer *ec = 0;
+  /*const xAOD::ElectronContainer *ec = 0;
   CHECK(evtStore()->retrieve(ec, "Electrons"));
   const xAOD::MuonContainer *mc = 0;
   CHECK(evtStore()->retrieve(mc, "Muons"));
@@ -204,13 +203,12 @@ StatusCode DiTauAlg::execute() {
     //std::cout << "size before = " << ec->size() << std::endl;
     //masterHandle->removeOverlaps(ec, mc, jc);
     //std::cout << "size after = " << ec->size() << std::endl;
-  }
+  }*/
 
 
-  double lep_pt, lep_phi, lep_eta, tau_pt, tau_phi, tau_eta, nu_T_lep, nu_T_had, met_et, met_phi, x1, x2;
-  double mass2 = -1;
+  //double lep_pt, lep_phi, lep_eta, tau_pt, tau_phi, tau_eta, nu_T_lep, nu_T_had, met_et, met_phi, x1, x2;
   
-  double invM1, invM2;
+  /*double invM1, invM2;
   if(GetCandidates(1,0,1) || GetCandidates(0,1,1)){
     no_1lep1tau_events++;
     double total_charge = TauJets[0]->charge();
@@ -292,7 +290,103 @@ StatusCode DiTauAlg::execute() {
       collinear_hist->Fill(invM2); 
       mmc_hist->Fill(maxw_m);
       }
+  }*/
+  
+  double lep_pt{}, lep_eta, lep_phi;
+  if(GetCandidates(1,0,1)){
+    if(Electrons[0]->charge() == -TauJets[0]->charge() && (Electrons[0]->charge()==1||Electrons[0]->charge()==-1) ){
+      lep_pt = Electrons[0]->pt();
+      lep_eta = Electrons[0]->eta();
+      lep_phi = Electrons[0]->phi();
+    }
   }
+  else if(GetCandidates(0,1,1)){
+    if(Muons[0]->charge() == -TauJets[0]->charge() && (Muons[0]->charge()==1||Muons[0]->charge()==-1) ){
+      lep_pt = Muons[0]->pt();
+      lep_eta = Muons[0]->eta();
+      lep_phi = Muons[0]->phi();
+    }
+  }
+
+  if(lep_pt != 0){
+      // IMPORTANT - now GeV
+      lep_pt /= 1000;
+      double tau_pt = TauJets[0]->pt() / 1000;
+      double tau_eta = TauJets[0]->eta();
+      double tau_phi = TauJets[0]->phi();
+
+      double vis_mass = sqrt( 2 * lep_pt * tau_pt * ( cosh(lep_eta - tau_eta) - cos(lep_phi - tau_phi) ) );
+      vis_hist->Fill(vis_mass);
+      
+      if(vis_mass > 5){
+        // MET
+        const xAOD::MissingETContainer *metc = 0;
+        CHECK(evtStore()->retrieve(metc, "MET_Calo"));
+        const xAOD::MissingET* met = 0;
+        met = metc->at(7);
+        double m_et = met->met() / 1000;
+        double m_phi = met->phi();
+  
+        // JETS
+	const xAOD::JetContainer *jc = 0;
+        double no_25Jets = 0;
+        CHECK(evtStore()->retrieve(jc, "AntiKt4LCTopoJets"));
+        for(xAOD::JetContainer::const_iterator it=jc->begin(); it!=jc->end(); it++){
+          const xAOD::Jet *j = *it;
+          if((j->pt()>25e3)&&( abs(j->eta())<2.5)){
+            no_25Jets++;
+          }
+        }
+        
+	// MMC
+        if(Electrons.size() == 1){
+          maxw_m = APPLY(m_mmt, ei, TauJets[0], Electrons[0], met, no_25Jets);
+	}
+	else{
+	  maxw_m = APPLY(m_mmt, ei, TauJets[0], Muons[0], met, no_25Jets);
+	}
+        mmc_hist->Fill(maxw_m);
+      
+        // COLLINEAR
+        double nu_lep_pt = m_et * (sin(m_phi) - sin(tau_phi)) / (sin(lep_phi) - sin(tau_phi));
+        double nu_tau_pt = m_et * (sin(m_phi) - sin(lep_phi)) / (sin(tau_phi) - sin(lep_phi));
+        double x1 = lep_pt / (lep_pt + nu_lep_pt);
+        double x2 = tau_pt / (tau_pt + nu_tau_pt);
+        double col_mass = vis_mass / sqrt(x1 * x2);
+        col_hist->Fill(col_mass);
+
+        // ANGULAR
+	double half_angle = GetOpenAngle(lep_phi, tau_phi) / 2;
+	double rotation_angle;
+	if(tau_phi < lep_phi){
+	  rotation_angle = -tau_phi;
+	}
+	else{
+	  rotation_angle = -lep_phi;
+	}
+	tau_phi += rotation_angle;
+	lep_phi += rotation_angle;
+	m_phi += rotation_angle;
+	if(tau_phi > M_PI ) tau_phi -= 2 * M_PI;
+	if(lep_phi > M_PI ) lep_phi -= 2 * M_PI;
+        if(tau_phi < 0 || lep_phi < 0){
+	  tau_phi += half_angle;
+	  lep_phi += half_angle;
+	  m_phi += half_angle;
+	}
+	else{
+	  tau_phi -= half_angle;
+	  lep_phi -= half_angle;
+	  m_phi -= half_angle;
+	}
+	if(m_phi > M_PI) m_phi -= 2 * M_PI;
+	else if(m_phi < -M_PI) m_phi += 2 * M_PI;
+	double m_phi_rel = (m_phi * M_PI) / (2 * half_angle);
+	if(tau_phi > lep_phi) m_phi_rel_hist->Fill(m_phi_rel);
+	else m_phi_rel_hist->Fill(-m_phi_rel);
+      }
+  }
+    
 
 
   CLEAR();
