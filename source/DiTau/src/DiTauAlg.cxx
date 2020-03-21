@@ -12,7 +12,8 @@
 #include "AthContainers/DataVector.h"
 #include "PATInterfaces/CorrectionCode.h"
 #include "xAODEventInfo/EventInfo.h"
-
+#include "xAODMissingET/MissingETAuxContainer.h"
+#include "xAODMissingET/versions/MissingETBase.h"
 
 int no_1lep1tau_events{0};
 
@@ -53,13 +54,12 @@ double DiTauAlg::GetOpenAngle(double ang1, double ang2){
 
 
 bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau){
-  
   //ELECTRONS
   const xAOD::ElectronContainer *ec = 0;
   CHECK(evtStore()->retrieve(ec, "Electrons"));
   for(auto it = ec->begin(); it != ec->end(); it++){
     const xAOD::Electron *e = *it;
-    if(e->pt()/1000 >= 7 && abs(e->eta()) <= 2.5){
+    if(e->pt()/1000 >= 25 && abs(e->eta()) <= 2.5){
       Electrons.push_back(e);
     }
   }
@@ -70,7 +70,7 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
   CHECK(evtStore()->retrieve(mc, "Muons"));
   for(auto it = mc->begin(); it != mc->end(); it++){
     const xAOD::Muon *mu = *it;
-    if(mu->pt()/1000 >= 7 && abs(mu->eta()) <= 2.5){
+    if(mu->pt()/1000 >= 25 && abs(mu->eta()) <= 2.5){
       Muons.push_back(mu);
     }
   }
@@ -83,7 +83,6 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
     const xAOD::TauJet *tj = *it;
     if(tau_selection_t->accept(*tj)){	//pt>20 , eta0-1.37 1.52-2.5, EOR, |tauCharge|=1,( https://arxiv.org/pdf/1607.05979.pdf p7 )
       TauJets.push_back(tj);
-      std::cout<<"pt="<<tj->pt()/1000<<"GeV,eta="<<abs(tj->eta())<<",q="<<tj->charge()<<std::endl;
     }
   }
   if((int)TauJets.size() != no_tau){CLEAR(); return false;}
@@ -131,7 +130,6 @@ StatusCode DiTauAlg::initialize() {
   tau_selection_t.setTypeAndName(TauSelectionToolName);
   CHECK(tau_selection_t.initialize());
 
-  const auto met_tool_name = "IMETMaker/IMETMaker";
   met_tool.setTypeAndName("met::METMaker/METMaker");
   CHECK(met_tool.initialize());
 
@@ -168,19 +166,23 @@ StatusCode DiTauAlg::execute() {
   ATH_MSG_DEBUG ("Executing " << name() << "...");
   setFilterPassed(false); //optional: start with algorithm not passed
 
-  /*if(no_1lep1tau_events > 163208){ //163208 is no. events in mc15 Ntuples
-    setFilterPassed(true);
+  if((!GetCandidates(1,0,1)) && (!GetCandidates(0,1,1))){
+    CLEAR();
     return StatusCode::SUCCESS;
-  }*/
+  }else{
 
   //EVENT INFO:
   const xAOD::EventInfo* ei = 0;
   CHECK( evtStore()->retrieve( ei , "EventInfo" ) );
-
+ 
   //JETS:
+  const std::string jetType1 = "AntiKt4EMTopo";	  
+  const std::string jetType2 = "AntiKt4LCTopo";	  //Original
+  const std::string chosenJetType = jetType2;
+
   const xAOD::JetContainer *jc = 0;
   double no_25Jets = 0;
-  CHECK(evtStore()->retrieve(jc, "AntiKt4LCTopoJets"));
+  CHECK(evtStore()->retrieve(jc, chosenJetType + "Jets"));
   for(xAOD::JetContainer::const_iterator it=jc->begin(); it!=jc->end(); it++){
     const xAOD::Jet *j = *it;
     if((j->pt()>25e3)&&( abs(j->eta())<2.5)){
@@ -194,28 +196,38 @@ StatusCode DiTauAlg::execute() {
   //Get the last one
   //std::cout << metc->size() << " = size of metc" << std::endl;
   const xAOD::MissingET *met1 = 0;
-  const xAOD::MissingET *met2 = 0;
   met1 = metc->at(7);
+ /* 
+  //xAOD::MissingETContainer newMETContainer;   
+  //xAOD::MissingETAuxContainer newMetAuxContainer;
+  //newMETContainer.setStore(newMetAuxContainer);
+  const xAOD::MissingETContainer* coreMet  = nullptr;
+  CHECK(evtStore()->retrieve(coreMet, "MET_Core_" + chosenJetType));
+
+  const xAOD::MissingETAssociationMap* metMap = nullptr; 
+  CHECK(evtStore()->retrieve(metMap, "METAssoc_" + chosenJetType));
+
+  const std::string arg1 = "RefJetTrk";   //change name
+  const std::string arg2 = "PVSoftTrk";   //change name
+
 
   
   const xAOD::ElectronContainer *ec = 0;
   CHECK(evtStore()->retrieve(ec, "Electrons"));
-  const xAOD::MuonContainer *mc = 0;
-  CHECK(evtStore()->retrieve(mc, "Muons"));
-  const xAOD::TauJetContainer *tjc = 0;
-  CHECK(evtStore()->retrieve(tjc, "TauJets"));
-  if(ec->size()>6){
-    //std::cout << "size before = " << ec->size() << std::endl;
-    //masterHandle->removeOverlaps(ec, mc, jc);
-    //std::cout << "size after = " << ec->size() << std::endl;
+  for(auto it = ec->begin(); it != ec->end(); it++){
+    const xAOD::Electron *e = *it;
+    if(e->pt()/1000 >= 25 && abs(e->eta()) <= 2.5){
+      Electrons.push_back(e);
+    }
   }
-
+  MissingETBase::UsageHandler::Policy objScale = MissingETBase::UsageHandler::PhysicsObject;
+  const std::string rebuildKey = "RefEle";
+  //met_tool->rebuildMET(rebuildKey, xAOD::Type::Electron, newMETContainer, ec, metMap, objScale);
+   */
 
   double lep_pt, lep_phi, lep_eta, tau_pt, tau_phi, tau_eta, nu_T_lep, nu_T_had, met_et, met_phi, x1, x2;
-  double mass2 = -1;
   
   double invM1, invM2;
-  if(GetCandidates(1,0,1) || GetCandidates(0,1,1)){
     no_1lep1tau_events++;
     double total_charge = TauJets[0]->charge();
     if(Electrons.size() == 1){
@@ -295,13 +307,14 @@ StatusCode DiTauAlg::execute() {
       //if(invM1<80)
       collinear_hist->Fill(invM2); 
       mmc_hist->Fill(maxw_m);
+      
       }
-  }
 
 
   CLEAR();
   setFilterPassed(true); //if got here, assume that means algorithm passed
   return StatusCode::SUCCESS;
+  }
 }
 
 
