@@ -67,6 +67,7 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    //asg::AnaToolHandle<ORUtils::IOverlapTool> overlapHandle;
 
    double pass,fail;
+   bool warning_message;
    double maxw_m; //reconstructed MMC mass
 }; 
 
