@@ -128,27 +128,6 @@ StatusCode DiTauAlg::initialize() {
   met_tool.setTypeAndName("met::METMaker/METMaker");
   CHECK(met_tool.initialize());
 
-   /*orFlags.boostedLeptons = true;
-   orFlags.doElectrons = true;
-   orFlags.doMuons = true;
-   orFlags.doJets = true;
-   orFlags.doTaus = true;
-   orFlags.doPhotons = true;//false;*/
-
-   //CHECK( ORUtils::recommendedTools(orFlags, toolBox) );
-   //CHECK( toolBox.initialize() );
-   /*const auto masterToolName = "ORUtils::OverlapRemovalTool/ORTool3";
-   masterHandle.setType(masterToolName);
-   overlapHandle.setType("");
-
-   const auto overlapToolName = "ORUtils::DeltaROverlapTool/ORTool3.DrORT3";
-   const auto key = "EleJetORT";
-
-   overlapHandle.setTypeAndName(overlapToolName);
-   CHECK( masterHandle.setProperty(key, overlapHandle) );
-   CHECK( masterHandle.initialize() );
-   CHECK( masterHandle.get() != nullptr );*/
-
   pass = 0;
   fail = 0;
   maxw_m = 0;
@@ -175,7 +154,14 @@ StatusCode DiTauAlg::execute() {
   //EVENT INFO:
   const xAOD::EventInfo* ei = 0;
   CHECK( evtStore()->retrieve( ei , "EventInfo" ) );
- /* 
+  double eventWeight = ei->mcEventWeight();
+ 
+  //std::cout << ew->getWeight() << " = weight " << std::endl;
+  
+
+  //const McEventWeight* ew; 
+  //std::cout << ew->getWeight() << " = weight " << std::endl;
+/*  ATTEMPTS AT USING METMAKER::  
   //xAOD::MissingETContainer newMETContainer;   
   //xAOD::MissingETAuxContainer newMetAuxContainer;
   //newMETContainer.setStore(newMetAuxContainer);
@@ -187,7 +173,6 @@ StatusCode DiTauAlg::execute() {
 
   const std::string arg1 = "RefJetTrk";   //change name
   const std::string arg2 = "PVSoftTrk";   //change name
-
 
   
   const xAOD::ElectronContainer *ec = 0;
@@ -202,6 +187,8 @@ StatusCode DiTauAlg::execute() {
   const std::string rebuildKey = "RefEle";
   //met_tool->rebuildMET(rebuildKey, xAOD::Type::Electron, newMETContainer, ec, metMap, objScale);
    */
+
+
 
   double lep_pt{}, lep_eta, lep_phi;
   if(GetCandidates(1,0,1)){
@@ -289,7 +276,7 @@ StatusCode DiTauAlg::execute() {
         // SAME IF STATEMENT AS LAST SEMESTER (only there was a <80GeV cut last semester which isn't needed here)
         if(2*half_angle <= 2.5 && 2*half_angle >= 0.5 && m_phi_rel <= 3*M_PI/5 && m_phi_rel >= -7*M_PI/10){
 	  no_1lep1tau_events++;
-          col_hist->Fill(col_mass);
+          col_hist->Fill(col_mass, eventWeight);
           
 	  // MMC
           if(Electrons.size() == 1){
@@ -298,7 +285,7 @@ StatusCode DiTauAlg::execute() {
 	  else{
 	    maxw_m = APPLY(m_mmt, ei, TauJets[0], Muons[0], met, no_25Jets);
 	  }
-          mmc_hist->Fill(maxw_m);
+          mmc_hist->Fill(maxw_m, eventWeight);
 	}
       }
   }
@@ -308,7 +295,6 @@ StatusCode DiTauAlg::execute() {
   CLEAR();
   setFilterPassed(true); //if got here, assume that means algorithm passed
   return StatusCode::SUCCESS;
-  }
 }
 
 

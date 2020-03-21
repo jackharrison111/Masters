@@ -12,6 +12,7 @@
 #include "xAODTau/TauJetContainer.h"
 #include "TauAnalysisTools/TauSelectionTool.h"
 #include "METUtilities/METMaker.h"
+#include "ReweightUtils/McEventWeight.h"
 
 //Example ROOT Includes
 //#include "TTree.h"
@@ -60,6 +61,7 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    TH2D* m_my2DHist;
    asg::AnaToolHandle<MissingMassTool> m_mmt;
 
+   McEventWeight* ew = new McEventWeight("test");
    asg::AnaToolHandle<TauAnalysisTools::TauSelectionTool> tau_selection_t;
    asg::AnaToolHandle<met::METMaker> met_tool;
   
