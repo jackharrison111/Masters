@@ -12,7 +12,8 @@
 #include "AthContainers/DataVector.h"
 #include "PATInterfaces/CorrectionCode.h"
 #include "xAODEventInfo/EventInfo.h"
-
+#include "xAODMissingET/MissingETAuxContainer.h"
+#include "xAODMissingET/versions/MissingETBase.h"
 
 int no_1lep1tau_events{0};
 
@@ -53,7 +54,6 @@ double DiTauAlg::GetOpenAngle(double ang1, double ang2){
 
 
 bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau){
-  
   //ELECTRONS
   const xAOD::ElectronContainer *ec = 0;
   CHECK(evtStore()->retrieve(ec, "Electrons"));
@@ -125,26 +125,8 @@ StatusCode DiTauAlg::initialize() {
   tau_selection_t.setTypeAndName(TauSelectionToolName);
   CHECK(tau_selection_t.initialize());
 
-   /*orFlags.boostedLeptons = true;
-   orFlags.doElectrons = true;
-   orFlags.doMuons = true;
-   orFlags.doJets = true;
-   orFlags.doTaus = true;
-   orFlags.doPhotons = true;//false;*/
-
-   //CHECK( ORUtils::recommendedTools(orFlags, toolBox) );
-   //CHECK( toolBox.initialize() );
-   /*const auto masterToolName = "ORUtils::OverlapRemovalTool/ORTool3";
-   masterHandle.setType(masterToolName);
-   overlapHandle.setType("");
-
-   const auto overlapToolName = "ORUtils::DeltaROverlapTool/ORTool3.DrORT3";
-   const auto key = "EleJetORT";
-
-   overlapHandle.setTypeAndName(overlapToolName);
-   CHECK( masterHandle.setProperty(key, overlapHandle) );
-   CHECK( masterHandle.initialize() );
-   CHECK( masterHandle.get() != nullptr );*/
+  met_tool.setTypeAndName("met::METMaker/METMaker");
+  CHECK(met_tool.initialize());
 
   pass = 0;
   fail = 0;
@@ -172,6 +154,41 @@ StatusCode DiTauAlg::execute() {
   //EVENT INFO:
   const xAOD::EventInfo* ei = 0;
   CHECK( evtStore()->retrieve( ei , "EventInfo" ) );
+  double eventWeight = ei->mcEventWeight();
+ 
+  //std::cout << ew->getWeight() << " = weight " << std::endl;
+  
+
+  //const McEventWeight* ew; 
+  //std::cout << ew->getWeight() << " = weight " << std::endl;
+/*  ATTEMPTS AT USING METMAKER::  
+  //xAOD::MissingETContainer newMETContainer;   
+  //xAOD::MissingETAuxContainer newMetAuxContainer;
+  //newMETContainer.setStore(newMetAuxContainer);
+  const xAOD::MissingETContainer* coreMet  = nullptr;
+  CHECK(evtStore()->retrieve(coreMet, "MET_Core_" + chosenJetType));
+
+  const xAOD::MissingETAssociationMap* metMap = nullptr; 
+  CHECK(evtStore()->retrieve(metMap, "METAssoc_" + chosenJetType));
+
+  const std::string arg1 = "RefJetTrk";   //change name
+  const std::string arg2 = "PVSoftTrk";   //change name
+
+  
+  const xAOD::ElectronContainer *ec = 0;
+  CHECK(evtStore()->retrieve(ec, "Electrons"));
+  for(auto it = ec->begin(); it != ec->end(); it++){
+    const xAOD::Electron *e = *it;
+    if(e->pt()/1000 >= 25 && abs(e->eta()) <= 2.5){
+      Electrons.push_back(e);
+    }
+  }
+  MissingETBase::UsageHandler::Policy objScale = MissingETBase::UsageHandler::PhysicsObject;
+  const std::string rebuildKey = "RefEle";
+  //met_tool->rebuildMET(rebuildKey, xAOD::Type::Electron, newMETContainer, ec, metMap, objScale);
+   */
+
+
 
   double lep_pt{}, lep_eta, lep_phi;
   if(GetCandidates(1,0,1)){
@@ -259,7 +276,7 @@ StatusCode DiTauAlg::execute() {
         // SAME IF STATEMENT AS LAST SEMESTER (only there was a <80GeV cut last semester which isn't needed here)
         if(2*half_angle <= 2.5 && 2*half_angle >= 0.5 && m_phi_rel <= 3*M_PI/5 && m_phi_rel >= -7*M_PI/10){
 	  no_1lep1tau_events++;
-          col_hist->Fill(col_mass);
+          col_hist->Fill(col_mass, eventWeight);
           
 	  // MMC
           if(Electrons.size() == 1){
@@ -268,7 +285,7 @@ StatusCode DiTauAlg::execute() {
 	  else{
 	    maxw_m = APPLY(m_mmt, ei, TauJets[0], Muons[0], met, no_25Jets);
 	  }
-          mmc_hist->Fill(maxw_m);
+          mmc_hist->Fill(maxw_m, eventWeight);
 	}
       }
   }
