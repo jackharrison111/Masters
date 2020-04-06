@@ -63,7 +63,11 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
       Electrons.push_back(e);
     }
   }
-  if((int)Electrons.size() != no_el){CLEAR(); return false;} 
+  if((int)Electrons.size() != no_el){
+  std::cout<< "HERE2" << std::endl;
+  CLEAR();
+  std::cout<< "HERE3" << std::endl;
+  return false;} 
  
   //MUONS
   const xAOD::MuonContainer *mc = 0;
@@ -74,7 +78,11 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
       Muons.push_back(mu);
     }
   }
-  if((int)Muons.size() != no_mu){CLEAR(); return false;} 
+  if((int)Muons.size() != no_mu){
+  std::cout<< "HERE4" << std::endl;
+  CLEAR();
+  std::cout<< "HERE5" << std::endl;
+  return false;} 
   
   //TAUS
   const xAOD::TauJetContainer *tjc = 0;
@@ -85,7 +93,12 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
       TauJets.push_back(tj);
     }
   }
-  if((int)TauJets.size() != no_tau){CLEAR(); return false;}
+  if((int)TauJets.size() != no_tau){
+  std::cout<< "HERE6" << std::endl;
+  CLEAR();
+  std::cout<< "HERE7" << std::endl;
+  return false;}
+  std::cout << "PassedCuts" << std::endl;
   return true;
 }
 
@@ -156,11 +169,7 @@ StatusCode DiTauAlg::execute() {
   CHECK( evtStore()->retrieve( ei , "EventInfo" ) );
   double eventWeight = ei->mcEventWeight();
  
-  //std::cout << ew->getWeight() << " = weight " << std::endl;
   
-
-  //const McEventWeight* ew; 
-  //std::cout << ew->getWeight() << " = weight " << std::endl;
 /*  ATTEMPTS AT USING METMAKER::  
   //xAOD::MissingETContainer newMETContainer;   
   //xAOD::MissingETAuxContainer newMetAuxContainer;
@@ -191,29 +200,174 @@ StatusCode DiTauAlg::execute() {
 
 
   double lep_pt{}, lep_eta, lep_phi;
-  if(GetCandidates(1,0,1)){
-    if(Electrons[0]->charge() == -TauJets[0]->charge() && (Electrons[0]->charge()==1||Electrons[0]->charge()==-1) ){
-      lep_pt = Electrons[0]->pt();
-      lep_eta = Electrons[0]->eta();
-      lep_phi = Electrons[0]->phi();
+  double lep1_pt, lep1_eta, lep1_phi;
+  double lep2_pt, lep2_eta, lep2_phi;
+  double tau_partner_pt, tau_partner_eta, tau_partner_phi, tau_partner_int;
+  const xAOD::IParticle* tau_partner; 
+  double Zmass = 91.2; 
+  std::cout << "HERE" << std::endl; 
+  if(GetCandidates(3,0,1)){
+    std::cout<< "PassedGetCandidates" << std::endl;
+    double totalQ = Electrons[0]->charge() + Electrons[1]->charge() + Electrons[2]->charge();
+    if(totalQ + TauJets[0]->charge() != 0){
+      CLEAR();
+      return StatusCode::SUCCESS;
     }
-  }
-  else if(GetCandidates(0,1,1)){
-    if(Muons[0]->charge() == -TauJets[0]->charge() && (Muons[0]->charge()==1||Muons[0]->charge()==-1) ){
-      lep_pt = Muons[0]->pt();
-      lep_eta = Muons[0]->eta();
-      lep_phi = Muons[0]->phi();
+    std::cout << "EVENT" << std::endl;
+    std::vector<int> same_leps;
+    double odd_lep;
+    for(int j=0;j<3;j++){
+      if(Electrons[j]->charge() == -totalQ){
+	odd_lep=j;
+      }
     }
-  }
+    for(int j=0;j<3;j++){
+      if(j!=odd_lep){
+        same_leps.push_back(j);
+      }
+    }
+    double invM1_leps, invM1_taus, invM2_leps, invM2_taus;
 
-  if(lep_pt != 0){
+    invM1_leps = sqrt(2*(Electrons[odd_lep]->pt()*Electrons[same_leps[0]]->pt())*(cosh(Electrons[odd_lep]->eta()-Electrons[same_leps[0]]->eta())-cos(Electrons[odd_lep]->phi()-Electrons[same_leps[0]]->phi())))/1000;
+    invM1_taus = sqrt(2*(TauJets[0]->pt()*Electrons[same_leps[1]]->pt())*(cosh(TauJets[0]->eta()-Electrons[same_leps[1]]->eta())-cos(TauJets[0]->phi()-Electrons[same_leps[1]]->phi())))/1000;
+
+    invM2_leps = sqrt(2*(Electrons[odd_lep]->pt()*Electrons[same_leps[1]]->pt())*(cosh(Electrons[odd_lep]->eta()-Electrons[same_leps[1]]->eta())-cos(Electrons[odd_lep]->phi()-Electrons[same_leps[1]]->phi())))/1000;
+    invM2_taus = sqrt(2*(TauJets[0]->pt()*Electrons[same_leps[0]]->pt())*(cosh(TauJets[0]->eta()-Electrons[same_leps[0]]->eta())-cos(TauJets[0]->phi()-Electrons[same_leps[0]]->phi())))/1000;
+
+  if((abs(invM2_leps - Zmass) + abs(invM2_taus - Zmass)) > (abs(invM1_leps - Zmass) + abs(invM1_taus - Zmass))){
+    //set pairings 1 to be the right ones
+    lep1_pt = Electrons[odd_lep]->pt();
+    lep1_eta = Electrons[odd_lep]->eta();
+    lep1_phi = Electrons[odd_lep]->phi();
+    lep2_pt = Electrons[same_leps[0]]->pt();
+    lep2_eta = Electrons[same_leps[0]]->eta();
+    lep2_phi = Electrons[same_leps[0]]->phi();
+    tau_partner_pt = Electrons[same_leps[1]]->pt();
+    tau_partner_eta = Electrons[same_leps[1]]->eta();
+    tau_partner_phi = Electrons[same_leps[1]]->phi();
+    tau_partner_int = same_leps[1];
+    tau_partner = Electrons[same_leps[1]];
+  }
+  else{
+    //set pairings 1 to be the right ones 
+    lep1_pt = Electrons[odd_lep]->pt();
+    lep1_eta = Electrons[odd_lep]->eta();
+    lep1_phi = Electrons[odd_lep]->phi();
+    lep2_pt = Electrons[same_leps[1]]->pt();
+    lep2_eta = Electrons[same_leps[1]]->eta();
+    lep2_phi = Electrons[same_leps[1]]->phi();
+    tau_partner_pt = Electrons[same_leps[0]]->pt();
+    tau_partner_eta = Electrons[same_leps[0]]->eta();
+    tau_partner_phi = Electrons[same_leps[0]]->phi();
+    tau_partner_int = same_leps[0];
+    tau_partner = Electrons[same_leps[0]];
+  }
+  }
+  else if(GetCandidates(1,2,1)){
+    std::cout<< "PassedGetCandidates" << std::endl;
+    double totalQ = Electrons[0]->charge() + Muons[0]->charge() + Muons[1]->charge();
+    if(totalQ + TauJets[0]->charge() != 0){
+      CLEAR();
+      return StatusCode::SUCCESS;
+    }
+    std::cout << "EVENT" << std::endl;
+    lep1_pt = Muons[0]->pt();
+    lep1_eta = Muons[0]->eta();
+    lep1_phi = Muons[0]->phi();
+    lep2_pt = Muons[1]->pt();
+    lep2_eta = Muons[1]->eta();
+    lep2_phi = Muons[1]->phi();
+    tau_partner_pt = Electrons[0]->pt();
+    tau_partner_eta = Electrons[0]->eta();
+    tau_partner_phi = Electrons[0]->phi();
+    tau_partner = Electrons[0];
+  }  
+  else if(GetCandidates(2,1,1)){
+    std::cout<< "PassedGetCandidates" << std::endl;
+    double totalQ = Electrons[0]->charge() + Electrons[1]->charge() + Muons[0]->charge();
+    if(totalQ + TauJets[0]->charge() != 0){
+      CLEAR();
+      return StatusCode::SUCCESS;
+    }
+    std::cout << "EVENT" << std::endl;
+    lep1_pt = Electrons[0]->pt();
+    lep1_eta = Electrons[0]->eta();
+    lep1_phi = Electrons[0]->phi();
+    lep2_pt = Electrons[1]->pt();
+    lep2_eta = Electrons[1]->eta();
+    lep2_phi = Electrons[1]->phi();
+    tau_partner_pt = Muons[0]->pt();
+    tau_partner_eta = Muons[0]->eta();
+    tau_partner_phi = Muons[0]->phi();
+    tau_partner = Muons[0];
+  }  
+  else if(GetCandidates(0,3,1)){	//repeat for muons
+    std::cout<< "PassedGetCandidates" << std::endl;
+    double totalQ = Muons[0]->charge() + Muons[1]->charge() + Muons[2]->charge();
+    if(totalQ + TauJets[0]->charge() != 0){
+      CLEAR();
+      return StatusCode::SUCCESS;
+    }
+    std::cout << "EVENT" << std::endl;
+    std::vector<int> same_leps;
+    double odd_lep;
+    for(int j=0;j<3;j++){
+      if(Muons[j]->charge() == -totalQ){
+	odd_lep=j;
+      }
+    }
+    for(int j=0;j<3;j++){
+      if(j!=odd_lep){
+        same_leps.push_back(j);
+      }
+    }
+    double invM1_leps, invM1_taus, invM2_leps, invM2_taus;
+
+    invM1_leps = sqrt(2*(Muons[odd_lep]->pt()*Muons[same_leps[0]]->pt())*(cosh(Muons[odd_lep]->eta()-Muons[same_leps[0]]->eta())-cos(Muons[odd_lep]->phi()-Muons[same_leps[0]]->phi())))/1000;
+    invM1_taus = sqrt(2*(TauJets[0]->pt()*Muons[same_leps[1]]->pt())*(cosh(TauJets[0]->eta()-Muons[same_leps[1]]->eta())-cos(TauJets[0]->phi()-Muons[same_leps[1]]->phi())))/1000;
+
+    invM2_leps = sqrt(2*(Muons[odd_lep]->pt()*Muons[same_leps[1]]->pt())*(cosh(Muons[odd_lep]->eta()-Muons[same_leps[1]]->eta())-cos(Muons[odd_lep]->phi()-Muons[same_leps[1]]->phi())))/1000;
+    invM2_taus = sqrt(2*(TauJets[0]->pt()*Muons[same_leps[0]]->pt())*(cosh(TauJets[0]->eta()-Muons[same_leps[0]]->eta())-cos(TauJets[0]->phi()-Muons[same_leps[0]]->phi())))/1000;
+
+  if((abs(invM2_leps - Zmass) + abs(invM2_taus - Zmass)) > (abs(invM1_leps - Zmass) + abs(invM1_taus - Zmass))){
+    //set pairings 1 to be the right ones
+    lep1_pt = Muons[odd_lep]->pt();
+    lep1_eta = Muons[odd_lep]->eta();
+    lep1_phi = Muons[odd_lep]->phi();
+    lep2_pt = Muons[same_leps[0]]->pt();
+    lep2_eta = Muons[same_leps[0]]->eta();
+    lep2_phi = Muons[same_leps[0]]->phi();
+    tau_partner_pt = Muons[same_leps[1]]->pt();
+    tau_partner_eta = Muons[same_leps[1]]->eta();
+    tau_partner_phi = Muons[same_leps[1]]->phi();
+    tau_partner_int = same_leps[1];
+    tau_partner = Muons[same_leps[1]];
+  }
+  else{
+    //set pairings 1 to be the right ones 
+    lep1_pt = Muons[odd_lep]->pt();
+    lep1_eta = Muons[odd_lep]->eta();
+    lep1_phi = Muons[odd_lep]->phi();
+    lep2_pt = Muons[same_leps[1]]->pt();
+    lep2_eta = Muons[same_leps[1]]->eta();
+    lep2_phi = Muons[same_leps[1]]->phi();
+    tau_partner_pt = Muons[same_leps[0]]->pt();
+    tau_partner_eta = Muons[same_leps[0]]->eta();
+    tau_partner_phi = Muons[same_leps[0]]->phi();
+    tau_partner_int = same_leps[0];
+    tau_partner = Muons[same_leps[0]];
+ } 
+ }
+  if(tau_partner_pt != 0){
       // IMPORTANT - now GeV
-      lep_pt /= 1000;
+      lep1_pt /= 1000;
+      lep2_pt /= 1000;
+      tau_partner_pt /= 1000;
       double tau_pt = TauJets[0]->pt() / 1000;
       double tau_eta = TauJets[0]->eta();
       double tau_phi = TauJets[0]->phi();
 
-      double vis_mass = sqrt( 2 * lep_pt * tau_pt * ( cosh(lep_eta - tau_eta) - cos(lep_phi - tau_phi) ) );
+      double vis_mass = sqrt( 2 * tau_partner_pt * tau_pt * ( cosh(tau_partner_eta - tau_eta) - cos(tau_partner_phi - tau_phi) ) );
       vis_hist->Fill(vis_mass);
       
       if(vis_mass > 5){
@@ -237,62 +391,58 @@ StatusCode DiTauAlg::execute() {
         }
         
         // COLLINEAR
-        double nu_lep_pt = m_et * (sin(m_phi) - sin(tau_phi)) / (sin(lep_phi) - sin(tau_phi));
-        double nu_tau_pt = m_et * (sin(m_phi) - sin(lep_phi)) / (sin(tau_phi) - sin(lep_phi));
-        double x1 = lep_pt / (lep_pt + nu_lep_pt);
+        double nu_lep_pt = m_et * (sin(m_phi) - sin(tau_phi)) / (sin(tau_partner_phi) - sin(tau_phi));
+        double nu_tau_pt = m_et * (sin(m_phi) - sin(tau_partner_phi)) / (sin(tau_phi) - sin(tau_partner_phi));
+        double x1 = tau_partner_pt / (tau_partner_pt + nu_lep_pt);
         double x2 = tau_pt / (tau_pt + nu_tau_pt);
         double col_mass = vis_mass / sqrt(x1 * x2);
 
         // ANGULAR
-	double half_angle = GetOpenAngle(lep_phi, tau_phi) / 2;
+	double half_angle = GetOpenAngle(tau_partner_phi, tau_phi) / 2;
 	double rotation_angle;
-	if(tau_phi < lep_phi){
+	if(tau_phi < tau_partner_phi){
 	  rotation_angle = -tau_phi;
 	}
 	else{
-	  rotation_angle = -lep_phi;
+	  rotation_angle = -tau_partner_phi;
 	}
 	tau_phi += rotation_angle;
-	lep_phi += rotation_angle;
+	tau_partner_phi += rotation_angle;
 	m_phi += rotation_angle;
 	if(tau_phi > M_PI ) tau_phi -= 2 * M_PI;
-	if(lep_phi > M_PI ) lep_phi -= 2 * M_PI;
-        if(tau_phi < 0 || lep_phi < 0){
+	if(tau_partner_phi > M_PI ) tau_partner_phi -= 2 * M_PI;
+        if(tau_phi < 0 || tau_partner_phi < 0){
 	  tau_phi += half_angle;
-	  lep_phi += half_angle;
+	  tau_partner_phi += half_angle;
 	  m_phi += half_angle;
 	}
 	else{
 	  tau_phi -= half_angle;
-	  lep_phi -= half_angle;
+	  tau_partner_phi -= half_angle;
 	  m_phi -= half_angle;
 	}
 	if(m_phi > M_PI) m_phi -= 2 * M_PI;
 	else if(m_phi < -M_PI) m_phi += 2 * M_PI;
 	double m_phi_rel = (m_phi * M_PI) / (2 * half_angle);
-	if(tau_phi > lep_phi) m_phi_rel_hist->Fill(m_phi_rel);
+	if(tau_phi > tau_partner_phi) m_phi_rel_hist->Fill(m_phi_rel);
 	else m_phi_rel_hist->Fill(-m_phi_rel);
 
         // SAME IF STATEMENT AS LAST SEMESTER (only there was a <80GeV cut last semester which isn't needed here)
         if(2*half_angle <= 2.5 && 2*half_angle >= 0.5 && m_phi_rel <= 3*M_PI/5 && m_phi_rel >= -7*M_PI/10){
 	  no_1lep1tau_events++;
           col_hist->Fill(col_mass, eventWeight);
-          
-	  // MMC
-          if(Electrons.size() == 1){
-            maxw_m = APPLY(m_mmt, ei, TauJets[0], Electrons[0], met, no_25Jets);
-	  }
-	  else{
-	    maxw_m = APPLY(m_mmt, ei, TauJets[0], Muons[0], met, no_25Jets);
-	  }
+         
+          // MMC 
+	  maxw_m = APPLY(m_mmt, ei, TauJets[0], tau_partner, met, no_25Jets);
           mmc_hist->Fill(maxw_m, eventWeight);
 	}
       }
   }
     
 
-
+  std::cout << "Maybe here?" << std::endl;
   CLEAR();
+  std::cout << "2Maybe here?" << std::endl;
   setFilterPassed(true); //if got here, assume that means algorithm passed
   return StatusCode::SUCCESS;
 }
