@@ -24,7 +24,11 @@ DiTauAlg::DiTauAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthAna
 }
 
 
+
+
 DiTauAlg::~DiTauAlg() {}
+
+
 
 
 double DiTauAlg::APPLY(asg::AnaToolHandle<MissingMassTool>m_mmt, const xAOD::EventInfo* ei, const xAOD::IParticle* x, const xAOD::IParticle* y, const xAOD::MissingET* met, double num){	
@@ -40,9 +44,15 @@ double DiTauAlg::APPLY(asg::AnaToolHandle<MissingMassTool>m_mmt, const xAOD::Eve
     return mass;
 }
 
+
+
+
 void DiTauAlg::CLEAR(){
   Electrons.clear(); Muons.clear(); TauJets.clear();
 }
+
+
+
 
 double DiTauAlg::GetOpenAngle(double ang1, double ang2){
   double openAngle = abs(ang1 - ang2);
@@ -51,6 +61,8 @@ double DiTauAlg::GetOpenAngle(double ang1, double ang2){
   }
   return openAngle;
 }
+
+
 
 
 bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau){
@@ -88,6 +100,8 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
   if((int)TauJets.size() != no_tau){CLEAR(); return false;}
   return true;
 }
+
+
 
 
 StatusCode DiTauAlg::initialize() {
@@ -136,6 +150,8 @@ StatusCode DiTauAlg::initialize() {
 
   return StatusCode::SUCCESS;
 }
+
+
 
 
 StatusCode DiTauAlg::execute() {  
@@ -289,13 +305,13 @@ StatusCode DiTauAlg::execute() {
 	}
       }
   }
-    
-
 
   CLEAR();
   setFilterPassed(true); //if got here, assume that means algorithm passed
   return StatusCode::SUCCESS;
 }
+
+
 
 
 StatusCode DiTauAlg::finalize() {
@@ -304,6 +320,8 @@ StatusCode DiTauAlg::finalize() {
   std::cout << "Passed : " << pass << " , Failed : " << fail << std::endl;
   return StatusCode::SUCCESS;
 }
+
+
 
 
 StatusCode DiTauAlg::beginInputFile() { 
