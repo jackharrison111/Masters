@@ -72,11 +72,11 @@ double DiTauAlg::GetOpenAngle(double ang1, double ang2){
 
 
 bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau){
-  //MET
+  /*//MET
   met_container = new xAOD::MissingETContainer();   
   met_aux_container = new xAOD::MissingETAuxContainer();
   met_container->setStore(met_aux_container);
-  
+  */
   //ELECTRONS
   const xAOD::ElectronContainer *ec = 0;
   CHECK(evtStore()->retrieve(ec, "Electrons"));
@@ -174,7 +174,7 @@ StatusCode DiTauAlg::initialize() {
   met_Electrons = new ConstDataVector<xAOD::ElectronContainer>(SG::VIEW_ELEMENTS);
   met_Muons = new ConstDataVector<xAOD::MuonContainer>(SG::VIEW_ELEMENTS);
   met_Taus = new ConstDataVector<xAOD::TauJetContainer>(SG::VIEW_ELEMENTS);
-
+  met_container->setStore(met_aux_container);
   
   pass = 0;
   fail = 0;
@@ -264,6 +264,7 @@ StatusCode DiTauAlg::execute() {
   std::cout <<"BuiltMETSum" << std::endl;
   //std::cout << "total met = " << (*newMETContainer)["FinalTrk"]->met() << std::endl;
   std::cout << "total met = " << (*met_container)["FinalTrk"]->met() << std::endl;
+  CLEAR();
   return StatusCode::SUCCESS;
   /*const xAOD::MissingETContainer* coreMet  = nullptr;
   CHECK(evtStore()->retrieve(coreMet, "MET_Core_" + chosenJetType));
