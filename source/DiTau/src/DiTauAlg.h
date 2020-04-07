@@ -11,6 +11,8 @@
 #include "xAODMuon/MuonContainer.h"
 #include "xAODTau/TauJetContainer.h"
 #include "TauAnalysisTools/TauSelectionTool.h"
+#include "xAODMissingET/MissingETContainer.h"
+#include "xAODMissingET/MissingETAuxContainer.h"
 #include "METUtilities/METMaker.h"
 #include "ReweightUtils/McEventWeight.h"
 
@@ -53,7 +55,14 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    std::vector<const xAOD::Electron*> Electrons;
    std::vector<const xAOD::Muon*> Muons;
    std::vector<const xAOD::TauJet*> TauJets;
-   
+
+   MissingETBase::UsageHandler::Policy obj_scale;
+   ConstDataVector<xAOD::ElectronContainer>* met_Electrons;//(SG::VIEW_ELEMENTS);
+   ConstDataVector<xAOD::MuonContainer>* met_Muons;//(SG::VIEW_ELEMENTS);
+   ConstDataVector<xAOD::TauJetContainer>* met_Taus;//(SG::VIEW_ELEMENTS);
+   xAOD::MissingETContainer* met_container;
+   xAOD::MissingETAuxContainer* met_aux_container;
+
    TH1D* vis_hist;
    TH1D* col_hist;
    TH1D* mmc_hist;
