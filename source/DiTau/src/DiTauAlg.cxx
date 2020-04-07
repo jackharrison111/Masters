@@ -76,9 +76,7 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
     }
   }
   if((int)Electrons.size() != no_el){
-  std::cout<< "HERE2" << std::endl;
   CLEAR();
-  std::cout<< "HERE3" << std::endl;
   return false;} 
  
   //MUONS
@@ -91,9 +89,7 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
     }
   }
   if((int)Muons.size() != no_mu){
-  std::cout<< "HERE4" << std::endl;
   CLEAR();
-  std::cout<< "HERE5" << std::endl;
   return false;} 
   
   //TAUS
@@ -106,11 +102,8 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
     }
   }
   if((int)TauJets.size() != no_tau){
-  std::cout<< "HERE6" << std::endl;
   CLEAR();
-  std::cout<< "HERE7" << std::endl;
   return false;}
-  std::cout << "PassedCuts" << std::endl;
   return true;
 }
 
@@ -124,17 +117,21 @@ StatusCode DiTauAlg::initialize() {
   col_hist = new TH1D("col_hist","Collinear Mass Distribution",160,0,160);
   mmc_hist = new TH1D("mmc_hist","MMC Mass Distribution",160,0,160);
   m_phi_rel_hist = new TH1D("m_phi_rel_hist","Missing Energy Distribution",100,-M_PI,M_PI);
+  m_my2DHist = new TH2D("2DinvMass" , "", 160, 0, 160, 160, 0, 160);
+
 
   vis_hist->SetTitle("Visible Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
   vis_hist->SetTitle("Collinear Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
   mmc_hist->SetTitle("MMC Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
   m_phi_rel_hist->SetTitle("Missing Energy Distribution;#phi_{rel} [rad];N / [#pi/50]");
+  m_my2DHist->SetTitle("Candidate Z Boson Invariant Mass Distributions; M_{#tau#tau} [GeV]; M_{#ell#ell} [GeV]");
   //mmc_hist->SetStats(0);
 
   CHECK( histSvc()->regHist("/MYSTREAM/vis_hist", vis_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/col_hist", col_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/mmc_hist", mmc_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/m_phi_rel_hist", m_phi_rel_hist) );
+  CHECK( histSvc()->regHist("/MYSTREAM/m_my2DHist", m_my2DHist) );
 
   //INITIALISE THE MISSING MASS TOOL
   m_mmt.setTypeAndName("MissingMassTool/MissingMassTool");
@@ -148,10 +145,12 @@ StatusCode DiTauAlg::initialize() {
   //CHECK(m_mmt->setProperty("UseMETDphiLL", 1)); only for leplep
   CHECK(m_mmt->setProperty("UseEfficiencyRecovery", 1));
 
+  //INITIALISE TAU SELECTION TOOL
   const auto TauSelectionToolName = "TauAnalysisTools::TauSelectionTool/TauSelectionTool";
   tau_selection_t.setTypeAndName(TauSelectionToolName);
   CHECK(tau_selection_t.initialize());
 
+  //INITIALISE MET RECONSTRUCTION TOOL
   met_tool.setTypeAndName("met::METMaker/METMaker");
   CHECK(met_tool.initialize());
 
@@ -186,15 +185,50 @@ StatusCode DiTauAlg::execute() {
   double eventWeight = ei->mcEventWeight();
  
   
-/*  ATTEMPTS AT USING METMAKER::  
-  //xAOD::MissingETContainer newMETContainer;   
-  //xAOD::MissingETAuxContainer newMetAuxContainer;
-  //newMETContainer.setStore(newMetAuxContainer);
-  const xAOD::MissingETContainer* coreMet  = nullptr;
-  CHECK(evtStore()->retrieve(coreMet, "MET_Core_" + chosenJetType));
-
+  //ATTEMPTS AT USING METMAKER::  
+  xAOD::MissingETContainer* newMETContainer = new xAOD::MissingETContainer();   
+  xAOD::MissingETAuxContainer* newMetAuxContainer = new xAOD::MissingETAuxContainer();
+  newMETContainer->setStore(newMetAuxContainer);
+  
+  const std::string chosenJetType = "AntiKt4LCTopo";
   const xAOD::MissingETAssociationMap* metMap = nullptr; 
   CHECK(evtStore()->retrieve(metMap, "METAssoc_" + chosenJetType));
+  
+  ConstDataVector<xAOD::ElectronContainer> metElectrons(SG::VIEW_ELEMENTS);
+  ConstDataVector<xAOD::MuonContainer> metMuons(SG::VIEW_ELEMENTS);
+  
+  if((!GetCandidates(3,0,0))&&(!GetCandidates(0,3,0))){CLEAR(); return StatusCode::SUCCESS;} //Just run test for electrons, and use Electrons as the data vector
+  const xAOD::ElectronContainer* els = nullptr;
+  CHECK( evtStore()->retrieve( els , "Electrons" ) );
+  for(auto it = els->begin(); it!=els->end();it++){
+    if((*it)->pt()/1000>25){
+    metElectrons.push_back(*it);
+    }
+  }
+  const std::string elName = "RefEle";     
+  MissingETBase::UsageHandler::Policy objScale = MissingETBase::UsageHandler::PhysicsObject;
+  met_tool->rebuildMET(elName , xAOD::Type::Electron, newMETContainer, metElectrons.asDataVector(), metMap, objScale);
+  
+
+  const xAOD::MuonContainer* mus = nullptr;
+  CHECK( evtStore()->retrieve( mus , "Muons" ) );
+  for(auto it = mus->begin(); it!=mus->end();it++){
+    if((*it)->pt()/1000>25){
+    metMuons.push_back(*it);
+    }
+  }
+  const std::string muName = "RefMu";     
+  met_tool->rebuildMET(muName , xAOD::Type::Muon, newMETContainer, metMuons.asDataVector(), metMap, objScale);
+
+  std::cout << "MetMaker working so far..." << std::endl;
+
+  met_tool->buildMETSum("FinalTrk" , newMETContainer, MissingETBase::Source::Track );
+  std::cout <<"BuiltMETSum" << std::endl;
+  std::cout << "total met = " << (*newMETContainer)["FinalTrk"]->met() << std::endl;
+  return StatusCode::SUCCESS;
+  /*const xAOD::MissingETContainer* coreMet  = nullptr;
+  CHECK(evtStore()->retrieve(coreMet, "MET_Core_" + chosenJetType));
+
 
   const std::string arg1 = "RefJetTrk";   //change name
   const std::string arg2 = "PVSoftTrk";   //change name
@@ -218,20 +252,18 @@ StatusCode DiTauAlg::execute() {
   double lep_pt{}, lep_eta, lep_phi;
   double lep1_pt, lep1_eta, lep1_phi;
   double lep2_pt, lep2_eta, lep2_phi;
-  double tau_partner_pt, tau_partner_eta, tau_partner_phi, tau_partner_int;
+  double tau_partner_pt{0};
+  double tau_partner_eta, tau_partner_phi, tau_partner_int;
   const xAOD::IParticle* tau_partner; 
   double Zmass = 91.2; 
-  std::cout << "HERE" << std::endl; 
   if(GetCandidates(3,0,1)){
-    std::cout<< "PassedGetCandidates" << std::endl;
     double totalQ = Electrons[0]->charge() + Electrons[1]->charge() + Electrons[2]->charge();
     if(totalQ + TauJets[0]->charge() != 0){
       CLEAR();
       return StatusCode::SUCCESS;
     }
-    std::cout << "EVENT" << std::endl;
     std::vector<int> same_leps;
-    double odd_lep;
+    double odd_lep{};
     for(int j=0;j<3;j++){
       if(Electrons[j]->charge() == -totalQ){
 	odd_lep=j;
@@ -280,13 +312,11 @@ StatusCode DiTauAlg::execute() {
   }
   }
   else if(GetCandidates(1,2,1)){
-    std::cout<< "PassedGetCandidates" << std::endl;
     double totalQ = Electrons[0]->charge() + Muons[0]->charge() + Muons[1]->charge();
     if(totalQ + TauJets[0]->charge() != 0){
       CLEAR();
       return StatusCode::SUCCESS;
     }
-    std::cout << "EVENT" << std::endl;
     lep1_pt = Muons[0]->pt();
     lep1_eta = Muons[0]->eta();
     lep1_phi = Muons[0]->phi();
@@ -299,13 +329,11 @@ StatusCode DiTauAlg::execute() {
     tau_partner = Electrons[0];
   }  
   else if(GetCandidates(2,1,1)){
-    std::cout<< "PassedGetCandidates" << std::endl;
     double totalQ = Electrons[0]->charge() + Electrons[1]->charge() + Muons[0]->charge();
     if(totalQ + TauJets[0]->charge() != 0){
       CLEAR();
       return StatusCode::SUCCESS;
     }
-    std::cout << "EVENT" << std::endl;
     lep1_pt = Electrons[0]->pt();
     lep1_eta = Electrons[0]->eta();
     lep1_phi = Electrons[0]->phi();
@@ -318,15 +346,13 @@ StatusCode DiTauAlg::execute() {
     tau_partner = Muons[0];
   }  
   else if(GetCandidates(0,3,1)){	//repeat for muons
-    std::cout<< "PassedGetCandidates" << std::endl;
     double totalQ = Muons[0]->charge() + Muons[1]->charge() + Muons[2]->charge();
     if(totalQ + TauJets[0]->charge() != 0){
       CLEAR();
       return StatusCode::SUCCESS;
     }
-    std::cout << "EVENT" << std::endl;
     std::vector<int> same_leps;
-    double odd_lep;
+    double odd_lep{};
     for(int j=0;j<3;j++){
       if(Muons[j]->charge() == -totalQ){
 	odd_lep=j;
@@ -406,6 +432,7 @@ StatusCode DiTauAlg::execute() {
           }
         }
         
+        double invMass_leps = sqrt(2*(lep1_pt*lep2_pt)*(cosh(lep1_eta-lep2_eta)-cos(lep1_phi - lep2_phi)))/1000;
         // COLLINEAR
         double nu_lep_pt = m_et * (sin(m_phi) - sin(tau_phi)) / (sin(tau_partner_phi) - sin(tau_phi));
         double nu_tau_pt = m_et * (sin(m_phi) - sin(tau_partner_phi)) / (sin(tau_phi) - sin(tau_partner_phi));
@@ -451,14 +478,14 @@ StatusCode DiTauAlg::execute() {
           // MMC 
 	  maxw_m = APPLY(m_mmt, ei, TauJets[0], tau_partner, met, no_25Jets);
           mmc_hist->Fill(maxw_m, eventWeight);
+
+	  m_my2DHist->Fill(maxw_m, invMass_leps);
 	}
       }
   }
     
 
-  std::cout << "Maybe here?" << std::endl;
   CLEAR();
-  std::cout << "2Maybe here?" << std::endl;
   setFilterPassed(true); //if got here, assume that means algorithm passed
   return StatusCode::SUCCESS;
 }
