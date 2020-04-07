@@ -53,8 +53,9 @@ void DiTauAlg::CLEAR(){
   met_Electrons->clear();
   met_Muons->clear();
   met_Taus->clear();
-  //delete met_container;     // THINK THESE WERE CAUSING A CORE DUMP TOO
-  //delete met_aux_container;
+  met_container->clear();     // THINK THESE WERE CAUSING A CORE DUMP TOO
+  met_aux_container->clearDecorations();
+  //std::cout << "met_aux_container->size() = " << met_aux_container->size() << std::endl;
 }
 
 
@@ -72,11 +73,6 @@ double DiTauAlg::GetOpenAngle(double ang1, double ang2){
 
 
 bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau){
-  //MET
-  met_container = new xAOD::MissingETContainer();   
-  met_aux_container = new xAOD::MissingETAuxContainer();
-  met_container->setStore(met_aux_container);
-  
   //ELECTRONS
   const xAOD::ElectronContainer *ec = 0;
   CHECK(evtStore()->retrieve(ec, "Electrons"));
@@ -88,8 +84,9 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
     }
   }
   if((int)Electrons.size() != no_el){
-  CLEAR();
-  return false;} 
+    CLEAR();
+    return false;
+  }
  
   //MUONS
   const xAOD::MuonContainer *mc = 0;
@@ -102,8 +99,9 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
     }
   }
   if((int)Muons.size() != no_mu){
-  CLEAR();
-  return false;} 
+    CLEAR();
+    return false;
+  }
   
   //TAUS
   const xAOD::TauJetContainer *tjc = 0;
@@ -116,8 +114,9 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
     }
   }
   if((int)TauJets.size() != no_tau){
-  CLEAR();
-  return false;}
+    CLEAR();
+    return false;
+  }
   
   return true;
 }
@@ -171,6 +170,7 @@ StatusCode DiTauAlg::initialize() {
   obj_scale = MissingETBase::UsageHandler::PhysicsObject;
   met_container = new xAOD::MissingETContainer();
   met_aux_container = new xAOD::MissingETAuxContainer();
+  met_container->setStore(met_aux_container);
   met_Electrons = new ConstDataVector<xAOD::ElectronContainer>(SG::VIEW_ELEMENTS);
   met_Muons = new ConstDataVector<xAOD::MuonContainer>(SG::VIEW_ELEMENTS);
   met_Taus = new ConstDataVector<xAOD::TauJetContainer>(SG::VIEW_ELEMENTS);
@@ -192,79 +192,48 @@ StatusCode DiTauAlg::execute() {
   ATH_MSG_DEBUG ("Executing " << name() << "...");
   setFilterPassed(false); //optional: start with algorithm not passed
 
-  if(no_1lep1tau_events > 16395){ //163208 is no. events in mc15 Ntuples, 16395 is no. entries in col_mass from Sem1
+  /*if(no_1lep1tau_events > 16395){ //163208 is no. events in mc15 Ntuples, 16395 is no. entries in col_mass from Sem1
     if(!warning_message){
       std::cout << "16395 events reached!!" << std::endl;
       warning_message = true;
     }
     setFilterPassed(true);
     return StatusCode::SUCCESS;
-  }
+  }*/
+
 
   //EVENT INFO:
   const xAOD::EventInfo* ei = 0;
   CHECK( evtStore()->retrieve( ei , "EventInfo" ) );
   double eventWeight = ei->mcEventWeight();
- 
   
   //ATTEMPTS AT USING METMAKER::  
-  /*xAOD::MissingETContainer* newMETContainer = new xAOD::MissingETContainer();   
-  xAOD::MissingETAuxContainer* newMetAuxContainer = new xAOD::MissingETAuxContainer();
-  newMETContainer->setStore(newMetAuxContainer);*/
-  
   const std::string chosenJetType = "AntiKt4LCTopo";
   const xAOD::MissingETAssociationMap* metMap = nullptr; 
   CHECK(evtStore()->retrieve(metMap, "METAssoc_" + chosenJetType));
   
-  //ConstDataVector<xAOD::ElectronContainer> metElectrons(SG::VIEW_ELEMENTS);
-  //ConstDataVector<xAOD::MuonContainer> metMuons(SG::VIEW_ELEMENTS);
-  //ConstDataVector<xAOD::TauJetContainer> metTaus(SG::VIEW_ELEMENTS);
+  if(!GetCandidates(3,0,0) && !GetCandidates(0,3,0)){
+    CLEAR();
+    return StatusCode::SUCCESS;
+  } //Just run test for electrons, and use Electrons as the data vector
   
-  if((!GetCandidates(3,0,0))&&(!GetCandidates(0,3,0))){CLEAR(); return StatusCode::SUCCESS;} //Just run test for electrons, and use Electrons as the data vector
   
-  //MissingETBase::UsageHandler::Policy objScale = MissingETBase::UsageHandler::PhysicsObject;
-  
-  /*const xAOD::ElectronContainer* els = nullptr;
-  CHECK( evtStore()->retrieve( els , "Electrons" ) );
-  for(auto it = els->begin(); it!=els->end();it++){
-    if((*it)->pt()/1000>25){
-      metElectrons.push_back(*it);
-    }
-  }*/
   const std::string elName = "RefEle";     
-  //met_tool->rebuildMET(elName , xAOD::Type::Electron, newMETContainer, metElectrons.asDataVector(), metMap, objScale); 
   met_tool->rebuildMET(elName , xAOD::Type::Electron, met_container, met_Electrons->asDataVector(), metMap, obj_scale); 
-
-  /*const xAOD::MuonContainer* mus = nullptr;
-  CHECK( evtStore()->retrieve( mus , "Muons" ) );
-  for(auto it = mus->begin(); it!=mus->end();it++){
-    if((*it)->pt()/1000>25){
-      metMuons.push_back(*it);
-    }
-  }*/
+  
   const std::string muName = "RefMu";     
-  //met_tool->rebuildMET(muName , xAOD::Type::Muon, newMETContainer, metMuons.asDataVector(), metMap, objScale);
   met_tool->rebuildMET(muName , xAOD::Type::Muon, met_container, met_Muons->asDataVector(), metMap, obj_scale);
-
-  /*const xAOD::TauJetContainer* taus = nullptr;
-  CHECK( evtStore()->retrieve(taus, "TauJets") );
-  for(auto it = taus->begin(); it != taus->end(); it++){
-    if(tau_selection_t->accept(*it)){	//pt>20 , eta0-1.37 1.52-2.5, EOR, |tauCharge|=1,( https://arxiv.org/pdf/1607.05979.pdf p7 )
-      metTaus.push_back(*it);
-    }
-  }*/
+  
   const std::string tauName = "RefTau";
-  //met_tool->rebuildMET(tauName, xAOD::Type::Tau, newMETContainer, metTaus.asDataVector(), metMap, objScale);
   met_tool->rebuildMET(tauName, xAOD::Type::Tau, met_container, met_Taus->asDataVector(), metMap, obj_scale);
-
+  
   std::cout << "MetMaker working so far..." << std::endl;
 
-  //met_tool->buildMETSum("FinalTrk" , newMETContainer, MissingETBase::Source::Track );
   met_tool->buildMETSum("FinalTrk" , met_container, MissingETBase::Source::Track);
   std::cout <<"BuiltMETSum" << std::endl;
-  //std::cout << "total met = " << (*newMETContainer)["FinalTrk"]->met() << std::endl;
   std::cout << "total met = " << (*met_container)["FinalTrk"]->met() << std::endl;
-  return StatusCode::SUCCESS;
+  
+  
   /*const xAOD::MissingETContainer* coreMet  = nullptr;
   CHECK(evtStore()->retrieve(coreMet, "MET_Core_" + chosenJetType));
 
@@ -292,7 +261,6 @@ StatusCode DiTauAlg::execute() {
   double lep2_pt, lep2_eta, lep2_phi;
   double tau_partner_pt{}, tau_partner_eta, tau_partner_phi, tau_partner_int;
   const xAOD::IParticle* tau_partner; 
-  std::cout << "HERE" << std::endl; 
   
   double Zmass = 91.2; 
   if(GetCandidates(3,0,1)){
