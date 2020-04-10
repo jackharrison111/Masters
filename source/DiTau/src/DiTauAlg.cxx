@@ -175,6 +175,14 @@ StatusCode DiTauAlg::initialize() {
   met_Muons = new ConstDataVector<xAOD::MuonContainer>(SG::VIEW_ELEMENTS);
   met_Taus = new ConstDataVector<xAOD::TauJetContainer>(SG::VIEW_ELEMENTS);
 
+  //INITIALISE JET CALIBRATION TOOL
+  CHECK(ASG_MAKE_ANA_TOOL(jet_calib_tool, JetCalibrationTool));
+  jet_calib_tool.setName("jetCalibTool");
+  CHECK(jet_calib_tool.setProperty("JetCollection", "AntiKt4EMTopo")); // jet_type
+  CHECK(jet_calib_tool.setProperty("ConfigFile", "JES_data2017_2016_2015_Recommendation_Feb2018_rel21.config"));
+  CHECK(jet_calib_tool.setProperty("CalibSequence", "JetArea_Residual_EtaJES_GSC"));
+  CHECK(jet_calib_tool.setProperty("IsData", false));
+  CHECK(jet_calib_tool.retrieve());
   
   pass = 0;
   fail = 0;
@@ -218,51 +226,59 @@ StatusCode DiTauAlg::execute() {
   } //Just run test for electrons, and use Electrons as the data vector
   
   
-  const std::string elName = "RefEle";     
-  met_tool->rebuildMET(elName , xAOD::Type::Electron, met_container, met_Electrons->asDataVector(), metMap, obj_scale); 
+  //const std::string elName = "RefEle";
+  met_tool->rebuildMET("RefEle" , xAOD::Type::Electron, met_container, met_Electrons->asDataVector(), metMap, obj_scale); 
   
   const std::string muName = "RefMu";     
   met_tool->rebuildMET(muName , xAOD::Type::Muon, met_container, met_Muons->asDataVector(), metMap, obj_scale);
   
   const std::string tauName = "RefTau";
   met_tool->rebuildMET(tauName, xAOD::Type::Tau, met_container, met_Taus->asDataVector(), metMap, obj_scale);
+
+  ConstDataVector<xAOD::PhotonContainer> met_Photons(SG::VIEW_ELEMENTS);
+  const xAOD::PhotonContainer *pc = nullptr;
+  CHECK( evtStore()->retrieve(pc, "Photons") );
+  for(auto it = pc->begin(); it != pc->end(); it++){
+    const xAOD::Photon *p = *it;
+    if(p->pt()/1000 > 20){ // TODO: check this is right cut
+      met_Photons.push_back(*it);
+    }
+  }
+
+
+  ConstDataVector<xAOD::JetContainer> met_Jets(SG::VIEW_ELEMENTS);
+  const std::string jet_type = "AntiKt4EMTopo"; // TODO: edit to whichever is the correct one 
+  const xAOD::JetContainer *jc = nullptr;
+  CHECK( evtStore()->retrieve(jc, jet_type + "Jets") );
+  for(auto it = jc->begin(); it != jc->end(); it++){
+    xAOD::Jet *j;
+    const xAOD::Jet *j_temp = *it;
+    j = const_cast<xAOD::Jet*>(j_temp);
+    if(j_temp->pt()/1000 > 20){
+      if(!jet_calib_tool->applyCalibration(*j)){
+        CLEAR();
+	return StatusCode::SUCCESS;
+      }
+      met_Jets.push_back(*it);
+    }
+  }
+  const xAOD::MissingETContainer* metc = nullptr;
+  CHECK( evtStore()->retrieve(metc, "MET_Core_" + jet_type) );
+  met_tool->rebuildJetMET("RefJet", "SoftClus"/*, "PVSoftTrk"*/, met_container, met_Jets.asDataVector(), metc, metMap, true);
   
   std::cout << "MetMaker working so far..." << std::endl;
 
-  met_tool->buildMETSum("FinalTrk" , met_container, MissingETBase::Source::Track);
+  met_tool->buildMETSum("FinalTrk", met_container, MissingETBase::Source::Track);
   std::cout <<"BuiltMETSum" << std::endl;
   std::cout << "total met = " << (*met_container)["FinalTrk"]->met() << std::endl;
   
   
-  /*const xAOD::MissingETContainer* coreMet  = nullptr;
-  CHECK(evtStore()->retrieve(coreMet, "MET_Core_" + chosenJetType));
-
-
-  const std::string arg1 = "RefJetTrk";   //change name
-  const std::string arg2 = "PVSoftTrk";   //change name
-
-  
-  const xAOD::ElectronContainer *ec = 0;
-  CHECK(evtStore()->retrieve(ec, "Electrons"));
-  for(auto it = ec->begin(); it != ec->end(); it++){
-    const xAOD::Electron *e = *it;
-    if(e->pt()/1000 >= 25 && abs(e->eta()) <= 2.5){
-      Electrons.push_back(e);
-    }
-  }
-  MissingETBase::UsageHandler::Policy objScale = MissingETBase::UsageHandler::PhysicsObject;
-  const std::string rebuildKey = "RefEle";
-  //met_tool->rebuildMET(rebuildKey, xAOD::Type::Electron, newMETContainer, ec, metMap, objScale);
-   */
-
-
-
   double lep1_pt, lep1_eta, lep1_phi;
   double lep2_pt, lep2_eta, lep2_phi;
-  double tau_partner_pt{}, tau_partner_eta, tau_partner_phi, tau_partner_int;
+  double tau_partner_pt{}, tau_partner_eta, tau_partner_phi;//, tau_partner_int;
   const xAOD::IParticle* tau_partner; 
   
-  double Zmass = 91.2; 
+  double Z_mass = 91.2; 
   if(GetCandidates(3,0,1)){
     double totalQ = Electrons[0]->charge() + Electrons[1]->charge() + Electrons[2]->charge();
     if(totalQ + TauJets[0]->charge() != 0){
@@ -275,9 +291,7 @@ StatusCode DiTauAlg::execute() {
       if(Electrons[j]->charge() == -totalQ){
 	odd_lep=j;
       }
-    }
-    for(int j=0;j<3;j++){
-      if(j!=odd_lep){
+      else{
         same_leps.push_back(j);
       }
     }
@@ -289,32 +303,29 @@ StatusCode DiTauAlg::execute() {
     invM2_leps = sqrt(2*(Electrons[odd_lep]->pt()*Electrons[same_leps[1]]->pt())*(cosh(Electrons[odd_lep]->eta()-Electrons[same_leps[1]]->eta())-cos(Electrons[odd_lep]->phi()-Electrons[same_leps[1]]->phi())))/1000;
     invM2_taus = sqrt(2*(TauJets[0]->pt()*Electrons[same_leps[0]]->pt())*(cosh(TauJets[0]->eta()-Electrons[same_leps[0]]->eta())-cos(TauJets[0]->phi()-Electrons[same_leps[0]]->phi())))/1000;
 
-    if((abs(invM2_leps - Zmass) + abs(invM2_taus - Zmass)) > (abs(invM1_leps - Zmass) + abs(invM1_taus - Zmass))){
+    lep1_pt = Electrons[odd_lep]->pt();
+    lep1_eta = Electrons[odd_lep]->eta();
+    lep1_phi = Electrons[odd_lep]->phi();
+    if((abs(invM2_leps - Z_mass) + abs(invM2_taus - Z_mass)) > (abs(invM1_leps - Z_mass) + abs(invM1_taus - Z_mass))){
       //set pairings 1 to be the right ones
-      lep1_pt = Electrons[odd_lep]->pt();
-      lep1_eta = Electrons[odd_lep]->eta();
-      lep1_phi = Electrons[odd_lep]->phi();
       lep2_pt = Electrons[same_leps[0]]->pt();
       lep2_eta = Electrons[same_leps[0]]->eta();
       lep2_phi = Electrons[same_leps[0]]->phi();
       tau_partner_pt = Electrons[same_leps[1]]->pt();
       tau_partner_eta = Electrons[same_leps[1]]->eta();
       tau_partner_phi = Electrons[same_leps[1]]->phi();
-      tau_partner_int = same_leps[1];
+      //tau_partner_int = same_leps[1];
       tau_partner = Electrons[same_leps[1]];
     }
     else{
       //set pairings 1 to be the right ones 
-      lep1_pt = Electrons[odd_lep]->pt();
-      lep1_eta = Electrons[odd_lep]->eta();
-      lep1_phi = Electrons[odd_lep]->phi();
       lep2_pt = Electrons[same_leps[1]]->pt();
       lep2_eta = Electrons[same_leps[1]]->eta();
       lep2_phi = Electrons[same_leps[1]]->phi();
       tau_partner_pt = Electrons[same_leps[0]]->pt();
       tau_partner_eta = Electrons[same_leps[0]]->eta();
       tau_partner_phi = Electrons[same_leps[0]]->phi();
-      tau_partner_int = same_leps[0];
+      //tau_partner_int = same_leps[0];
       tau_partner = Electrons[same_leps[0]];
     }
 
@@ -367,9 +378,7 @@ StatusCode DiTauAlg::execute() {
       if(Muons[j]->charge() == -totalQ){
 	odd_lep=j;
       }
-    }
-    for(int j=0;j<3;j++){
-      if(j!=odd_lep){
+      else{
         same_leps.push_back(j);
       }
     }
@@ -380,33 +389,30 @@ StatusCode DiTauAlg::execute() {
 
     invM2_leps = sqrt(2*(Muons[odd_lep]->pt()*Muons[same_leps[1]]->pt())*(cosh(Muons[odd_lep]->eta()-Muons[same_leps[1]]->eta())-cos(Muons[odd_lep]->phi()-Muons[same_leps[1]]->phi())))/1000;
     invM2_taus = sqrt(2*(TauJets[0]->pt()*Muons[same_leps[0]]->pt())*(cosh(TauJets[0]->eta()-Muons[same_leps[0]]->eta())-cos(TauJets[0]->phi()-Muons[same_leps[0]]->phi())))/1000;
-
-    if((abs(invM2_leps - Zmass) + abs(invM2_taus - Zmass)) > (abs(invM1_leps - Zmass) + abs(invM1_taus - Zmass))){
+    
+    lep1_pt = Muons[odd_lep]->pt();
+    lep1_eta = Muons[odd_lep]->eta();
+    lep1_phi = Muons[odd_lep]->phi();
+    if((abs(invM2_leps - Z_mass) + abs(invM2_taus - Z_mass)) > (abs(invM1_leps - Z_mass) + abs(invM1_taus - Z_mass))){
       //set pairings 1 to be the right ones
-      lep1_pt = Muons[odd_lep]->pt();
-      lep1_eta = Muons[odd_lep]->eta();
-      lep1_phi = Muons[odd_lep]->phi();
       lep2_pt = Muons[same_leps[0]]->pt();
       lep2_eta = Muons[same_leps[0]]->eta();
       lep2_phi = Muons[same_leps[0]]->phi();
       tau_partner_pt = Muons[same_leps[1]]->pt();
       tau_partner_eta = Muons[same_leps[1]]->eta();
       tau_partner_phi = Muons[same_leps[1]]->phi();
-      tau_partner_int = same_leps[1];
+      //tau_partner_int = same_leps[1];
       tau_partner = Muons[same_leps[1]];
     }
     else{
       //set pairings 1 to be the right ones 
-      lep1_pt = Muons[odd_lep]->pt();
-      lep1_eta = Muons[odd_lep]->eta();
-      lep1_phi = Muons[odd_lep]->phi();
       lep2_pt = Muons[same_leps[1]]->pt();
       lep2_eta = Muons[same_leps[1]]->eta();
       lep2_phi = Muons[same_leps[1]]->phi();
       tau_partner_pt = Muons[same_leps[0]]->pt();
       tau_partner_eta = Muons[same_leps[0]]->eta();
       tau_partner_phi = Muons[same_leps[0]]->phi();
-      tau_partner_int = same_leps[0];
+      //tau_partner_int = same_leps[0];
       tau_partner = Muons[same_leps[0]];
     } 
   }
@@ -425,15 +431,9 @@ StatusCode DiTauAlg::execute() {
     vis_hist->Fill(vis_mass);
      
     if(vis_mass > 5){
+      
       // MET
-      //const xAOD::MissingETContainer *metc = 0;
-      //CHECK(evtStore()->retrieve(metc, "MET_Calo"));
-      //const xAOD::MissingET* met = 0;
-      //met = metc->at(7);
-      //double m_et = met->met() / 1000;
-      //double m_phi = met->phi();
-
-      double m_et = (*met_container)["FinalTrk"]->met() / 1000;
+      double met_pt = (*met_container)["FinalTrk"]->met() / 1000;
       double m_phi = (*met_container)["FinalTrk"]->phi();
   
       // JETS
@@ -447,10 +447,10 @@ StatusCode DiTauAlg::execute() {
         }
       }
         
-      double invMass_leps = sqrt(2*(lep1_pt*lep2_pt)*(cosh(lep1_eta-lep2_eta)-cos(lep1_phi - lep2_phi)))/1000;
+      double invMass_leps = sqrt(2*(lep1_pt*lep2_pt)*(cosh(lep1_eta-lep2_eta)-cos(lep1_phi - lep2_phi)));
       // COLLINEAR
-      double nu_lep_pt = m_et * (sin(m_phi) - sin(tau_phi)) / (sin(tau_partner_phi) - sin(tau_phi));
-      double nu_tau_pt = m_et * (sin(m_phi) - sin(tau_partner_phi)) / (sin(tau_phi) - sin(tau_partner_phi));
+      double nu_lep_pt = met_pt * (sin(m_phi) - sin(tau_phi)) / (sin(tau_partner_phi) - sin(tau_phi));
+      double nu_tau_pt = met_pt * (sin(m_phi) - sin(tau_partner_phi)) / (sin(tau_phi) - sin(tau_partner_phi));
       double x1 = tau_partner_pt / (tau_partner_pt + nu_lep_pt);
       double x2 = tau_pt / (tau_pt + nu_tau_pt);
       double col_mass = vis_mass / sqrt(x1 * x2);
