@@ -10,6 +10,7 @@
 #include "xAODEgamma/ElectronContainer.h"
 #include "xAODMuon/MuonContainer.h"
 #include "xAODTau/TauJetContainer.h"
+#include "JetCalibTools/JetCalibrationTool.h"
 #include "TauAnalysisTools/TauSelectionTool.h"
 #include "xAODMissingET/MissingETContainer.h"
 #include "xAODMissingET/MissingETAuxContainer.h"
@@ -72,6 +73,7 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
 
    McEventWeight* ew = new McEventWeight("test");
    asg::AnaToolHandle<TauAnalysisTools::TauSelectionTool> tau_selection_t;
+   asg::AnaToolHandle<IJetCalibrationTool> jet_calib_tool;
    asg::AnaToolHandle<met::METMaker> met_tool;
   
    //asg::AnaToolHandle<ORUtils::IOverlapRemovalTool> masterHandle;
