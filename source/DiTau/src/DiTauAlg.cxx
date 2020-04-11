@@ -14,7 +14,6 @@
 #include "xAODEventInfo/EventInfo.h"
 #include "xAODMissingET/MissingETAuxContainer.h"
 #include "xAODMissingET/versions/MissingETBase.h"
-
 int no_1lep1tau_events{0};
 
 DiTauAlg::DiTauAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthAnalysisAlgorithm( name, pSvcLocator ){
@@ -206,12 +205,11 @@ StatusCode DiTauAlg::execute() {
   const xAOD::EventInfo* ei = 0;
   CHECK( evtStore()->retrieve( ei , "EventInfo" ) );
   double eventWeight = ei->mcEventWeight();
-  
+ 
   //ATTEMPTS AT USING METMAKER::  
   const std::string chosenJetType = "AntiKt4LCTopo";
   const xAOD::MissingETAssociationMap* metMap = nullptr; 
   CHECK(evtStore()->retrieve(metMap, "METAssoc_" + chosenJetType));
-  
   if(!GetCandidates(3,0,0) && !GetCandidates(0,3,0)){
     CLEAR();
     return StatusCode::SUCCESS;
