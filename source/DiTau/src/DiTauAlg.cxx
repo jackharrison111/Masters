@@ -107,6 +107,8 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
   
   //TAUS
   const xAOD::TauJetContainer *tjc = 0;
+  //NEEDS TO BE DATAVECTOR?
+  //DataVector<xAOD::TauJet> *tjs = 0; 
   CHECK(evtStore()->retrieve(tjc, "TauJets"));
   for(auto it = tjc->begin(); it != tjc->end(); it++){
     const xAOD::TauJet *tj = *it;
@@ -136,7 +138,8 @@ StatusCode DiTauAlg::initialize() {
   mmc_hist = new TH1D("mmc_hist","MMC Mass Distribution",160,0,160);
   mmc_hist_met7 = new TH1D("mmc_hist_met7","MMC Mass Distribution",160,0,160);
   m_phi_rel_hist = new TH1D("m_phi_rel_hist","Missing Energy Distribution",100,-M_PI,M_PI);
-  m_my2DHist = new TH2D("2DinvMass" , "", 160, 0, 160, 160, 0, 160);
+  m_my2DHist = new TH2D("2DinvMass" , "", 160, 0, 80, 160, 0, 80);
+  m_my2DHist_met7 = new TH2D("2DinvMass" , "", 160, 0, 80, 160, 0, 80);
 
 
   vis_hist->SetTitle("Visible Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
@@ -145,7 +148,8 @@ StatusCode DiTauAlg::initialize() {
   mmc_hist->SetTitle("MMC Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
   mmc_hist_met7->SetTitle("MMC Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
   m_phi_rel_hist->SetTitle("Missing Energy Distribution;#phi_{rel} [rad];N / [#pi/50]");
-  m_my2DHist->SetTitle("Candidate Z Boson Invariant Mass Distributions; M_{#tau#tau} [GeV]; M_{#ell#ell} [GeV]");
+  m_my2DHist->SetTitle("Candidate Z Boson Invariant Mass Distributions; M_{#tau#tau} [GeV]; M_{ll} [GeV]");
+  m_my2DHist_met7->SetTitle("Candidate Z Boson Invariant Mass Distributions; M_{#tau#tau} [GeV]; M_{ll} [GeV]");
   //mmc_hist->SetStats(0);
 
   CHECK( histSvc()->regHist("/MYSTREAM/vis_hist", vis_hist) );
@@ -155,6 +159,7 @@ StatusCode DiTauAlg::initialize() {
   CHECK( histSvc()->regHist("/MYSTREAM/mmc_hist_met7", mmc_hist_met7) );
   CHECK( histSvc()->regHist("/MYSTREAM/m_phi_rel_hist", m_phi_rel_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/m_my2DHist", m_my2DHist) );
+  CHECK( histSvc()->regHist("/MYSTREAM/m_my2DHist_met7", m_my2DHist) );
 
   //INITIALISE THE MISSING MASS TOOL
   m_mmt.setTypeAndName("MissingMassTool/MissingMassTool");
@@ -235,9 +240,9 @@ StatusCode DiTauAlg::execute() {
     eventWeight = ei->mcEventWeight();
   }
   //Recalibrate the jets:  
-  const std::string jet_type = "AntiKt4LCTopo";
+  const std::string jet_type = "AntiKt4LCTopo";  //removed 'Anti'
   
-
+  
   const xAOD::JetContainer* uncalibJets = nullptr;
   CHECK( evtStore()->retrieve(uncalibJets, jet_type+"Jets"));//this retrieves and applies the correction
   std::pair< xAOD::JetContainer*, xAOD::ShallowAuxContainer* > calibJetsPair = xAOD::shallowCopyContainer( *uncalibJets );//make a shallow copy to calibrate
@@ -257,7 +262,7 @@ StatusCode DiTauAlg::execute() {
     std::cout << "Failed to set the original object links" << std::endl;
   }     
   CHECK( evtStore()->record(calibJets, "CalibJets") );
-
+  
   double lep1_pt, lep1_eta, lep1_phi;
   double lep2_pt, lep2_eta, lep2_phi;
   double tau_partner_pt{}, tau_partner_eta, tau_partner_phi;//, tau_partner_int;
@@ -420,7 +425,7 @@ StatusCode DiTauAlg::execute() {
       double no_25Jets = 0;
       ConstDataVector<xAOD::JetContainer> met_Jets(SG::VIEW_ELEMENTS);
       const xAOD::JetContainer *jc = nullptr;
-      CHECK( evtStore()->retrieve(jc, "CalibJets") );
+      CHECK( evtStore()->retrieve(jc, /*jet_type + "Jets"*/"CalibJets") );
       for(auto it = jc->begin(); it != jc->end(); it++){
         if((*it)->pt()/1000>20){
           met_Jets.push_back(*it);
@@ -433,15 +438,12 @@ StatusCode DiTauAlg::execute() {
       const xAOD::MissingETAssociationMap* metMap = nullptr; 
       CHECK(evtStore()->retrieve(metMap, "METAssoc_" + jet_type));
 
-  
+       
+      //REBUILD MET::
+      //order has to be electrons,photons,taus,muons,jets
+
       met_tool->rebuildMET("RefEle" , xAOD::Type::Electron, met_container, met_Electrons->asDataVector(), metMap, obj_scale); 
   
-      //const std::string muName = "RefMu";     
-      met_tool->rebuildMET("RefMu" , xAOD::Type::Muon, met_container, met_Muons->asDataVector(), metMap, obj_scale);
-  
-      //const std::string tauName = "RefTau";
-      met_tool->rebuildMET("RefTau", xAOD::Type::Tau, met_container, met_Taus->asDataVector(), metMap, obj_scale);
-
       ConstDataVector<xAOD::PhotonContainer> met_Photons(SG::VIEW_ELEMENTS);
       const xAOD::PhotonContainer *pc = nullptr;
       CHECK( evtStore()->retrieve(pc, "Photons") );
@@ -451,6 +453,15 @@ StatusCode DiTauAlg::execute() {
           met_Photons.push_back(*it);
         }
       }
+      //Rebuild photons
+      met_tool->rebuildMET("RefPhoton", xAOD::Type::Photon, met_container, met_Photons.asDataVector(), metMap, obj_scale);
+
+      //const std::string tauName = "RefTau";
+      met_tool->rebuildMET("RefTau", xAOD::Type::Tau, met_container, met_Taus->asDataVector(), metMap, obj_scale);
+      
+
+      //const std::string muName = "RefMu";     
+      met_tool->rebuildMET("RefMu" , xAOD::Type::Muon, met_container, met_Muons->asDataVector(), metMap, obj_scale);
 
       const xAOD::MissingETContainer* met_core = nullptr;
       CHECK( evtStore()->retrieve(met_core, "MET_Core_" + jet_type) );
@@ -472,7 +483,6 @@ StatusCode DiTauAlg::execute() {
   
         
       double invMass_leps = sqrt(2*(lep1_pt*lep2_pt)*(cosh(lep1_eta-lep2_eta)-cos(lep1_phi - lep2_phi)));
-      leplep_hist->Fill(invMass_leps, eventWeight);  
   
       // COLLINEAR
       double nu_lep_pt = met_pt * (sin(m_phi) - sin(tau_phi)) / (sin(tau_partner_phi) - sin(tau_phi));
@@ -515,6 +525,7 @@ StatusCode DiTauAlg::execute() {
       if(2*half_angle <= 2.5 && 2*half_angle >= 0.5 && m_phi_rel <= 3*M_PI/5 && m_phi_rel >= -7*M_PI/10){
 	no_1lep1tau_events++;
         col_hist->Fill(col_mass, eventWeight);
+        leplep_hist->Fill(invMass_leps, eventWeight);  
          
         // MMC 
 	//maxw_m = APPLY(m_mmt, ei, TauJets[0], tau_partner, met, no_25Jets);
@@ -523,6 +534,7 @@ StatusCode DiTauAlg::execute() {
         mmc_hist->Fill(maxw_m, eventWeight);
         mmc_hist_met7->Fill(maxw_m_met7, eventWeight);
 	m_my2DHist->Fill(maxw_m, invMass_leps);
+	m_my2DHist_met7->Fill(maxw_m_met7, invMass_leps);
       }
     } // vis_mass > 5
   } // tau_partner != 0
