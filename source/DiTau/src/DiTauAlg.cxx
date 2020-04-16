@@ -6,6 +6,9 @@
 #include "DiTauAlg.h"
 #include "xAODJet/JetContainer.h"
 #include "xAODMissingET/MissingETContainer.h"
+#include "xAODCore/ShallowAuxContainer.h"
+#include "xAODCore/ShallowCopy.h"
+#include "xAODBase/IParticleHelpers.h"
 
 // core EDM includes
 #include "AthContainers/AuxElement.h"
@@ -14,7 +17,6 @@
 #include "xAODEventInfo/EventInfo.h"
 #include "xAODMissingET/MissingETAuxContainer.h"
 #include "xAODMissingET/versions/MissingETBase.h"
-
 int no_1lep1tau_events{0};
 
 DiTauAlg::DiTauAlg( const std::string& name, ISvcLocator* pSvcLocator ) : AthAnalysisAlgorithm( name, pSvcLocator ){
@@ -105,6 +107,8 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
   
   //TAUS
   const xAOD::TauJetContainer *tjc = 0;
+  //NEEDS TO BE DATAVECTOR?
+  //DataVector<xAOD::TauJet> *tjs = 0; 
   CHECK(evtStore()->retrieve(tjc, "TauJets"));
   for(auto it = tjc->begin(); it != tjc->end(); it++){
     const xAOD::TauJet *tj = *it;
@@ -127,25 +131,35 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
 StatusCode DiTauAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
  
+  start_time = clock();
   vis_hist = new TH1D("vis_hist","Visible Mass Distribution",160,0,160);
+  leplep_hist = new TH1D("leplep_hist", "Direct Z#rightarrow ll Invariant Mass Distribution", 160,0,160);
   col_hist = new TH1D("col_hist","Collinear Mass Distribution",160,0,160);
   mmc_hist = new TH1D("mmc_hist","MMC Mass Distribution",160,0,160);
+  mmc_hist_met7 = new TH1D("mmc_hist_met7","MMC Mass Distribution",160,0,160);
   m_phi_rel_hist = new TH1D("m_phi_rel_hist","Missing Energy Distribution",100,-M_PI,M_PI);
-  m_my2DHist = new TH2D("2DinvMass" , "", 160, 0, 160, 160, 0, 160);
+  m_my2DHist = new TH2D("2DinvMass" , "", 160, 0, 80, 160, 0, 80);
+  m_my2DHist_met7 = new TH2D("2DinvMass" , "", 160, 0, 80, 160, 0, 80);
 
 
   vis_hist->SetTitle("Visible Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
-  vis_hist->SetTitle("Collinear Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
+  leplep_hist->SetTitle("Direct Z#rightarrow ll Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
+  col_hist->SetTitle("Collinear Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
   mmc_hist->SetTitle("MMC Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
+  mmc_hist_met7->SetTitle("MMC Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
   m_phi_rel_hist->SetTitle("Missing Energy Distribution;#phi_{rel} [rad];N / [#pi/50]");
-  m_my2DHist->SetTitle("Candidate Z Boson Invariant Mass Distributions; M_{#tau#tau} [GeV]; M_{#ell#ell} [GeV]");
+  m_my2DHist->SetTitle("Candidate Z Boson Invariant Mass Distributions; M_{#tau#tau} [GeV]; M_{ll} [GeV]");
+  m_my2DHist_met7->SetTitle("Candidate Z Boson Invariant Mass Distributions; M_{#tau#tau} [GeV]; M_{ll} [GeV]");
   //mmc_hist->SetStats(0);
 
   CHECK( histSvc()->regHist("/MYSTREAM/vis_hist", vis_hist) );
+  CHECK( histSvc()->regHist("/MYSTREAM/leplep_hist", leplep_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/col_hist", col_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/mmc_hist", mmc_hist) );
+  CHECK( histSvc()->regHist("/MYSTREAM/mmc_hist_met7", mmc_hist_met7) );
   CHECK( histSvc()->regHist("/MYSTREAM/m_phi_rel_hist", m_phi_rel_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/m_my2DHist", m_my2DHist) );
+  CHECK( histSvc()->regHist("/MYSTREAM/m_my2DHist_met7", m_my2DHist_met7) );
 
   //INITIALISE THE MISSING MASS TOOL
   m_mmt.setTypeAndName("MissingMassTool/MissingMassTool");
@@ -190,6 +204,10 @@ StatusCode DiTauAlg::initialize() {
 
   warning_message = false;
 
+  MC = true;
+  if(!MC) std::cout << "USING REAL DATA" << std::endl;
+  else std::cout << "USING MC DATA" << std::endl;
+  
   return StatusCode::SUCCESS;
 }
 
@@ -213,65 +231,37 @@ StatusCode DiTauAlg::execute() {
   //EVENT INFO:
   const xAOD::EventInfo* ei = 0;
   CHECK( evtStore()->retrieve( ei , "EventInfo" ) );
-  double eventWeight = ei->mcEventWeight();
   
-  //ATTEMPTS AT USING METMAKER::  
-  const std::string chosenJetType = "AntiKt4LCTopo";
-  const xAOD::MissingETAssociationMap* metMap = nullptr; 
-  CHECK(evtStore()->retrieve(metMap, "METAssoc_" + chosenJetType));
-  
-  if(!GetCandidates(3,0,0) && !GetCandidates(0,3,0)){
-    CLEAR();
-    return StatusCode::SUCCESS;
-  } //Just run test for electrons, and use Electrons as the data vector
-  
-  
-  //const std::string elName = "RefEle";
-  met_tool->rebuildMET("RefEle" , xAOD::Type::Electron, met_container, met_Electrons->asDataVector(), metMap, obj_scale); 
-  
-  const std::string muName = "RefMu";     
-  met_tool->rebuildMET(muName , xAOD::Type::Muon, met_container, met_Muons->asDataVector(), metMap, obj_scale);
-  
-  const std::string tauName = "RefTau";
-  met_tool->rebuildMET(tauName, xAOD::Type::Tau, met_container, met_Taus->asDataVector(), metMap, obj_scale);
 
-  ConstDataVector<xAOD::PhotonContainer> met_Photons(SG::VIEW_ELEMENTS);
-  const xAOD::PhotonContainer *pc = nullptr;
-  CHECK( evtStore()->retrieve(pc, "Photons") );
-  for(auto it = pc->begin(); it != pc->end(); it++){
-    const xAOD::Photon *p = *it;
-    if(p->pt()/1000 > 20){ // TODO: check this is right cut
-      met_Photons.push_back(*it);
-    }
+
+
+  double eventWeight{1};
+  if(MC){
+    eventWeight = ei->mcEventWeight();
   }
-
-
-  ConstDataVector<xAOD::JetContainer> met_Jets(SG::VIEW_ELEMENTS);
-  const std::string jet_type = "AntiKt4EMTopo"; // TODO: edit to whichever is the correct one 
-  const xAOD::JetContainer *jc = nullptr;
-  CHECK( evtStore()->retrieve(jc, jet_type + "Jets") );
-  for(auto it = jc->begin(); it != jc->end(); it++){
-    xAOD::Jet *j;
-    const xAOD::Jet *j_temp = *it;
-    j = const_cast<xAOD::Jet*>(j_temp);
-    if(j_temp->pt()/1000 > 20){
-      if(!jet_calib_tool->applyCalibration(*j)){
-        CLEAR();
-	return StatusCode::SUCCESS;
-      }
-      met_Jets.push_back(*it);
+  //Recalibrate the jets:  
+  const std::string jet_type = "AntiKt4LCTopo";  //removed 'Anti'
+  
+  
+  const xAOD::JetContainer* uncalibJets = nullptr;
+  CHECK( evtStore()->retrieve(uncalibJets, jet_type+"Jets"));//this retrieves and applies the correction
+  std::pair< xAOD::JetContainer*, xAOD::ShallowAuxContainer* > calibJetsPair = xAOD::shallowCopyContainer( *uncalibJets );//make a shallow copy to calibrate
+  xAOD::JetContainer *& calibJets = calibJetsPair.first;//create a reference to the first element of the pair (i.e. the JetContainer)     
+  
+  //TODO::need to figure out this bit: can't find the necessary file to include to use the function
+  //met::addGhostMuonsToJets(*muons, *calibJets);     
+  
+  for ( const auto& jet : *calibJets ) { 	//Shallow copy is needed 	
+    if(!jet_calib_tool->applyCalibration(*jet)){ //apply the calibration   
+      //std::cout << "Calibration failed." << std::endl;  
+      CLEAR();
+      return StatusCode::SUCCESS;
     }
-  }
-  const xAOD::MissingETContainer* metc = nullptr;
-  CHECK( evtStore()->retrieve(metc, "MET_Core_" + jet_type) );
-  met_tool->rebuildJetMET("RefJet", "SoftClus"/*, "PVSoftTrk"*/, met_container, met_Jets.asDataVector(), metc, metMap, true);
-  
-  std::cout << "MetMaker working so far..." << std::endl;
-
-  met_tool->buildMETSum("FinalTrk", met_container, MissingETBase::Source::Track);
-  std::cout <<"BuiltMETSum" << std::endl;
-  std::cout << "total met = " << (*met_container)["FinalTrk"]->met() << std::endl;
-  
+  }   
+  if(!xAOD::setOriginalObjectLink(*uncalibJets, *calibJets)){//tell calib container what old container it matches       
+    std::cout << "Failed to set the original object links" << std::endl;
+  }     
+  CHECK( evtStore()->record(calibJets, "CalibJets") );
   
   double lep1_pt, lep1_eta, lep1_phi;
   double lep2_pt, lep2_eta, lep2_phi;
@@ -431,23 +421,69 @@ StatusCode DiTauAlg::execute() {
     vis_hist->Fill(vis_mass);
      
     if(vis_mass > 5){
+     
+      double no_25Jets = 0;
+      ConstDataVector<xAOD::JetContainer> met_Jets(SG::VIEW_ELEMENTS);
+      const xAOD::JetContainer *jc = nullptr;
+      CHECK( evtStore()->retrieve(jc, /*jet_type + "Jets"*/"CalibJets") );
+      for(auto it = jc->begin(); it != jc->end(); it++){
+        if((*it)->pt()/1000>20){
+          met_Jets.push_back(*it);
+          if(((*it)->pt()/1000>25)&&(abs((*it)->eta())<2.5)){
+            no_25Jets++;
+          }
+        }
+      }
+
+      const xAOD::MissingETAssociationMap* metMap = nullptr; 
+      CHECK(evtStore()->retrieve(metMap, "METAssoc_" + jet_type));
+
+       
+      //REBUILD MET::
+      //order has to be electrons,photons,taus,muons,jets
+
+      met_tool->rebuildMET("RefEle" , xAOD::Type::Electron, met_container, met_Electrons->asDataVector(), metMap, obj_scale); 
+  
+      ConstDataVector<xAOD::PhotonContainer> met_Photons(SG::VIEW_ELEMENTS);
+      const xAOD::PhotonContainer *pc = nullptr;
+      CHECK( evtStore()->retrieve(pc, "Photons") );
+      for(auto it = pc->begin(); it != pc->end(); it++){
+        const xAOD::Photon *p = *it;
+        if(p->pt()/1000 > 20){ // TODO: check this is right cut
+          met_Photons.push_back(*it);
+        }
+      }
+      //Rebuild photons
+      met_tool->rebuildMET("RefPhoton", xAOD::Type::Photon, met_container, met_Photons.asDataVector(), metMap, obj_scale);
+
+      //const std::string tauName = "RefTau";
+      met_tool->rebuildMET("RefTau", xAOD::Type::Tau, met_container, met_Taus->asDataVector(), metMap, obj_scale);
       
+
+      //const std::string muName = "RefMu";     
+      met_tool->rebuildMET("RefMu" , xAOD::Type::Muon, met_container, met_Muons->asDataVector(), metMap, obj_scale);
+
+      const xAOD::MissingETContainer* met_core = nullptr;
+      CHECK( evtStore()->retrieve(met_core, "MET_Core_" + jet_type) );
+  
+      met_tool->rebuildJetMET("RefJet", "SoftClus", "PVSoftTrk", met_container, /*calibJets*/ met_Jets.asDataVector(), met_core, metMap, true);
+  
+      const xAOD::MissingETContainer* met_calo = nullptr;
+      CHECK( evtStore()->retrieve(met_calo, "MET_Calo") );
+      const xAOD::MissingET* met7 = met_calo->at(7);
+      double met7_pt = met7->met();
+      double met7_phi = met7->phi();
+
+      met_tool->buildMETSum("FinalTrk", met_container, MissingETBase::Source::Track);
+
+ 
       // MET
       double met_pt = (*met_container)["FinalTrk"]->met() / 1000;
       double m_phi = (*met_container)["FinalTrk"]->phi();
   
-      // JETS
-      const xAOD::JetContainer *jc = 0;
-      double no_25Jets = 0;
-      CHECK(evtStore()->retrieve(jc, "AntiKt4LCTopoJets"));
-      for(xAOD::JetContainer::const_iterator it=jc->begin(); it!=jc->end(); it++){
-        const xAOD::Jet *j = *it;
-        if((j->pt()>25e3)&&( abs(j->eta())<2.5)){
-          no_25Jets++;
-        }
-      }
         
       double invMass_leps = sqrt(2*(lep1_pt*lep2_pt)*(cosh(lep1_eta-lep2_eta)-cos(lep1_phi - lep2_phi)));
+  
       // COLLINEAR
       double nu_lep_pt = met_pt * (sin(m_phi) - sin(tau_phi)) / (sin(tau_partner_phi) - sin(tau_phi));
       double nu_tau_pt = met_pt * (sin(m_phi) - sin(tau_partner_phi)) / (sin(tau_phi) - sin(tau_partner_phi));
@@ -489,13 +525,16 @@ StatusCode DiTauAlg::execute() {
       if(2*half_angle <= 2.5 && 2*half_angle >= 0.5 && m_phi_rel <= 3*M_PI/5 && m_phi_rel >= -7*M_PI/10){
 	no_1lep1tau_events++;
         col_hist->Fill(col_mass, eventWeight);
+        leplep_hist->Fill(invMass_leps, eventWeight);  
          
         // MMC 
 	//maxw_m = APPLY(m_mmt, ei, TauJets[0], tau_partner, met, no_25Jets);
 	maxw_m = APPLY(m_mmt, ei, TauJets[0], tau_partner, (*met_container)["FinalTrk"], no_25Jets);
+	double maxw_m_met7 = APPLY(m_mmt, ei, TauJets[0], tau_partner, met7, no_25Jets);
         mmc_hist->Fill(maxw_m, eventWeight);
-
+        mmc_hist_met7->Fill(maxw_m_met7, eventWeight);
 	m_my2DHist->Fill(maxw_m, invMass_leps);
+	m_my2DHist_met7->Fill(maxw_m_met7, invMass_leps);
       }
     } // vis_mass > 5
   } // tau_partner != 0
@@ -512,6 +551,9 @@ StatusCode DiTauAlg::execute() {
 StatusCode DiTauAlg::finalize() {
   ATH_MSG_INFO ("Finalizing " << name() << "...");
  
+  end_time = clock();
+  std::cout<<"Run time: "<<(end_time-start_time)/CLOCKS_PER_SEC<<" s"<<std::endl<<std::endl;
+
   std::cout << "Passed : " << pass << " , Failed : " << fail << std::endl;
   return StatusCode::SUCCESS;
 }

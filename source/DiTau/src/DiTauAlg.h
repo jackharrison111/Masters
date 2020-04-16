@@ -64,11 +64,17 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    xAOD::MissingETContainer* met_container;
    xAOD::MissingETAuxContainer* met_aux_container;
 
+   clock_t start_time;
+   clock_t end_time;
+
    TH1D* vis_hist;
+   TH1D* leplep_hist;
    TH1D* col_hist;
    TH1D* mmc_hist;
+   TH1D* mmc_hist_met7;
    TH1D* m_phi_rel_hist;
    TH2D* m_my2DHist;
+   TH2D* m_my2DHist_met7;
    asg::AnaToolHandle<MissingMassTool> m_mmt;
 
    McEventWeight* ew = new McEventWeight("test");
@@ -82,6 +88,7 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    double pass,fail;
    bool warning_message;
    double maxw_m; //reconstructed MMC mass
+   bool MC;
 }; 
 
 #endif //> !DITAU_DITAUALG_H
