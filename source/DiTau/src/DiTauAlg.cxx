@@ -135,19 +135,23 @@ StatusCode DiTauAlg::initialize() {
   vis_hist = new TH1D("vis_hist","Visible Mass Distribution",160,0,160);
   leplep_hist = new TH1D("leplep_hist", "Direct Z#rightarrow ll Invariant Mass Distribution", 160,0,160);
   col_hist = new TH1D("col_hist","Collinear Mass Distribution",160,0,160);
+  col_hist_met7 = new TH1D("col_hist_met7","Collinear Mass Distribution",160,0,160);
   mmc_hist = new TH1D("mmc_hist","MMC Mass Distribution",160,0,160);
   mmc_hist_met7 = new TH1D("mmc_hist_met7","MMC Mass Distribution",160,0,160);
   m_phi_rel_hist = new TH1D("m_phi_rel_hist","Missing Energy Distribution",100,-M_PI,M_PI);
+  met_ang_diffs_hist = new TH1D("met_ang_diffs_hist","Separation between reconstructed and initial MET",100,0,2*M_PI);
   m_my2DHist = new TH2D("2DinvMass" , "", 160, 0, 80, 160, 0, 80);
-  m_my2DHist_met7 = new TH2D("2DinvMass" , "", 160, 0, 80, 160, 0, 80);
+  m_my2DHist_met7 = new TH2D("2DinvMass" , "", 160, 0, 160, 160, 0, 160);
 
 
   vis_hist->SetTitle("Visible Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
-  leplep_hist->SetTitle("Direct Z#rightarrow ll Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
+  leplep_hist->SetTitle("Direct Z#rightarrow ll Mass Distribution;M_{ll} [GeV]; N / [GeV]");
   col_hist->SetTitle("Collinear Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
+  col_hist_met7->SetTitle("Collinear Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
   mmc_hist->SetTitle("MMC Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
   mmc_hist_met7->SetTitle("MMC Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
   m_phi_rel_hist->SetTitle("Missing Energy Distribution;#phi_{rel} [rad];N / [#pi/50]");
+  met_ang_diffs_hist->SetTitle("Separation between initial and rebuilt MET vectors;#phi_{d} [rad];N / [#pi/50]");
   m_my2DHist->SetTitle("Candidate Z Boson Invariant Mass Distributions; M_{#tau#tau} [GeV]; M_{ll} [GeV]");
   m_my2DHist_met7->SetTitle("Candidate Z Boson Invariant Mass Distributions; M_{#tau#tau} [GeV]; M_{ll} [GeV]");
   //mmc_hist->SetStats(0);
@@ -155,9 +159,11 @@ StatusCode DiTauAlg::initialize() {
   CHECK( histSvc()->regHist("/MYSTREAM/vis_hist", vis_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/leplep_hist", leplep_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/col_hist", col_hist) );
+  CHECK( histSvc()->regHist("/MYSTREAM/col_hist_met7", col_hist_met7) );
   CHECK( histSvc()->regHist("/MYSTREAM/mmc_hist", mmc_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/mmc_hist_met7", mmc_hist_met7) );
   CHECK( histSvc()->regHist("/MYSTREAM/m_phi_rel_hist", m_phi_rel_hist) );
+  CHECK( histSvc()->regHist("/MYSTREAM/met_ang_diffs_hist", met_ang_diffs_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/m_my2DHist", m_my2DHist) );
   CHECK( histSvc()->regHist("/MYSTREAM/m_my2DHist_met7", m_my2DHist_met7) );
 
@@ -204,7 +210,7 @@ StatusCode DiTauAlg::initialize() {
 
   warning_message = false;
 
-  MC = true;
+  MC = false;
   if(!MC) std::cout << "USING REAL DATA" << std::endl;
   else std::cout << "USING MC DATA" << std::endl;
   
@@ -471,7 +477,7 @@ StatusCode DiTauAlg::execute() {
       const xAOD::MissingETContainer* met_calo = nullptr;
       CHECK( evtStore()->retrieve(met_calo, "MET_Calo") );
       const xAOD::MissingET* met7 = met_calo->at(7);
-      double met7_pt = met7->met();
+      double met7_pt = met7->met() /1000;
       double met7_phi = met7->phi();
 
       met_tool->buildMETSum("FinalTrk", met_container, MissingETBase::Source::Track);
@@ -481,7 +487,7 @@ StatusCode DiTauAlg::execute() {
       double met_pt = (*met_container)["FinalTrk"]->met() / 1000;
       double m_phi = (*met_container)["FinalTrk"]->phi();
   
-        
+      double met_diffs = GetOpenAngle(met7_phi, m_phi);  
       double invMass_leps = sqrt(2*(lep1_pt*lep2_pt)*(cosh(lep1_eta-lep2_eta)-cos(lep1_phi - lep2_phi)));
   
       // COLLINEAR
@@ -490,6 +496,13 @@ StatusCode DiTauAlg::execute() {
       double x1 = tau_partner_pt / (tau_partner_pt + nu_lep_pt);
       double x2 = tau_pt / (tau_pt + nu_tau_pt);
       double col_mass = vis_mass / sqrt(x1 * x2);
+
+
+      double nu_lep_pt_m7 = met7_pt * (sin(met7_phi) - sin(tau_phi)) / (sin(tau_partner_phi) - sin(tau_phi));
+      double nu_tau_pt_m7 = met7_pt * (sin(met7_phi) - sin(tau_partner_phi)) / (sin(tau_phi) - sin(tau_partner_phi));
+      double x1_7 = tau_partner_pt / (tau_partner_pt + nu_lep_pt_m7);
+      double x2_7 = tau_pt / (tau_pt + nu_tau_pt_m7);
+      double col_mass_m7 = vis_mass / sqrt(x1_7 * x2_7);
 
       // ANGULAR
       double half_angle = GetOpenAngle(tau_partner_phi, tau_phi) / 2;
@@ -525,8 +538,9 @@ StatusCode DiTauAlg::execute() {
       if(2*half_angle <= 2.5 && 2*half_angle >= 0.5 && m_phi_rel <= 3*M_PI/5 && m_phi_rel >= -7*M_PI/10){
 	no_1lep1tau_events++;
         col_hist->Fill(col_mass, eventWeight);
+        col_hist_met7->Fill(col_mass_m7,eventWeight);
         leplep_hist->Fill(invMass_leps, eventWeight);  
-         
+        met_ang_diffs_hist->Fill(met_diffs);
         // MMC 
 	//maxw_m = APPLY(m_mmt, ei, TauJets[0], tau_partner, met, no_25Jets);
 	maxw_m = APPLY(m_mmt, ei, TauJets[0], tau_partner, (*met_container)["FinalTrk"], no_25Jets);
