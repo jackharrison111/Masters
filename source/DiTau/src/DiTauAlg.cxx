@@ -139,8 +139,8 @@ StatusCode DiTauAlg::initialize() {
   mmc_hist = new TH1D("mmc_hist","MMC Mass Distribution",160,0,160);
   mmc_hist_met7 = new TH1D("mmc_hist_met7","MMC Mass Distribution",160,0,160);
   m_phi_rel_hist = new TH1D("m_phi_rel_hist","Missing Energy Distribution",100,-M_PI,M_PI);
-  met_ang_diffs_hist = new TH1D("met_ang_diffs_hist","Separation between reconstructed and initial MET",100,0,2*M_PI);
-  m_my2DHist = new TH2D("2DinvMass" , "", 160, 0, 80, 160, 0, 80);
+  met_ang_diffs_hist = new TH1D("met_ang_diffs_hist","Separation between reconstructed and initial MET",100,0,M_PI);
+  m_my2DHist = new TH2D("2DinvMass" , "", 160, 0, 160, 160, 0, 160);
   m_my2DHist_met7 = new TH2D("2DinvMass" , "", 160, 0, 160, 160, 0, 160);
 
 
@@ -426,6 +426,8 @@ StatusCode DiTauAlg::execute() {
     double vis_mass = sqrt( 2 * tau_partner_pt * tau_pt * ( cosh(tau_partner_eta - tau_eta) - cos(tau_partner_phi - tau_phi) ) );
     vis_hist->Fill(vis_mass);
      
+
+
     if(vis_mass > 5){
      
       double no_25Jets = 0;
@@ -473,6 +475,7 @@ StatusCode DiTauAlg::execute() {
       CHECK( evtStore()->retrieve(met_core, "MET_Core_" + jet_type) );
   
       met_tool->rebuildJetMET("RefJet", "SoftClus", "PVSoftTrk", met_container, /*calibJets*/ met_Jets.asDataVector(), met_core, metMap, true);
+      met_tool->buildMETSum("FinalTrk", met_container, MissingETBase::Source::Track);
   
       const xAOD::MissingETContainer* met_calo = nullptr;
       CHECK( evtStore()->retrieve(met_calo, "MET_Calo") );
@@ -480,7 +483,6 @@ StatusCode DiTauAlg::execute() {
       double met7_pt = met7->met() /1000;
       double met7_phi = met7->phi();
 
-      met_tool->buildMETSum("FinalTrk", met_container, MissingETBase::Source::Track);
 
  
       // MET

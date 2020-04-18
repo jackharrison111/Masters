@@ -1,11 +1,10 @@
 //change this
-std::string me = "user.jaharris.ZZdataset2_real_17-04_19-26_MYSTREAM/user.jaharris.";
+std::string me = "user.jaharris.ZZdataset2_real_100files_17-04/user.jaharris.";
 const int size{2};
 //std::string JEDITaskID[size] = {"20718468" , "20718456"};//,"","","",...};
-std::string bigJobID = "21064674";
+std::string bigJobID = "21065134";
 //"20814417"
 //user.jaharris.20719143.MYSTREAM._000001.root  example big job file
-
 void plot(){
 	//gROOT->SetStyle("ATLAS");
 	gROOT->pwd();
@@ -29,7 +28,11 @@ void plot(){
 	TH1D *col_hist = new TH1D("col_hist","",160,0,160);
 	TH1D *col_hist_m7 = new TH1D("col_hist_m7","",160,0,160);
 	TH1D *m_phi_rel_hist = new TH1D("m_phi_rel_hist","",100,-M_PI,M_PI);
+	TH1D *met_ang_diffs_hist = new TH1D("met_ang_diffs_hist", "", 100, 0, M_PI);
+
 	//TH2D *invMass2D = new TH2D("invMass2D", 160,0,160,160,0,160);	  //Not working??
+	
+
 	double n_entries =0;
 
 	int file_number = 0;
@@ -71,10 +74,12 @@ void plot(){
 				}else if(hist_number == 4){
 					m_phi_rel_hist->Add(myHist);	
 				}else if(hist_number == 5){
-					mmc_hist->Add(myHist);
+					met_ang_diffs_hist->Add(myHist);
 				}else if(hist_number == 6){
-					mmc_hist_m7->Add(myHist);
+					mmc_hist->Add(myHist);
 				}else if(hist_number == 7){
+					mmc_hist_m7->Add(myHist);
+				}else if(hist_number == 8){
 					vis_hist->Add(myHist);
 				}       
 				hist_number++;
@@ -85,24 +90,42 @@ void plot(){
 	}
  	//Add entries
 	legend->AddEntry(mmc_hist, "MMC", "l");
+	//legend->AddEntry(mmc_hist_m7, "MMC", "l");
 	legend->AddEntry(col_hist, "Collinear approx.", "l");
+	//legend->AddEntry(col_hist_m7, "Collinear approx.", "l");
 	
 	//Set titles
         mmc_hist->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
         mmc_hist_m7->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
 	col_hist->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
 	col_hist_m7->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
-	
+        leplep_hist->SetTitle(";M_{ll} [GeV]; N / [GeV]");
+	vis_hist->SetTitle(";M_{vis} [GeV]; N / [GeV]");
 
 	col_hist->SetLineColor(2);
 	
 	//Draws
 	col_hist->Draw("histsame");
 	mmc_hist->Draw("histsame");
+	//col_hist_m7->Draw("histsame");
+	//mmc_hist_m7->Draw("histsame");
 	//vis_hist->Draw("histsame");
-	legend->Draw();
+	//legend->Draw();
 	
+	//For drawing met_ang_diffs:	 TODO::FIX THIS AXIS
+	/*
+	TAxis *ax = met_ang_diffs_hist->GetXaxis();
+	ax->SetNdivisions(502);
+	ax->ChangeLabel(1,-1,-1,-1,-1,-1,"0");
+	ax->ChangeLabel(-1,-1,-1,-1,-1,-1,"#pi");
+	ax->ChangeLabel(2,-1,-1,-1,-1,-1,"#frac{#pi}{2}");
+	ax->SetLabelOffset(0.015);
+	ax->SetTitleOffset(1.2);
+	m_phi_rel_hist->SetTitle(";#phi_{d} [radians];N / [#pi/50 radians]"); 
+	m_phi_rel_hist->Draw("hist");
+	*/
 
+	//For drawing M_PHI_REL:
 	/*TAxis *a = m_phi_rel_hist->GetXaxis();
 	a->SetNdivisions(-504);
 	a->ChangeLabel(1,-1,-1,-1,-1,-1,"-#pi");
@@ -122,9 +145,10 @@ void plot(){
 	h->SetLineColor(kRed);
 	g->Draw("same");
 	h->Draw("same");*/
+
 }
 
-int plotterZZ(){
+int plotterzz(){
 	plot();
 	return 0;
 }
