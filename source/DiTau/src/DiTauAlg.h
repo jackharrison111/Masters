@@ -72,6 +72,7 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    TH1D* col_hist;
    TH1D* mmc_hist;
    TH1D* mmc_hist_met7;
+   TH1D* mmc_hist_metref8;
    TH1D* m_phi_rel_hist;
    TH2D* m_my2DHist;
    TH2D* m_my2DHist_met7;

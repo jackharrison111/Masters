@@ -137,6 +137,7 @@ StatusCode DiTauAlg::initialize() {
   col_hist = new TH1D("col_hist","Collinear Mass Distribution",160,0,160);
   mmc_hist = new TH1D("mmc_hist","MMC Mass Distribution",160,0,160);
   mmc_hist_met7 = new TH1D("mmc_hist_met7","MMC Mass Distribution",160,0,160);
+  mmc_hist_metref8 = new TH1D("mmc_hist_metref8","MMC Mass Distribution",160,0,160);
   m_phi_rel_hist = new TH1D("m_phi_rel_hist","Missing Energy Distribution",100,-M_PI,M_PI);
   m_my2DHist = new TH2D("2DinvMass" , "", 160, 0, 80, 160, 0, 80);
   m_my2DHist_met7 = new TH2D("2DinvMass" , "", 160, 0, 80, 160, 0, 80);
@@ -157,6 +158,7 @@ StatusCode DiTauAlg::initialize() {
   CHECK( histSvc()->regHist("/MYSTREAM/col_hist", col_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/mmc_hist", mmc_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/mmc_hist_met7", mmc_hist_met7) );
+  CHECK( histSvc()->regHist("/MYSTREAM/mmc_hist_metref8", mmc_hist_metref8) );
   CHECK( histSvc()->regHist("/MYSTREAM/m_phi_rel_hist", m_phi_rel_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/m_my2DHist", m_my2DHist) );
   CHECK( histSvc()->regHist("/MYSTREAM/m_my2DHist_met7", m_my2DHist_met7) );
@@ -470,6 +472,7 @@ StatusCode DiTauAlg::execute() {
   
       const xAOD::MissingETContainer* met_calo = nullptr;
       CHECK( evtStore()->retrieve(met_calo, "MET_Calo") );
+
       const xAOD::MissingET* met7 = met_calo->at(7);
       double met7_pt = met7->met();
       double met7_phi = met7->phi();
@@ -479,7 +482,23 @@ StatusCode DiTauAlg::execute() {
  
       // MET
       double met_pt = (*met_container)["FinalTrk"]->met() / 1000;
+      std::cout << "rebuilt MET, met_pt = " << met_pt << " GeV" << std::endl << std::endl;
       double m_phi = (*met_container)["FinalTrk"]->phi();
+      
+      // MET REFERENCE?
+      int k{};
+      std::cout << "new event:" << std::endl;
+      const xAOD::MissingETContainer* met_ref = nullptr;
+      CHECK( evtStore()->retrieve(met_ref, "MET_Reference_" + jet_type) );
+      for(auto it = met_ref->begin(); it != met_ref->end(); it++){
+        const xAOD::MissingET* met = *it;
+	k++;
+        std::cout << "MissingETContainer reference entry " << k << ": met->name() = " << met->name() << ", met->met() = " << met->met() << " MeV " << std::endl;
+      }
+      const xAOD::MissingET* met8 = met_ref->at(8);
+      met_pt = met8->met() / 1000;
+      m_phi = met8->phi();
+
   
         
       double invMass_leps = sqrt(2*(lep1_pt*lep2_pt)*(cosh(lep1_eta-lep2_eta)-cos(lep1_phi - lep2_phi)));
@@ -531,8 +550,10 @@ StatusCode DiTauAlg::execute() {
 	//maxw_m = APPLY(m_mmt, ei, TauJets[0], tau_partner, met, no_25Jets);
 	maxw_m = APPLY(m_mmt, ei, TauJets[0], tau_partner, (*met_container)["FinalTrk"], no_25Jets);
 	double maxw_m_met7 = APPLY(m_mmt, ei, TauJets[0], tau_partner, met7, no_25Jets);
+	double maxw_m_met8 = APPLY(m_mmt, ei, TauJets[0], tau_partner, met8, no_25Jets);
         mmc_hist->Fill(maxw_m, eventWeight);
         mmc_hist_met7->Fill(maxw_m_met7, eventWeight);
+	mmc_hist_metref8->Fill(maxw_m_met8, eventWeight);
 	m_my2DHist->Fill(maxw_m, invMass_leps);
 	m_my2DHist_met7->Fill(maxw_m_met7, invMass_leps);
       }
