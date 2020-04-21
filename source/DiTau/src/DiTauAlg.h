@@ -78,6 +78,7 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    TH1D* met_ang_diffs_hist;
    TH2D* m_my2DHist;
    TH2D* m_my2DHist_met7;
+   TH2D* metrefmmc_col_2D;
    asg::AnaToolHandle<MissingMassTool> m_mmt;
 
    McEventWeight* ew = new McEventWeight("test");
