@@ -437,12 +437,12 @@ StatusCode DiTauAlg::execute() {
       const xAOD::JetContainer *jc = nullptr;
       CHECK( evtStore()->retrieve(jc, /*jet_type + "Jets"*/"CalibJets") );
       for(auto it = jc->begin(); it != jc->end(); it++){
-        if((*it)->pt()/1000>20){
+        //if((*it)->pt()/1000>20){ // TODO: have commented this since met tool needs all jets?
           met_Jets.push_back(*it);
           if(((*it)->pt()/1000>25)&&(abs((*it)->eta())<2.5)){
             no_25Jets++;
           }
-        }
+        //}
       }
 
       const xAOD::MissingETAssociationMap* metMap = nullptr; 
@@ -451,7 +451,8 @@ StatusCode DiTauAlg::execute() {
        
       //REBUILD MET::
       //order has to be electrons,photons,taus,muons,jets
-
+      
+      metMap->resetObjSelectionFlags();
       met_tool->rebuildMET("RefEle" , xAOD::Type::Electron, met_container, met_Electrons->asDataVector(), metMap, obj_scale); 
   
       ConstDataVector<xAOD::PhotonContainer> met_Photons(SG::VIEW_ELEMENTS);
@@ -464,18 +465,22 @@ StatusCode DiTauAlg::execute() {
         }
       }
       //Rebuild photons
+      metMap->resetObjSelectionFlags();
       met_tool->rebuildMET("RefPhoton", xAOD::Type::Photon, met_container, met_Photons.asDataVector(), metMap, obj_scale);
 
       //const std::string tauName = "RefTau";
+      metMap->resetObjSelectionFlags();
       met_tool->rebuildMET("RefTau", xAOD::Type::Tau, met_container, met_Taus->asDataVector(), metMap, obj_scale);
       
 
       //const std::string muName = "RefMu";     
+      metMap->resetObjSelectionFlags();
       met_tool->rebuildMET("RefMu" , xAOD::Type::Muon, met_container, met_Muons->asDataVector(), metMap, obj_scale);
 
       const xAOD::MissingETContainer* met_core = nullptr;
       CHECK( evtStore()->retrieve(met_core, "MET_Core_" + jet_type) );
   
+      metMap->resetObjSelectionFlags();
       met_tool->rebuildJetMET("RefJet", "SoftClus", "PVSoftTrk", met_container, /*calibJets*/ met_Jets.asDataVector(), met_core, metMap, true);
       met_tool->buildMETSum("FinalTrk", met_container, MissingETBase::Source::Track);
   
