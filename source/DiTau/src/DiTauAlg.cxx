@@ -75,15 +75,31 @@ double DiTauAlg::GetOpenAngle(double ang1, double ang2){
 
 
 bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau){
+  
+  float ptc30 = -11.0f;
+  float topoetc20 = -11.0f;  //Using this because apparently etc20 is not used anymore?  - https://gitlab.cern.ch/ATauLeptonAnalysiS/xTauFramework/-/blob/master/source/xVariables/Root/xVarGroups.cxx#L1890
+
+
+
   //ELECTRONS
   const xAOD::ElectronContainer *ec = 0;
   CHECK(evtStore()->retrieve(ec, "Electrons"));
   for(auto it = ec->begin(); it != ec->end(); it++){
     const xAOD::Electron *e = *it;
-    if(e->pt()/1000 >= 25 && abs(e->eta()) <= 2.5){
+    if(e->pt()/1000 >= 25 && abs(e->eta()) <= 2.47){	//look at http://opendata.atlas.cern/release/2020/documentation/datasets/objects.html for examples of cuts
+    
+    e->isolation(ptc30, xAOD::Iso::ptcone30);  //TODO:: FIX THESE VARIABLES
+    e->isolation(topoetc20, xAOD::Iso::topoetcone20);
+    double pt_frac = ptc30/e->pt();
+    double et_frac = topoetc20/e->pt();
+    if((pt_frac < 0.15)&&(et_frac < 0.15)){ 
+      //isolation cuts - not sure if using the right ones https://gitlab.cern.ch/ATauLeptonAnalysiS/xTauFramework/-/blob/master/source/xVariables/Root/xVarGroups.cxx#L1890
       Electrons.push_back(e);
       met_Electrons->push_back(*it);
+      }
     }
+    ptc30 = -11.0f;
+    topoetc20 = -11.0f;
   }
   if((int)Electrons.size() != no_el){
     CLEAR();
@@ -96,9 +112,19 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
   for(auto it = mc->begin(); it != mc->end(); it++){
     const xAOD::Muon *mu = *it;
     if(mu->pt()/1000 >= 25 && abs(mu->eta()) <= 2.5){
-      Muons.push_back(mu);
-      met_Muons->push_back(*it);
+      mu->isolation(ptc30, xAOD::Iso::ptcone30);  //TODO:: FIX THESE VARIABLES
+      mu->isolation(topoetc20, xAOD::Iso::topoetcone20);
+      std::cout << ptc30/mu->pt() << " = ptc30 " << topoetc20/mu->pt() << " = topoetcone20" << std::endl;
+      double pt_frac_m = ptc30/mu->pt();
+      double et_frac_m = topoetc20/mu->pt();
+      if((pt_frac_m < 0.15)&&(et_frac_m < 0.15)){ 
+        //isolation cuts - not sure if using the right ones https://gitlab.cern.ch/ATauLeptonAnalysiS/xTauFramework/-/blob/master/source/xVariables/Root/xVarGroups.cxx#L1890
+        Muons.push_back(mu);
+        met_Muons->push_back(*it);
+      }
     }
+    ptc30 = -11.0f;
+    topoetc20 = -11.0f;
   }
   if((int)Muons.size() != no_mu){
     CLEAR();
@@ -176,12 +202,13 @@ StatusCode DiTauAlg::initialize() {
   CHECK(m_mmt.initialize());
   CHECK(m_mmt->setProperty("UseTauProbability", 1));
   CHECK(m_mmt->setProperty("CalibSet", "2016MC15C"));
-  CHECK(m_mmt->setProperty("NiterFit2", 30));
-  CHECK(m_mmt->setProperty("NiterFit3", 10));
-  CHECK(m_mmt->setProperty("NsigmaMET", 4));
+  CHECK(m_mmt->setProperty("NiterFit2", 40));
+  CHECK(m_mmt->setProperty("NiterFit3", 20));
+  CHECK(m_mmt->setProperty("NsigmaMET", 6));
   CHECK(m_mmt->setProperty("alg_version", 3));
   //CHECK(m_mmt->setProperty("UseMETDphiLL", 1)); only for leplep
   CHECK(m_mmt->setProperty("UseEfficiencyRecovery", 1));
+  CHECK(m_mmt->setProperty("UseTailCleanup", 1));
 
   //INITIALISE TAU SELECTION TOOL
   const auto TauSelectionToolName = "TauAnalysisTools::TauSelectionTool/TauSelectionTool";
@@ -243,12 +270,14 @@ StatusCode DiTauAlg::execute() {
   CHECK( evtStore()->retrieve( ei , "EventInfo" ) );
   
 
-
-
-  double eventWeight{1};
-  if(MC){
+  double eventWeight;
+  try{ 
     eventWeight = ei->mcEventWeight();
   }
+  catch(...){
+    eventWeight = 1;
+  }
+
   //Recalibrate the jets:  
   const std::string jet_type = "AntiKt4LCTopo";  //removed 'Anti'
   
@@ -285,6 +314,7 @@ StatusCode DiTauAlg::execute() {
       CLEAR();
       return StatusCode::SUCCESS;
     }
+
     std::vector<int> same_leps;
     double odd_lep{};
     for(int j=0;j<3;j++){
@@ -462,7 +492,7 @@ StatusCode DiTauAlg::execute() {
       CHECK( evtStore()->retrieve(pc, "Photons") );
       for(auto it = pc->begin(); it != pc->end(); it++){
         const xAOD::Photon *p = *it;
-        if(p->pt()/1000 > 20){ // TODO: check this is right cut
+        if((p->pt()/1000 > 25) && (abs(p->eta())<2.37)){ //Cuts taken from http://opendata.atlas.cern/release/2020/documentation/datasets/objects.html
           met_Photons.push_back(*it);
         }
       }
@@ -494,7 +524,6 @@ StatusCode DiTauAlg::execute() {
       double met7_phi = met7->phi();
 
 
- 
       // MET
       double met_pt = (*met_container)["FinalTrk"]->met() / 1000;
       std::cout << "rebuilt MET, met_pt = " << met_pt << " GeV" << std::endl << std::endl;
