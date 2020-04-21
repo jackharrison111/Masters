@@ -1,14 +1,18 @@
 //change this
-std::string me = "user.jaharris.ZZdataset2_real_100files_17-04/user.jaharris.";
-const int size{2};
+std::string me = "user.jaharris.ZZdataset2_real_900f_18-04_13-18_MYSTREAM/user.jaharris.";
+
+//"user.jaharris.ZZdataset2_real_100files_17-04/user.jaharris.";
+
+const int size{6};
 //std::string JEDITaskID[size] = {"20718468" , "20718456"};//,"","","",...};
-std::string bigJobID = "21065134";
-//"20814417"
+std::string bigJobID = "21069446";
+//"21065134";
+//"20814417";
 //user.jaharris.20719143.MYSTREAM._000001.root  example big job file
 void plot(){
 	//gROOT->SetStyle("ATLAS");
 	gROOT->pwd();
-	//gStyle->SetOptStat(0);
+	gStyle->SetOptStat(0);
 	gROOT->ForceStyle();
 
 	TCanvas *c = new TCanvas("c", "c");
@@ -105,15 +109,15 @@ void plot(){
 	col_hist->SetLineColor(2);
 	
 	//Draws
-	col_hist->Draw("histsame");
-	mmc_hist->Draw("histsame");
+	//col_hist->Draw("histsame");
+	//mmc_hist->Draw("histsame");
 	//col_hist_m7->Draw("histsame");
 	//mmc_hist_m7->Draw("histsame");
 	//vis_hist->Draw("histsame");
 	//legend->Draw();
 	
 	//For drawing met_ang_diffs:	 TODO::FIX THIS AXIS
-	/*
+	
 	TAxis *ax = met_ang_diffs_hist->GetXaxis();
 	ax->SetNdivisions(502);
 	ax->ChangeLabel(1,-1,-1,-1,-1,-1,"0");
@@ -121,9 +125,9 @@ void plot(){
 	ax->ChangeLabel(2,-1,-1,-1,-1,-1,"#frac{#pi}{2}");
 	ax->SetLabelOffset(0.015);
 	ax->SetTitleOffset(1.2);
-	m_phi_rel_hist->SetTitle(";#phi_{d} [radians];N / [#pi/50 radians]"); 
-	m_phi_rel_hist->Draw("hist");
-	*/
+	met_ang_diffs_hist->SetTitle(";#phi_{d} [radians];N / [#pi/50 radians]"); 
+	met_ang_diffs_hist->Draw("hist");
+	
 
 	//For drawing M_PHI_REL:
 	/*TAxis *a = m_phi_rel_hist->GetXaxis();
