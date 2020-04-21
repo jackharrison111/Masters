@@ -138,6 +138,7 @@ StatusCode DiTauAlg::initialize() {
   col_hist_met7 = new TH1D("col_hist_met7","Collinear Mass Distribution",160,0,160);
   mmc_hist = new TH1D("mmc_hist","MMC Mass Distribution",160,0,160);
   mmc_hist_met7 = new TH1D("mmc_hist_met7","MMC Mass Distribution",160,0,160);
+  mmc_hist_metref8 = new TH1D("mmc_hist_metref8","MMC Mass Distribution",160,0,160);
   m_phi_rel_hist = new TH1D("m_phi_rel_hist","Missing Energy Distribution",100,-M_PI,M_PI);
   met_ang_diffs_hist = new TH1D("met_ang_diffs_hist","Separation between reconstructed and initial MET",100,0,M_PI);
   m_my2DHist = new TH2D("2DinvMass" , "", 160, 0, 160, 160, 0, 160);
@@ -162,6 +163,7 @@ StatusCode DiTauAlg::initialize() {
   CHECK( histSvc()->regHist("/MYSTREAM/col_hist_met7", col_hist_met7) );
   CHECK( histSvc()->regHist("/MYSTREAM/mmc_hist", mmc_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/mmc_hist_met7", mmc_hist_met7) );
+  CHECK( histSvc()->regHist("/MYSTREAM/mmc_hist_metref8", mmc_hist_metref8) );
   CHECK( histSvc()->regHist("/MYSTREAM/m_phi_rel_hist", m_phi_rel_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/met_ang_diffs_hist", met_ang_diffs_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/m_my2DHist", m_my2DHist) );
@@ -439,12 +441,12 @@ StatusCode DiTauAlg::execute() {
       const xAOD::JetContainer *jc = nullptr;
       CHECK( evtStore()->retrieve(jc, /*jet_type + "Jets"*/"CalibJets") );
       for(auto it = jc->begin(); it != jc->end(); it++){
-        if((*it)->pt()/1000>20){
+        //if((*it)->pt()/1000>20){ // TODO: have commented this since met tool needs all jets?
           met_Jets.push_back(*it);
           if(((*it)->pt()/1000>25)&&(abs((*it)->eta())<2.5)){
             no_25Jets++;
           }
-        }
+        //}
       }
 
       const xAOD::MissingETAssociationMap* metMap = nullptr; 
@@ -453,7 +455,8 @@ StatusCode DiTauAlg::execute() {
        
       //REBUILD MET::
       //order has to be electrons,photons,taus,muons,jets
-
+      
+      metMap->resetObjSelectionFlags();
       met_tool->rebuildMET("RefEle" , xAOD::Type::Electron, met_container, met_Electrons->asDataVector(), metMap, obj_scale); 
   
       ConstDataVector<xAOD::PhotonContainer> met_Photons(SG::VIEW_ELEMENTS);
@@ -466,23 +469,28 @@ StatusCode DiTauAlg::execute() {
         }
       }
       //Rebuild photons
+      metMap->resetObjSelectionFlags();
       met_tool->rebuildMET("RefPhoton", xAOD::Type::Photon, met_container, met_Photons.asDataVector(), metMap, obj_scale);
 
       //const std::string tauName = "RefTau";
+      metMap->resetObjSelectionFlags();
       met_tool->rebuildMET("RefTau", xAOD::Type::Tau, met_container, met_Taus->asDataVector(), metMap, obj_scale);
       
 
       //const std::string muName = "RefMu";     
+      metMap->resetObjSelectionFlags();
       met_tool->rebuildMET("RefMu" , xAOD::Type::Muon, met_container, met_Muons->asDataVector(), metMap, obj_scale);
 
       const xAOD::MissingETContainer* met_core = nullptr;
       CHECK( evtStore()->retrieve(met_core, "MET_Core_" + jet_type) );
   
+      metMap->resetObjSelectionFlags();
       met_tool->rebuildJetMET("RefJet", "SoftClus", "PVSoftTrk", met_container, /*calibJets*/ met_Jets.asDataVector(), met_core, metMap, true);
       met_tool->buildMETSum("FinalTrk", met_container, MissingETBase::Source::Track);
   
       const xAOD::MissingETContainer* met_calo = nullptr;
       CHECK( evtStore()->retrieve(met_calo, "MET_Calo") );
+
       const xAOD::MissingET* met7 = met_calo->at(7);
       double met7_pt = met7->met() /1000;
       double met7_phi = met7->phi();
@@ -494,7 +502,23 @@ StatusCode DiTauAlg::execute() {
       std::cout << "test_met : " << test_met->met() << " , previous met7 : " << met7->met() << std::endl;
       // MET
       double met_pt = (*met_container)["FinalTrk"]->met() / 1000;
+      std::cout << "rebuilt MET, met_pt = " << met_pt << " GeV" << std::endl << std::endl;
       double m_phi = (*met_container)["FinalTrk"]->phi();
+      
+      // MET REFERENCE?
+      int k{};
+      std::cout << "new event:" << std::endl;
+      const xAOD::MissingETContainer* met_ref = nullptr;
+      CHECK( evtStore()->retrieve(met_ref, "MET_Reference_" + jet_type) );
+      for(auto it = met_ref->begin(); it != met_ref->end(); it++){
+        const xAOD::MissingET* met = *it;
+	k++;
+        std::cout << "MissingETContainer reference entry " << k << ": met->name() = " << met->name() << ", met->met() = " << met->met() << " MeV " << std::endl;
+      }
+      const xAOD::MissingET* met8 = met_ref->at(8);
+      met_pt = met8->met() / 1000;
+      m_phi = met8->phi();
+
   
       double met_diffs = GetOpenAngle(met7_phi, m_phi);  
       double invMass_leps = sqrt(2*(lep1_pt*lep2_pt)*(cosh(lep1_eta-lep2_eta)-cos(lep1_phi - lep2_phi)));
@@ -554,8 +578,10 @@ StatusCode DiTauAlg::execute() {
 	//maxw_m = APPLY(m_mmt, ei, TauJets[0], tau_partner, met, no_25Jets);
 	maxw_m = APPLY(m_mmt, ei, TauJets[0], tau_partner, (*met_container)["FinalTrk"], no_25Jets);
 	double maxw_m_met7 = APPLY(m_mmt, ei, TauJets[0], tau_partner, met7, no_25Jets);
+	double maxw_m_met8 = APPLY(m_mmt, ei, TauJets[0], tau_partner, met8, no_25Jets);
         mmc_hist->Fill(maxw_m, eventWeight);
         mmc_hist_met7->Fill(maxw_m_met7, eventWeight);
+	mmc_hist_metref8->Fill(maxw_m_met8, eventWeight);
 	m_my2DHist->Fill(maxw_m, invMass_leps);
 	m_my2DHist_met7->Fill(maxw_m_met7, invMass_leps);
       }
