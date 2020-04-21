@@ -88,20 +88,18 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
     const xAOD::Electron *e = *it;
     if(e->pt()/1000 >= 25 && abs(e->eta()) <= 2.47){	//look at http://opendata.atlas.cern/release/2020/documentation/datasets/objects.html for examples of cuts
     
-
-    /*>isolation(ptc30, xAOD::Iso::ptcone30);  //TODO:: FIX THESE VARIABLES
+    e->isolation(ptc30, xAOD::Iso::ptcone30);  //TODO:: FIX THESE VARIABLES
     e->isolation(topoetc20, xAOD::Iso::topoetcone20);
-    std::cout << ptc30/1000 << " = ptc30, " << topoetc20/1000 << " = topoetc20 " << std::endl;
-      if((ptc30/1000 < 0.15)&&(topoetc20/1000 < 0.15)){   */ 
-        //isolation cuts - not sure if using the right ones https://gitlab.cern.ch/ATauLeptonAnalysiS/xTauFramework/-/blob/master/source/xVariables/Root/xVarGroups.cxx#L1890
-      
-
+    double pt_frac = ptc30/e->pt();
+    double et_frac = topoetc20/e->pt();
+    if((pt_frac < 0.15)&&(et_frac < 0.15)){ 
+      //isolation cuts - not sure if using the right ones https://gitlab.cern.ch/ATauLeptonAnalysiS/xTauFramework/-/blob/master/source/xVariables/Root/xVarGroups.cxx#L1890
       Electrons.push_back(e);
       met_Electrons->push_back(*it);
-      //}
+      }
     }
-    //ptc30 = -11.0f;
-    //topoetc20 = -11.0f;
+    ptc30 = -11.0f;
+    topoetc20 = -11.0f;
   }
   if((int)Electrons.size() != no_el){
     CLEAR();
@@ -114,9 +112,19 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
   for(auto it = mc->begin(); it != mc->end(); it++){
     const xAOD::Muon *mu = *it;
     if(mu->pt()/1000 >= 25 && abs(mu->eta()) <= 2.5){
-      Muons.push_back(mu);
-      met_Muons->push_back(*it);
+      mu->isolation(ptc30, xAOD::Iso::ptcone30);  //TODO:: FIX THESE VARIABLES
+      mu->isolation(topoetc20, xAOD::Iso::topoetcone20);
+      std::cout << ptc30/mu->pt() << " = ptc30 " << topoetc20/mu->pt() << " = topoetcone20" << std::endl;
+      double pt_frac_m = ptc30/mu->pt();
+      double et_frac_m = topoetc20/mu->pt();
+      if((pt_frac_m < 0.15)&&(et_frac_m < 0.15)){ 
+        //isolation cuts - not sure if using the right ones https://gitlab.cern.ch/ATauLeptonAnalysiS/xTauFramework/-/blob/master/source/xVariables/Root/xVarGroups.cxx#L1890
+        Muons.push_back(mu);
+        met_Muons->push_back(*it);
+      }
     }
+    ptc30 = -11.0f;
+    topoetc20 = -11.0f;
   }
   if((int)Muons.size() != no_mu){
     CLEAR();
