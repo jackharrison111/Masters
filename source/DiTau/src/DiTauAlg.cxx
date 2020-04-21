@@ -142,7 +142,8 @@ StatusCode DiTauAlg::initialize() {
   m_phi_rel_hist = new TH1D("m_phi_rel_hist","Missing Energy Distribution",100,-M_PI,M_PI);
   met_ang_diffs_hist = new TH1D("met_ang_diffs_hist","Separation between reconstructed and initial MET",100,0,M_PI);
   m_my2DHist = new TH2D("2DinvMass" , "", 160, 0, 160, 160, 0, 160);
-  m_my2DHist_met7 = new TH2D("2DinvMass" , "", 160, 0, 160, 160, 0, 160);
+  m_my2DHist_met7 = new TH2D("2DinvMass_met7" , "", 160, 0, 160, 160, 0, 160);
+  metrefmmc_col_2D = new TH2D("metrefmmc_col_2D", "", 160, 0, 160, 160, 0, 160);
 
 
   vis_hist->SetTitle("Visible Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
@@ -168,6 +169,7 @@ StatusCode DiTauAlg::initialize() {
   CHECK( histSvc()->regHist("/MYSTREAM/met_ang_diffs_hist", met_ang_diffs_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/m_my2DHist", m_my2DHist) );
   CHECK( histSvc()->regHist("/MYSTREAM/m_my2DHist_met7", m_my2DHist_met7) );
+  CHECK( histSvc()->regHist("/MYSTREAM/metrefmmc_col_2D", metrefmmc_col_2D) );
 
   //INITIALISE THE MISSING MASS TOOL
   m_mmt.setTypeAndName("MissingMassTool/MissingMassTool");
@@ -577,6 +579,7 @@ StatusCode DiTauAlg::execute() {
 	mmc_hist_metref8->Fill(maxw_m_met8, eventWeight);
 	m_my2DHist->Fill(maxw_m, invMass_leps);
 	m_my2DHist_met7->Fill(maxw_m_met7, invMass_leps);
+	metrefmmc_col_2D->Fill(maxw_m_met8, invMass_leps, eventWeight);
       }
     } // vis_mass > 5
   } // tau_partner != 0
