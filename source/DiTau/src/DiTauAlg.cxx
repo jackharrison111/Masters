@@ -172,12 +172,13 @@ StatusCode DiTauAlg::initialize() {
   CHECK(m_mmt.initialize());
   CHECK(m_mmt->setProperty("UseTauProbability", 1));
   CHECK(m_mmt->setProperty("CalibSet", "2016MC15C"));
-  CHECK(m_mmt->setProperty("NiterFit2", 30));
-  CHECK(m_mmt->setProperty("NiterFit3", 10));
-  CHECK(m_mmt->setProperty("NsigmaMET", 4));
+  CHECK(m_mmt->setProperty("NiterFit2", 40));
+  CHECK(m_mmt->setProperty("NiterFit3", 20));
+  CHECK(m_mmt->setProperty("NsigmaMET", 6));
   CHECK(m_mmt->setProperty("alg_version", 3));
   //CHECK(m_mmt->setProperty("UseMETDphiLL", 1)); only for leplep
   CHECK(m_mmt->setProperty("UseEfficiencyRecovery", 1));
+  CHECK(m_mmt->setProperty("UseTailCleanup", 1));
 
   //INITIALISE TAU SELECTION TOOL
   const auto TauSelectionToolName = "TauAnalysisTools::TauSelectionTool/TauSelectionTool";
@@ -239,12 +240,14 @@ StatusCode DiTauAlg::execute() {
   CHECK( evtStore()->retrieve( ei , "EventInfo" ) );
   
 
-
-
-  double eventWeight{1};
-  if(MC){
+  double eventWeight;
+  try{ 
     eventWeight = ei->mcEventWeight();
   }
+  catch(...){
+    eventWeight = 1;
+  }
+
   //Recalibrate the jets:  
   const std::string jet_type = "AntiKt4LCTopo";  //removed 'Anti'
   
@@ -281,6 +284,7 @@ StatusCode DiTauAlg::execute() {
       CLEAR();
       return StatusCode::SUCCESS;
     }
+
     std::vector<int> same_leps;
     double odd_lep{};
     for(int j=0;j<3;j++){
@@ -484,7 +488,10 @@ StatusCode DiTauAlg::execute() {
       double met7_phi = met7->phi();
 
 
- 
+      const xAOD::MissingETContainer* met_ref = nullptr;
+      CHECK( evtStore()->retrieve(met_ref, "MET_Ref") );
+      const xAOD::MissingET* test_met = (*met_ref)["Final"];
+      std::cout << "test_met : " << test_met->met() << " , previous met7 : " << met7->met() << std::endl;
       // MET
       double met_pt = (*met_container)["FinalTrk"]->met() / 1000;
       double m_phi = (*met_container)["FinalTrk"]->phi();
