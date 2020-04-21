@@ -75,15 +75,33 @@ double DiTauAlg::GetOpenAngle(double ang1, double ang2){
 
 
 bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau){
+  
+  float ptc30 = -11.0f;
+  float topoetc20 = -11.0f;  //Using this because apparently etc20 is not used anymore?  - https://gitlab.cern.ch/ATauLeptonAnalysiS/xTauFramework/-/blob/master/source/xVariables/Root/xVarGroups.cxx#L1890
+
+
+
   //ELECTRONS
   const xAOD::ElectronContainer *ec = 0;
   CHECK(evtStore()->retrieve(ec, "Electrons"));
   for(auto it = ec->begin(); it != ec->end(); it++){
     const xAOD::Electron *e = *it;
-    if(e->pt()/1000 >= 25 && abs(e->eta()) <= 2.5){
+    if(e->pt()/1000 >= 25 && abs(e->eta()) <= 2.47){	//look at http://opendata.atlas.cern/release/2020/documentation/datasets/objects.html for examples of cuts
+    
+
+    /*>isolation(ptc30, xAOD::Iso::ptcone30);  //TODO:: FIX THESE VARIABLES
+    e->isolation(topoetc20, xAOD::Iso::topoetcone20);
+    std::cout << ptc30/1000 << " = ptc30, " << topoetc20/1000 << " = topoetc20 " << std::endl;
+      if((ptc30/1000 < 0.15)&&(topoetc20/1000 < 0.15)){   */ 
+        //isolation cuts - not sure if using the right ones https://gitlab.cern.ch/ATauLeptonAnalysiS/xTauFramework/-/blob/master/source/xVariables/Root/xVarGroups.cxx#L1890
+      
+
       Electrons.push_back(e);
       met_Electrons->push_back(*it);
+      //}
     }
+    //ptc30 = -11.0f;
+    //topoetc20 = -11.0f;
   }
   if((int)Electrons.size() != no_el){
     CLEAR();
@@ -464,7 +482,7 @@ StatusCode DiTauAlg::execute() {
       CHECK( evtStore()->retrieve(pc, "Photons") );
       for(auto it = pc->begin(); it != pc->end(); it++){
         const xAOD::Photon *p = *it;
-        if(p->pt()/1000 > 20){ // TODO: check this is right cut
+        if((p->pt()/1000 > 25) && (abs(p->eta())<2.37)){ //Cuts taken from http://opendata.atlas.cern/release/2020/documentation/datasets/objects.html
           met_Photons.push_back(*it);
         }
       }
@@ -496,10 +514,6 @@ StatusCode DiTauAlg::execute() {
       double met7_phi = met7->phi();
 
 
-      const xAOD::MissingETContainer* met_ref = nullptr;
-      CHECK( evtStore()->retrieve(met_ref, "MET_Ref") );
-      const xAOD::MissingET* test_met = (*met_ref)["Final"];
-      std::cout << "test_met : " << test_met->met() << " , previous met7 : " << met7->met() << std::endl;
       // MET
       double met_pt = (*met_container)["FinalTrk"]->met() / 1000;
       std::cout << "rebuilt MET, met_pt = " << met_pt << " GeV" << std::endl << std::endl;
