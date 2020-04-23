@@ -84,6 +84,14 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
   //ELECTRONS
   const xAOD::ElectronContainer *ec = 0;
   CHECK(evtStore()->retrieve(ec, "Electrons"));
+  const xAOD::MuonContainer *mc_test = 0;
+  CHECK(evtStore()->retrieve(mc_test, "Muons"));
+  const xAOD::TauJetContainer *tjc_test = 0;
+  CHECK(evtStore()->retrieve(tjc_test, "TauJets"));
+  double num_leps = ec->size() + mc_test->size() + tjc_test->size();
+  //if(num_leps<3) std::cout << ec->size() + mc_test->size() + tjc_test->size() << " = leps " << std::endl;
+  
+  if(ec->size() < no_el) return false;	//Added to just speed up the events
   for(auto it = ec->begin(); it != ec->end(); it++){
     const xAOD::Electron *e = *it;
     if(e->pt()/1000 >= 25 && abs(e->eta()) <= 2.47){	//look at http://opendata.atlas.cern/release/2020/documentation/datasets/objects.html for examples of cuts
@@ -109,12 +117,12 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
   //MUONS
   const xAOD::MuonContainer *mc = 0;
   CHECK(evtStore()->retrieve(mc, "Muons"));
+  if(mc->size() < no_mu) return false;
   for(auto it = mc->begin(); it != mc->end(); it++){
     const xAOD::Muon *mu = *it;
     if(mu->pt()/1000 >= 25 && abs(mu->eta()) <= 2.5){
       mu->isolation(ptc30, xAOD::Iso::ptcone30);  //TODO:: FIX THESE VARIABLES
       mu->isolation(topoetc20, xAOD::Iso::topoetcone20);
-      std::cout << ptc30/mu->pt() << " = ptc30 " << topoetc20/mu->pt() << " = topoetcone20" << std::endl;
       double pt_frac_m = ptc30/mu->pt();
       double et_frac_m = topoetc20/mu->pt();
       if((pt_frac_m < 0.15)&&(et_frac_m < 0.15)){ 
@@ -133,9 +141,8 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
   
   //TAUS
   const xAOD::TauJetContainer *tjc = 0;
-  //NEEDS TO BE DATAVECTOR?
-  //DataVector<xAOD::TauJet> *tjs = 0; 
   CHECK(evtStore()->retrieve(tjc, "TauJets"));
+  if(tjc->size() < no_tau) return false;
   for(auto it = tjc->begin(); it != tjc->end(); it++){
     const xAOD::TauJet *tj = *it;
     if(tau_selection_t->accept(*tj)){	//pt>20 , eta0-1.37 1.52-2.5, EOR, |tauCharge|=1,( https://arxiv.org/pdf/1607.05979.pdf p7 )
@@ -202,9 +209,9 @@ StatusCode DiTauAlg::initialize() {
   CHECK(m_mmt.initialize());
   CHECK(m_mmt->setProperty("UseTauProbability", 1));
   CHECK(m_mmt->setProperty("CalibSet", "2016MC15C"));
-  CHECK(m_mmt->setProperty("NiterFit2", 40));
-  CHECK(m_mmt->setProperty("NiterFit3", 20));
-  CHECK(m_mmt->setProperty("NsigmaMET", 6));
+  CHECK(m_mmt->setProperty("NiterFit2", 30));
+  CHECK(m_mmt->setProperty("NiterFit3", 10));
+  CHECK(m_mmt->setProperty("NsigmaMET", 4));
   CHECK(m_mmt->setProperty("alg_version", 3));
   //CHECK(m_mmt->setProperty("UseMETDphiLL", 1)); only for leplep
   CHECK(m_mmt->setProperty("UseEfficiencyRecovery", 1));
@@ -279,9 +286,9 @@ StatusCode DiTauAlg::execute() {
   }
 
   //Recalibrate the jets:  
-  const std::string jet_type = "AntiKt4LCTopo";  //removed 'Anti'
-  
-  
+  const std::string jet_type = "AntiKt4EMTopo";  //removed 'Anti'
+ 
+  /* 
   const xAOD::JetContainer* uncalibJets = nullptr;
   CHECK( evtStore()->retrieve(uncalibJets, jet_type+"Jets"));//this retrieves and applies the correction
   std::pair< xAOD::JetContainer*, xAOD::ShallowAuxContainer* > calibJetsPair = xAOD::shallowCopyContainer( *uncalibJets );//make a shallow copy to calibrate
@@ -301,7 +308,10 @@ StatusCode DiTauAlg::execute() {
     std::cout << "Failed to set the original object links" << std::endl;
   }     
   CHECK( evtStore()->record(calibJets, "CalibJets") );
-  
+  */
+
+
+ 
   double lep1_pt, lep1_eta, lep1_phi;
   double lep2_pt, lep2_eta, lep2_phi;
   double tau_partner_pt{}, tau_partner_eta, tau_partner_phi;//, tau_partner_int;
@@ -458,35 +468,34 @@ StatusCode DiTauAlg::execute() {
     double tau_phi = TauJets[0]->phi();
 
     double vis_mass = sqrt( 2 * tau_partner_pt * tau_pt * ( cosh(tau_partner_eta - tau_eta) - cos(tau_partner_phi - tau_phi) ) );
-    vis_hist->Fill(vis_mass);
      
 
 
     if(vis_mass > 5){
+      //ConstDataVector<xAOD::JetContainer> met_Jets(SG::VIEW_ELEMENTS);
      
+      //HAVE TO USE ANTIKT4EM JETS AS 4LC ISNT PRESENT 
       double no_25Jets = 0;
-      ConstDataVector<xAOD::JetContainer> met_Jets(SG::VIEW_ELEMENTS);
       const xAOD::JetContainer *jc = nullptr;
-      CHECK( evtStore()->retrieve(jc, /*jet_type + "Jets"*/"CalibJets") );
+      CHECK( evtStore()->retrieve(jc, jet_type + "Jets"/*CalibJets*/) );
       for(auto it = jc->begin(); it != jc->end(); it++){
         //if((*it)->pt()/1000>20){ // TODO: have commented this since met tool needs all jets?
-          met_Jets.push_back(*it);
-          if(((*it)->pt()/1000>25)&&(abs((*it)->eta())<2.5)){
+          //met_Jets.push_back(*it);
+          if(((*it)->pt()/1000>25)&&(abs((*it)->eta())<2.5)){  //TODO:: FOR SOME REASON IT CANNOT ACCESS JET PT
             no_25Jets++;
           }
         //}
       }
-
+      
+      /*  REBUILDING MET (NOT NEEDED IN DAOD)
       const xAOD::MissingETAssociationMap* metMap = nullptr; 
       CHECK(evtStore()->retrieve(metMap, "METAssoc_" + jet_type));
-
-       
       //REBUILD MET::
       //order has to be electrons,photons,taus,muons,jets
-      
+      std::cout << "HERE1 " << std::endl;
       metMap->resetObjSelectionFlags();
       met_tool->rebuildMET("RefEle" , xAOD::Type::Electron, met_container, met_Electrons->asDataVector(), metMap, obj_scale); 
-  
+      std::cout << "HERE2 " << std::endl;
       ConstDataVector<xAOD::PhotonContainer> met_Photons(SG::VIEW_ELEMENTS);
       const xAOD::PhotonContainer *pc = nullptr;
       CHECK( evtStore()->retrieve(pc, "Photons") );
@@ -499,54 +508,65 @@ StatusCode DiTauAlg::execute() {
       //Rebuild photons
       metMap->resetObjSelectionFlags();
       met_tool->rebuildMET("RefPhoton", xAOD::Type::Photon, met_container, met_Photons.asDataVector(), metMap, obj_scale);
-
       //const std::string tauName = "RefTau";
       metMap->resetObjSelectionFlags();
       met_tool->rebuildMET("RefTau", xAOD::Type::Tau, met_container, met_Taus->asDataVector(), metMap, obj_scale);
-      
-
       //const std::string muName = "RefMu";     
       metMap->resetObjSelectionFlags();
       met_tool->rebuildMET("RefMu" , xAOD::Type::Muon, met_container, met_Muons->asDataVector(), metMap, obj_scale);
-
       const xAOD::MissingETContainer* met_core = nullptr;
       CHECK( evtStore()->retrieve(met_core, "MET_Core_" + jet_type) );
-  
       metMap->resetObjSelectionFlags();
-      met_tool->rebuildJetMET("RefJet", "SoftClus", "PVSoftTrk", met_container, /*calibJets*/ met_Jets.asDataVector(), met_core, metMap, true);
+      //met_tool->rebuildJetMET("RefJet", "SoftClus", "PVSoftTrk", met_container,  met_Jets.asDataVector(), met_core, metMap, true);
       met_tool->buildMETSum("FinalTrk", met_container, MissingETBase::Source::Track);
-  
-      const xAOD::MissingETContainer* met_calo = nullptr;
-      CHECK( evtStore()->retrieve(met_calo, "MET_Calo") );
+      */
+      
+      int k{};
+      const xAOD::MissingETContainer* met_track = nullptr;
+      CHECK( evtStore()->retrieve(met_track, "MET_Track") );
+      for(auto it = met_track->begin(); it != met_track->end(); it++){
+	k++;
+        const xAOD::MissingET* met = *it;
+        //std::cout << "MissingETContainer entry " << k << ": met->name() = " << met->name() << ", met->met() = " << met->met() << " MeV " << std::endl;
+      }
 
-      const xAOD::MissingET* met7 = met_calo->at(7);
+      const xAOD::MissingET* met7 = met_track->at(0);
       double met7_pt = met7->met() /1000;
       double met7_phi = met7->phi();
 
 
       // MET
-      double met_pt = (*met_container)["FinalTrk"]->met() / 1000;
-      std::cout << "rebuilt MET, met_pt = " << met_pt << " GeV" << std::endl << std::endl;
-      double m_phi = (*met_container)["FinalTrk"]->phi();
+      double met_pt = met7_pt;   //(*met_container)["FinalTrk"]->met() / 1000;
+      double m_phi =   met7_phi;   //(*met_container)["FinalTrk"]->phi();
+      int j{};
+      const xAOD::MissingETContainer* met_core = nullptr;
+      CHECK( evtStore()->retrieve(met_core, "MET_Core_" + jet_type) );
+      for(auto it = met_core->begin(); it != met_core->end(); it++){
+        const xAOD::MissingET* met = *it;
+	j++;
+        //std::cout << "MissingETContainer CORE entry " << j << ": met->name() = " << met->name() << ", met->met() = " << met->met() << " MeV " << std::endl;
+      }
+      
+      const xAOD::MissingET* met = met_core->at(1);  //0 = SoftClusCore , 1 = PVSoftTrk , 2 = SoftClusEMCore 
       
       // MET REFERENCE?
-      int k{};
-      std::cout << "new event:" << std::endl;
+      //int j{};
+      //std::cout << "new event:" << std::endl;
       const xAOD::MissingETContainer* met_ref = nullptr;
       CHECK( evtStore()->retrieve(met_ref, "MET_Reference_" + jet_type) );
-      for(auto it = met_ref->begin(); it != met_ref->end(); it++){
+      /*for(auto it = met_ref->begin(); it != met_ref->end(); it++){
         const xAOD::MissingET* met = *it;
-	k++;
-        std::cout << "MissingETContainer reference entry " << k << ": met->name() = " << met->name() << ", met->met() = " << met->met() << " MeV " << std::endl;
-      }
+	j++;
+        //std::cout << "MissingETContainer reference entry " << j << ": met->name() = " << met->name() << ", met->met() = " << met->met() << " MeV " << std::endl;
+      }*/
       const xAOD::MissingET* met8 = met_ref->at(8);
       met_pt = met8->met() / 1000;
       m_phi = met8->phi();
-
-  
+      
+      //std::cout << "MET TRACK : " << met7_pt << " , MET REF (TRKFINAL) : " << met_pt << std::endl;
       double met_diffs = GetOpenAngle(met7_phi, m_phi);  
       double invMass_leps = sqrt(2*(lep1_pt*lep2_pt)*(cosh(lep1_eta-lep2_eta)-cos(lep1_phi - lep2_phi)));
-  
+      
       // COLLINEAR
       double nu_lep_pt = met_pt * (sin(m_phi) - sin(tau_phi)) / (sin(tau_partner_phi) - sin(tau_phi));
       double nu_tau_pt = met_pt * (sin(m_phi) - sin(tau_partner_phi)) / (sin(tau_phi) - sin(tau_partner_phi));
@@ -590,23 +610,30 @@ StatusCode DiTauAlg::execute() {
       double m_phi_rel = (m_phi * M_PI) / (2 * half_angle);
       if(tau_phi > tau_partner_phi) m_phi_rel_hist->Fill(m_phi_rel);
       else m_phi_rel_hist->Fill(-m_phi_rel);
-
+      
       // SAME IF STATEMENT AS LAST SEMESTER (only there was a <80GeV cut last semester which isn't needed here)
       if(2*half_angle <= 2.5 && 2*half_angle >= 0.5 && m_phi_rel <= 3*M_PI/5 && m_phi_rel >= -7*M_PI/10){
-	no_1lep1tau_events++;
-        col_hist->Fill(col_mass, eventWeight);
-        col_hist_met7->Fill(col_mass_m7,eventWeight);
+	
+        no_1lep1tau_events++;
+        vis_hist->Fill(vis_mass);
         leplep_hist->Fill(invMass_leps, eventWeight);  
         met_ang_diffs_hist->Fill(met_diffs);
+        
+        //collinear
+        col_hist->Fill(col_mass, eventWeight);
+        col_hist_met7->Fill(col_mass_m7,eventWeight);
+        
         // MMC 
-	//maxw_m = APPLY(m_mmt, ei, TauJets[0], tau_partner, met, no_25Jets);
-	maxw_m = APPLY(m_mmt, ei, TauJets[0], tau_partner, (*met_container)["FinalTrk"], no_25Jets);
-	double maxw_m_met7 = APPLY(m_mmt, ei, TauJets[0], tau_partner, met7, no_25Jets);
+	double maxw_m_met7 = APPLY(m_mmt, ei, TauJets[0], tau_partner, met7, no_25Jets);	
+        //std::cout << "MMC MASS: " << maxw_m_met7 << std::endl;
+        maxw_m = APPLY(m_mmt, ei, TauJets[0], tau_partner, met, no_25Jets);
+	//maxw_m = APPLY(m_mmt, ei, TauJets[0], tau_partner, (*met_container)["FinalTrk"], no_25Jets);
 	double maxw_m_met8 = APPLY(m_mmt, ei, TauJets[0], tau_partner, met8, no_25Jets);
+        
         mmc_hist->Fill(maxw_m, eventWeight);
         mmc_hist_met7->Fill(maxw_m_met7, eventWeight);
 	mmc_hist_metref8->Fill(maxw_m_met8, eventWeight);
-	m_my2DHist->Fill(maxw_m, invMass_leps);
+	m_my2DHist->Fill(maxw_m_met8, invMass_leps);
 	m_my2DHist_met7->Fill(maxw_m_met7, invMass_leps);
 	metrefmmc_col_2D->Fill(maxw_m_met8, invMass_leps, eventWeight);
       }
