@@ -114,7 +114,7 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
     if(mu->pt()/1000 >= 25 && abs(mu->eta()) <= 2.5){
       mu->isolation(ptc30, xAOD::Iso::ptcone30);  //TODO:: FIX THESE VARIABLES
       mu->isolation(topoetc20, xAOD::Iso::topoetcone20);
-      std::cout << ptc30/mu->pt() << " = ptc30 " << topoetc20/mu->pt() << " = topoetcone20" << std::endl;
+      //std::cout << ptc30/mu->pt() << " = ptc30 " << topoetc20/mu->pt() << " = topoetcone20" << std::endl;
       double pt_frac_m = ptc30/mu->pt();
       double et_frac_m = topoetc20/mu->pt();
       if((pt_frac_m < 0.15)&&(et_frac_m < 0.15)){ 
@@ -526,18 +526,18 @@ StatusCode DiTauAlg::execute() {
 
       // MET
       double met_pt = (*met_container)["FinalTrk"]->met() / 1000;
-      std::cout << "rebuilt MET, met_pt = " << met_pt << " GeV" << std::endl << std::endl;
+      //std::cout << "rebuilt MET, met_pt = " << met_pt << " GeV" << std::endl << std::endl;
       double m_phi = (*met_container)["FinalTrk"]->phi();
       
       // MET REFERENCE?
       int k{};
-      std::cout << "new event:" << std::endl;
+      //std::cout << "new event:" << std::endl;
       const xAOD::MissingETContainer* met_ref = nullptr;
       CHECK( evtStore()->retrieve(met_ref, "MET_Reference_" + jet_type) );
       for(auto it = met_ref->begin(); it != met_ref->end(); it++){
         const xAOD::MissingET* met = *it;
 	k++;
-        std::cout << "MissingETContainer reference entry " << k << ": met->name() = " << met->name() << ", met->met() = " << met->met() << " MeV " << std::endl;
+       // std::cout << "MissingETContainer reference entry " << k << ": met->name() = " << met->name() << ", met->met() = " << met->met() << " MeV " << std::endl;
       }
       const xAOD::MissingET* met8 = met_ref->at(8);
       met_pt = met8->met() / 1000;
