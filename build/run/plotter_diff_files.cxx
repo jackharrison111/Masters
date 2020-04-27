@@ -4,17 +4,24 @@ std::string me = "user.jaharris.ZZdataset2_real_900f_18-04_13-18_MYSTREAM/user.j
 
 std::string file3 = "local_outputs/ZZ_MCSTDM3_12files_NSIGMET4_22-04_14:37.root";
 std::string file4 = "local_outputs/ZZ_MCSTDM3_12files_NSIGMET6_22-04_15:08.root";
-std::string file2 = "local_outputs/ZZ_MCSTDM3_12files_NITER52_22-04_19:25.root";
- 
-std::string file1 = "local_outputs/ZZ_MCSTDM3_12files_NITER3010_22-04_17:59.root";
 std::string file5 = "local_outputs/ZZ_MCSTDM3_12files_NITER5030_22-04_18:40.root";
+std::string file6 = "local_outputs/ZZ_MCSTDM3_12files_NITER3010_22-04_17:59.root";
+
+std::string file1 = "local_outputs/ZZ_MCSTDM3_40files_23-04_00:44.root";
+std::string file2 = "local_outputs/ZZ_MCSTDM3_12files_NITER52_22-04_19:25.root";
+
+
+std::string real_ds = "user.jaharris.ZZ_REDAOD_20datasets_23-04_22-21_MYSTREAM/user.jaharris.";
+//21112268.MYSTREAM._000001.root
+
 
 //"user.jaharris.ZZdataset2_real_100files_17-04/user.jaharris.";
 
-const int size{1};
+const int size{26};
 //std::string JEDITaskID[size] = {"20718468" , "20718456"};//,"","","",...};
-std::string bigJobID1 = "21069446";
+std::string bigJobID1 = "21112268";
 std::string bigJobID2 = "";
+//"21069446";
 //"21065134";
 //"20814417";
 //user.jaharris.20719143.MYSTREAM._000001.root  example big job file
@@ -67,7 +74,7 @@ void plot(){
 		if(file_number < 10){ intString = "00" + intString;}
                 else if((file_number>9)&&(file_number<100)){ intString = "0" + intString;}
 
-		TFile *f = new TFile(( file1 /*+ bigJobID1 + ".MYSTREAM._000" + intString + ".root"*/).c_str());
+		TFile *f = new TFile(( real_ds + bigJobID1 + ".MYSTREAM._000" + intString + ".root").c_str());
 		if(!f->IsOpen()){
 			std::cout << "Couldn't open file" << std::endl;
 			i--;
@@ -178,12 +185,12 @@ void plot(){
 
 
  	//Add entries
-	//legend->AddEntry(mmc_hist, "MMC", "l");
-	//legend->AddEntry(mmc_hist_m7, "MMC MetTrack", "l");
+	legend->AddEntry(mmc_hist, "Met Core", "l");
+	legend->AddEntry(mmc_hist_m7, "Met Track", "l");
 	//legend->AddEntry(mmc_hist_m7_f2, "Sigma = 6", "l");
-	legend->AddEntry(col_hist, "Collinear approx.", "l");
+	//legend->AddEntry(col_hist, "Collinear approx.", "l");
 	//legend->AddEntry(col_hist_m7, "Collinear approx.", "l");
-	legend->AddEntry(mmc_hist_metref8, "MMC RefMet", "l");
+	legend->AddEntry(mmc_hist_metref8, "Met Ref", "l");
 	//legend->AddEntry(mmc_hist_metref8_f2, "Reduced iter.", "l");
 
 	//Set titles
@@ -204,16 +211,17 @@ void plot(){
 	vis_hist_f2->SetTitle(";M_{vis} [GeV]; N / [GeV]");
 	
 
-	col_hist->SetLineColor(2);
-	mmc_hist_m7->SetLineColor(1);
+	//col_hist->SetLineColor(2);
+	mmc_hist->SetLineColor(3);
+	mmc_hist_m7->SetLineColor(2);
 	//mmc_hist_m7_f2->SetLineColor(2);
 	//mmc_hist_metref8_f2->SetLineColor(2);
 	
 	//Draws
-	col_hist->Draw("histsame");
+	//col_hist->Draw("histsame");
 	//col_hist_m7->Draw("histsame");
-	//mmc_hist->Draw("histsame");
-	//mmc_hist_m7->Draw("histsame");
+	mmc_hist->Draw("histsame");
+	mmc_hist_m7->Draw("histsame");
 	//mmc_hist_m7_f2->Draw("histsame");
 	mmc_hist_metref8->Draw("histsame");
 	//mmc_hist_metref8_f2->Draw("histsame");
