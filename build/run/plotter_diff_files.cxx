@@ -2,9 +2,12 @@
 std::string user = "user.jaharris.";
 std::string me = "user.jaharris.ZZdataset2_real_900f_18-04_13-18_MYSTREAM/user.jaharris.";
 
-std::string file1 = "local_outputs/ZZ_MCSTDM3_12files_NSIGMET4_22-04_14:37.root";
-std::string file2 = "local_outputs/ZZ_MCSTDM3_12files_NSIGMET6_22-04_15:08.root";
+std::string file3 = "local_outputs/ZZ_MCSTDM3_12files_NSIGMET4_22-04_14:37.root";
+std::string file4 = "local_outputs/ZZ_MCSTDM3_12files_NSIGMET6_22-04_15:08.root";
+std::string file2 = "local_outputs/ZZ_MCSTDM3_12files_NITER52_22-04_19:25.root";
  
+std::string file1 = "local_outputs/ZZ_MCSTDM3_12files_NITER3010_22-04_17:59.root";
+std::string file5 = "local_outputs/ZZ_MCSTDM3_12files_NITER5030_22-04_18:40.root";
 
 //"user.jaharris.ZZdataset2_real_100files_17-04/user.jaharris.";
 
@@ -41,18 +44,19 @@ void plot(){
 	TH1D *col_hist_m7 = new TH1D("col_hist_m7","",160,0,160);
 	TH1D *m_phi_rel_hist = new TH1D("m_phi_rel_hist","",100,-M_PI,M_PI);
 	TH1D *met_ang_diffs_hist = new TH1D("met_ang_diffs_hist", "", 100, 0, M_PI);
-
+	TH1D *mmc_hist_metref8 = new TH1D("mmc_hist_metref8","",160,0,160);
 	//TH2D *invMass2D = new TH2D("invMass2D", 160,0,160,160,0,160);	  //Not working??
 	
        
-	TH1D *mmc_hist_f2 = new TH1D("mmc_hist","",160,0,160);
-	TH1D *leplep_hist_f2 = new TH1D("leplep_hist","",160,0,160);
-	TH1D *mmc_m7_hist__f2 = new TH1D("mmc_hist_m7","",160,0,160);
-	TH1D *vis_hist_f2 = new TH1D("vis_hist","",160,0,160);
-	TH1D *col_hist_f2 = new TH1D("col_hist","",160,0,160);
-	TH1D *col_m7_hist_f2 = new TH1D("col_hist_m7","",160,0,160);
-	TH1D *m_phi_rel_hist_f2 = new TH1D("m_phi_rel_hist","",100,-M_PI,M_PI);
-	TH1D *met_ang_diffs_hist_f2 = new TH1D("met_ang_diffs_hist", "", 100, 0, M_PI);
+	TH1D *mmc_hist_f2 = new TH1D("mmc_hist_f2","",160,0,160);
+	TH1D *leplep_hist_f2 = new TH1D("leplep_hist_f2","",160,0,160);
+	TH1D *mmc_hist_m7_f2 = new TH1D("mmc_hist_m7_f2","",160,0,160);
+	TH1D *vis_hist_f2 = new TH1D("vis_hist_f2","",160,0,160);
+	TH1D *col_hist_f2 = new TH1D("col_hist_f2","",160,0,160);
+	TH1D *col_hist_m7_f2 = new TH1D("col_hist_m7_f2","",160,0,160);
+	TH1D *m_phi_rel_hist_f2 = new TH1D("m_phi_rel_hist_f2","",100,-M_PI,M_PI);
+	TH1D *met_ang_diffs_hist_f2 = new TH1D("met_ang_diffs_hist_f2", "", 100, 0, M_PI);
+	TH1D *mmc_hist_metref8_f2 = new TH1D("mmc_hist_metref8_f2","",160,0,160);
 	
         double n_entries =0;
 
@@ -85,24 +89,26 @@ void plot(){
 				myHist->SetDirectory(0);
 				myHist->SetLineWidth(1);
 				if(hist_number == 0){
-					//invMass2D->Add(myHist);
-				}else if(hist_number == 1){
-					col_hist->Add(myHist);
-				}else if(hist_number == 2){
-					col_hist_m7->Add(myHist);
-				}else if(hist_number == 3){
-					leplep_hist->Add(myHist);
-				}else if(hist_number == 4){
-					m_phi_rel_hist->Add(myHist);	
-				}else if(hist_number == 5){
-					met_ang_diffs_hist->Add(myHist);
-				}else if(hist_number == 6){
-					mmc_hist->Add(myHist);
-				}else if(hist_number == 7){
-					mmc_hist_m7->Add(myHist);
-				}else if(hist_number == 8){
 					vis_hist->Add(myHist);
-				}       
+				}else if(hist_number == 1){
+					leplep_hist->Add(myHist);
+				}else if(hist_number == 2){
+					col_hist->Add(myHist);
+				}else if(hist_number == 3){
+					col_hist_m7->Add(myHist);
+				}else if(hist_number == 4){
+					mmc_hist->Add(myHist);
+				}else if(hist_number == 5){
+					mmc_hist_m7->Add(myHist);
+				}else if(hist_number == 6){
+					mmc_hist_metref8->Add(myHist);
+				}else if(hist_number == 7){
+					m_phi_rel_hist->Add(myHist);	
+				}else if(hist_number == 8){
+					met_ang_diffs_hist->Add(myHist);
+				}else if(hist_number == 9){
+					//invMass2D->Add(myHist);
+				}
 				hist_number++;
 			}
 			f->Close();
@@ -112,10 +118,6 @@ void plot(){
         
 
 
-
-
-
-	file_number = 0;
 	for(int i{}; i < size; i++){
 		file_number++;
 		std::string intString = to_string(file_number);
@@ -144,19 +146,25 @@ void plot(){
 				myHist->SetDirectory(0);
 				myHist->SetLineWidth(1);
 				if(hist_number == 0){
-					//invMass2D->Add(myHist);
+					vis_hist_f2->Add(myHist);
 				}else if(hist_number == 1){
-					col_hist_m7->Add(myHist);
-				}else if(hist_number == 2){
-					col_m7_hist_f2->Add(myHist);
-				}else if(hist_number == 3){
 					leplep_hist_f2->Add(myHist);
+				}else if(hist_number == 2){
+					col_hist_f2->Add(myHist);
+				}else if(hist_number == 3){
+					col_hist_m7_f2->Add(myHist);
 				}else if(hist_number == 4){
-					m_phi_rel_hist_f2->Add(myHist);	
-				}else if(hist_number == 5){
-					met_ang_diffs_hist_f2->Add(myHist);
-				}else if(hist_number == 6){
 					mmc_hist_f2->Add(myHist);
+				}else if(hist_number == 5){
+					mmc_hist_m7_f2->Add(myHist);
+				}else if(hist_number == 6){
+					mmc_hist_metref8_f2->Add(myHist);
+				}else if(hist_number == 7){
+					m_phi_rel_hist_f2->Add(myHist);	
+				}else if(hist_number == 8){
+					met_ang_diffs_hist_f2->Add(myHist);
+				}else if(hist_number == 9){
+					//invMass2D->Add(myHist);
 				}
 				hist_number++;
 			}
@@ -170,31 +178,52 @@ void plot(){
 
 
  	//Add entries
-	legend->AddEntry(mmc_hist, "MMC", "l");
-	//legend->AddEntry(mmc_hist_m7, "MMC", "l");
+	//legend->AddEntry(mmc_hist, "MMC", "l");
+	//legend->AddEntry(mmc_hist_m7, "MMC MetTrack", "l");
+	//legend->AddEntry(mmc_hist_m7_f2, "Sigma = 6", "l");
 	legend->AddEntry(col_hist, "Collinear approx.", "l");
 	//legend->AddEntry(col_hist_m7, "Collinear approx.", "l");
-	
+	legend->AddEntry(mmc_hist_metref8, "MMC RefMet", "l");
+	//legend->AddEntry(mmc_hist_metref8_f2, "Reduced iter.", "l");
+
 	//Set titles
         mmc_hist->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
         mmc_hist_m7->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
+        mmc_hist_metref8->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
 	col_hist->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
 	col_hist_m7->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
         leplep_hist->SetTitle(";M_{ll} [GeV]; N / [GeV]");
 	vis_hist->SetTitle(";M_{vis} [GeV]; N / [GeV]");
 
+        mmc_hist_f2->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
+        mmc_hist_m7_f2->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
+        mmc_hist_metref8_f2->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
+	col_hist_f2->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
+	col_hist_m7_f2->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
+        leplep_hist_f2->SetTitle(";M_{ll} [GeV]; N / [GeV]");
+	vis_hist_f2->SetTitle(";M_{vis} [GeV]; N / [GeV]");
+	
+
 	col_hist->SetLineColor(2);
+	mmc_hist_m7->SetLineColor(1);
+	//mmc_hist_m7_f2->SetLineColor(2);
+	//mmc_hist_metref8_f2->SetLineColor(2);
 	
 	//Draws
-	//col_hist->Draw("histsame");
-	//mmc_hist->Draw("histsame");
+	col_hist->Draw("histsame");
 	//col_hist_m7->Draw("histsame");
+	//mmc_hist->Draw("histsame");
 	//mmc_hist_m7->Draw("histsame");
+	//mmc_hist_m7_f2->Draw("histsame");
+	mmc_hist_metref8->Draw("histsame");
+	//mmc_hist_metref8_f2->Draw("histsame");
+	
 	//vis_hist->Draw("histsame");
-	//legend->Draw();
+	
+	legend->Draw();
 	
 	//For drawing met_ang_diffs:	 TODO::FIX THIS AXIS
-	
+	/*
 	TAxis *ax = met_ang_diffs_hist->GetXaxis();
 	ax->SetNdivisions(502);
 	ax->ChangeLabel(1,-1,-1,-1,-1,-1,"0");
@@ -204,7 +233,7 @@ void plot(){
 	ax->SetTitleOffset(1.2);
 	met_ang_diffs_hist->SetTitle(";#phi_{d} [radians];N / [#pi/50 radians]"); 
 	met_ang_diffs_hist->Draw("hist");
-	
+	*/
 
 	//For drawing M_PHI_REL:
 	/*TAxis *a = m_phi_rel_hist->GetXaxis();
@@ -229,7 +258,7 @@ void plot(){
 
 }
 
-int plotterzz(){
+int plotter_diff_files(){
 	plot();
 	return 0;
 }
