@@ -70,7 +70,10 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    TH1D* vis_hist;
    TH1D* leplep_hist;
    TH1D* col_hist;
+   TH1D* col_hist_noEW;
    TH1D* mmc_hist;
+   TH1D* mmc_hist_noEW;
+   TH1D* mmc_hist_metref8;
    TH1D* m_phi_rel_hist;
    TH2D* mmc_leps_2D;
    asg::AnaToolHandle<MissingMassTool> m_mmt;
