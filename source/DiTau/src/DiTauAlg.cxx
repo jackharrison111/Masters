@@ -88,10 +88,13 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
   CHECK(evtStore()->retrieve(mc_test, "Muons"));
   const xAOD::TauJetContainer *tjc_test = 0;
   CHECK(evtStore()->retrieve(tjc_test, "TauJets"));
-  double num_leps = ec->size() + mc_test->size() + tjc_test->size();
+  //double num_leps = ec->size() + mc_test->size() + tjc_test->size();
   //if(num_leps<3) std::cout << ec->size() + mc_test->size() + tjc_test->size() << " = leps " << std::endl;
   
-  if(ec->size() < no_el) return false;	//Added to just speed up the events
+  if((int)ec->size() < no_el){
+    CLEAR();
+    return false; //Added to just speed up the events
+  }
   for(auto it = ec->begin(); it != ec->end(); it++){
     const xAOD::Electron *e = *it;
     if(e->pt()/1000 >= 25 && abs(e->eta()) <= 2.47){	//look at http://opendata.atlas.cern/release/2020/documentation/datasets/objects.html for examples of cuts
@@ -117,12 +120,16 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
   //MUONS
   const xAOD::MuonContainer *mc = 0;
   CHECK(evtStore()->retrieve(mc, "Muons"));
-  if(mc->size() < no_mu) return false;
+  if((int)mc->size() < no_mu){
+    CLEAR();
+    return false;
+  }
   for(auto it = mc->begin(); it != mc->end(); it++){
     const xAOD::Muon *mu = *it;
     if(mu->pt()/1000 >= 25 && abs(mu->eta()) <= 2.5){
       mu->isolation(ptc30, xAOD::Iso::ptcone30);  //TODO:: FIX THESE VARIABLES
       mu->isolation(topoetc20, xAOD::Iso::topoetcone20);
+      //std::cout << ptc30/mu->pt() << " = ptc30 " << topoetc20/mu->pt() << " = topoetcone20" << std::endl;
       double pt_frac_m = ptc30/mu->pt();
       double et_frac_m = topoetc20/mu->pt();
       if((pt_frac_m < 0.15)&&(et_frac_m < 0.15)){ 
@@ -142,7 +149,10 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
   //TAUS
   const xAOD::TauJetContainer *tjc = 0;
   CHECK(evtStore()->retrieve(tjc, "TauJets"));
-  if(tjc->size() < no_tau) return false;
+  if((int)tjc->size() < no_tau){
+    CLEAR();
+    return false;
+  }
   for(auto it = tjc->begin(); it != tjc->end(); it++){
     const xAOD::TauJet *tj = *it;
     if(tau_selection_t->accept(*tj)){	//pt>20 , eta0-1.37 1.52-2.5, EOR, |tauCharge|=1,( https://arxiv.org/pdf/1607.05979.pdf p7 )
@@ -165,6 +175,7 @@ StatusCode DiTauAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
  
   start_time = clock();
+  
   vis_hist = new TH1D("vis_hist","Visible Mass Distribution",160,0,160);
   leplep_hist = new TH1D("leplep_hist", "Direct Z#rightarrow ll Invariant Mass Distribution", 160,0,160);
   col_hist = new TH1D("col_hist","Collinear Mass Distribution",160,0,160);
@@ -173,10 +184,7 @@ StatusCode DiTauAlg::initialize() {
   mmc_hist_noEW = new TH1D("mmc_hist_noEW","MMC Mass Distribution",160,0,160);
   mmc_hist_metref8 = new TH1D("mmc_hist_metref8","MMC Mass Distribution",160,0,160);
   m_phi_rel_hist = new TH1D("m_phi_rel_hist","Missing Energy Distribution",100,-M_PI,M_PI);
-  met_ang_diffs_hist = new TH1D("met_ang_diffs_hist","Separation between reconstructed and initial MET",100,0,M_PI);
-  m_my2DHist = new TH2D("2DinvMass" , "", 160, 0, 160, 160, 0, 160);
-  m_my2DHist_met7 = new TH2D("2DinvMass_met7" , "", 160, 0, 160, 160, 0, 160);
-  metrefmmc_col_2D = new TH2D("metrefmmc_col_2D", "", 160, 0, 160, 160, 0, 160);
+  mmc_leps_2D = new TH2D("mmc_leps_2D", "", 160, 0, 160, 160, 0, 160);
 
 
   vis_hist->SetTitle("Visible Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
@@ -186,10 +194,7 @@ StatusCode DiTauAlg::initialize() {
   mmc_hist->SetTitle("MMC Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
   mmc_hist_noEW->SetTitle("MMC Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
   m_phi_rel_hist->SetTitle("Missing Energy Distribution;#phi_{rel} [rad];N / [#pi/50]");
-  met_ang_diffs_hist->SetTitle("Separation between initial and rebuilt MET vectors;#phi_{d} [rad];N / [#pi/50]");
-  m_my2DHist->SetTitle("Candidate Z Boson Invariant Mass Distributions; M_{#tau#tau} [GeV]; M_{ll} [GeV]");
-  m_my2DHist_met7->SetTitle("Candidate Z Boson Invariant Mass Distributions; M_{#tau#tau} [GeV]; M_{ll} [GeV]");
-  //mmc_hist->SetStats(0);
+  mmc_leps_2D->SetTitle("Missing Energy Distribution;M_{#tau#tau} [GeV];M_{ll} [GeV]");
 
   CHECK( histSvc()->regHist("/MYSTREAM/vis_hist", vis_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/leplep_hist", leplep_hist) );
@@ -199,10 +204,7 @@ StatusCode DiTauAlg::initialize() {
   CHECK( histSvc()->regHist("/MYSTREAM/mmc_hist_noEW", mmc_hist_noEW) );
   CHECK( histSvc()->regHist("/MYSTREAM/mmc_hist_metref8", mmc_hist_metref8) );
   CHECK( histSvc()->regHist("/MYSTREAM/m_phi_rel_hist", m_phi_rel_hist) );
-  CHECK( histSvc()->regHist("/MYSTREAM/met_ang_diffs_hist", met_ang_diffs_hist) );
-  CHECK( histSvc()->regHist("/MYSTREAM/m_my2DHist", m_my2DHist) );
-  CHECK( histSvc()->regHist("/MYSTREAM/m_my2DHist_met7", m_my2DHist_met7) );
-  CHECK( histSvc()->regHist("/MYSTREAM/metrefmmc_col_2D", metrefmmc_col_2D) );
+  CHECK( histSvc()->regHist("/MYSTREAM/mmc_leps_2D", mmc_leps_2D) );
 
   //INITIALISE THE MISSING MASS TOOL
   m_mmt.setTypeAndName("MissingMassTool/MissingMassTool");
@@ -288,7 +290,7 @@ StatusCode DiTauAlg::execute() {
   //Recalibrate the jets:  
   const std::string jet_type = "AntiKt4EMTopo";  //removed 'Anti'
  
-  /* 
+   
   const xAOD::JetContainer* uncalibJets = nullptr;
   CHECK( evtStore()->retrieve(uncalibJets, jet_type+"Jets"));//this retrieves and applies the correction
   std::pair< xAOD::JetContainer*, xAOD::ShallowAuxContainer* > calibJetsPair = xAOD::shallowCopyContainer( *uncalibJets );//make a shallow copy to calibrate
@@ -308,7 +310,7 @@ StatusCode DiTauAlg::execute() {
     std::cout << "Failed to set the original object links" << std::endl;
   }     
   CHECK( evtStore()->record(calibJets, "CalibJets") );
-  */
+  
 
 
  
@@ -490,7 +492,7 @@ StatusCode DiTauAlg::execute() {
         //}
       }
       
-       // REBUILDING MET (NOT NEEDED IN DAOD)
+      // REBUILDING MET (NOT NEEDED IN DAOD)
       const xAOD::MissingETAssociationMap* metMap = nullptr; 
       CHECK(evtStore()->retrieve(metMap, "METAssoc_" + jet_type));
       //REBUILD MET::
@@ -551,8 +553,6 @@ StatusCode DiTauAlg::execute() {
       //met_core->at(1);  //	FOR METCORE:	0 = SoftClusCore , 1 = PVSoftTrk , 2 = SoftClusEMCore 
       
       // MET REFERENCE?
-      //int j{};
-      //std::cout << "new event:" << std::endl;
       const xAOD::MissingETContainer* met_ref = nullptr;
       CHECK( evtStore()->retrieve(met_ref, "MET_Reference_" + jet_type) );
       /*for(auto it = met_ref->begin(); it != met_ref->end(); it++){
@@ -565,7 +565,6 @@ StatusCode DiTauAlg::execute() {
       double m_phi = met8->phi();
       
       //std::cout << "MET TRACK : " << met7_pt << " , MET REF (TRKFINAL) : " << met_pt << std::endl;
-      double met_diffs = GetOpenAngle(met7_phi, m_phi);  
       double invMass_leps = sqrt(2*(lep1_pt*lep2_pt)*(cosh(lep1_eta-lep2_eta)-cos(lep1_phi - lep2_phi)));
       
       // COLLINEAR
@@ -574,13 +573,6 @@ StatusCode DiTauAlg::execute() {
       double x1 = tau_partner_pt / (tau_partner_pt + nu_lep_pt);
       double x2 = tau_pt / (tau_pt + nu_tau_pt);
       double col_mass = vis_mass / sqrt(x1 * x2);
-
-
-      double nu_lep_pt_m7 = met7_pt * (sin(met7_phi) - sin(tau_phi)) / (sin(tau_partner_phi) - sin(tau_phi));
-      double nu_tau_pt_m7 = met7_pt * (sin(met7_phi) - sin(tau_partner_phi)) / (sin(tau_phi) - sin(tau_partner_phi));
-      double x1_7 = tau_partner_pt / (tau_partner_pt + nu_lep_pt_m7);
-      double x2_7 = tau_pt / (tau_pt + nu_tau_pt_m7);
-      double col_mass_m7 = vis_mass / sqrt(x1_7 * x2_7);
 
       // ANGULAR
       double half_angle = GetOpenAngle(tau_partner_phi, tau_phi) / 2;
@@ -618,7 +610,6 @@ StatusCode DiTauAlg::execute() {
         no_1lep1tau_events++;
         vis_hist->Fill(vis_mass);
         leplep_hist->Fill(invMass_leps, eventWeight);  
-        met_ang_diffs_hist->Fill(met_diffs);
         
         //collinear
         col_hist->Fill(col_mass, eventWeight);
@@ -640,7 +631,9 @@ StatusCode DiTauAlg::execute() {
       }
     } // vis_mass > 5
   } // tau_partner != 0
-    
+
+  
+
 
   CLEAR();
   setFilterPassed(true); //if got here, assume that means algorithm passed
