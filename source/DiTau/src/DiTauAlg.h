@@ -42,6 +42,7 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
   bool GetCandidates(const int no_el, const int no_mu, const int no_tau);
   double GetOpenAngle(double ang1, double ang2);
   void CLEAR();
+  xAOD::MissingET& InsertMETTerm(xAOD::MissingETContainer* metCont, std::string name, MissingETBase::Types::bitmask_t source);
 
   ///Other useful methods provided by base class are:
   ///evtStore()        : ServiceHandle to main event data storegate
@@ -76,8 +77,18 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    TH1D* mmc_hist_metref8;
    TH1D* m_phi_rel_hist;
    TH2D* mmc_leps_2D;
-   asg::AnaToolHandle<MissingMassTool> m_mmt;
+   TH2D* m_my2DHist;
+   TH2D* m_my2DHist_met7;
 
+   TH1D* phi_rel_hist;
+   TH1D* col_3piover4_hist;
+   TH1D* col_piover2_hist;
+   TH1D* col_piover4_hist;
+   TH1D* col_piover8_hist;
+   TH1D* col_piover16_hist;
+   TH1D* col_piover32_hist;
+   
+   asg::AnaToolHandle<MissingMassTool> m_mmt;
    McEventWeight* ew = new McEventWeight("test");
    asg::AnaToolHandle<TauAnalysisTools::TauSelectionTool> tau_selection_t;
    asg::AnaToolHandle<IJetCalibrationTool> jet_calib_tool;
