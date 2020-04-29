@@ -260,6 +260,10 @@ StatusCode DiTauAlg::initialize() {
   CHECK(jet_calib_tool.setProperty("CalibSequence", "JetArea_Residual_EtaJES_GSC"));
   CHECK(jet_calib_tool.setProperty("IsData", false));
   CHECK(jet_calib_tool.retrieve());
+
+  //SUSY TOOL
+  susy_tool.setTypeAndName("ST::SUSYObjDef_xAOD/SUSYTools");
+  CHECK(susy_tool.retrieve());
   
   pass = 0;
   fail = 0;
@@ -495,7 +499,9 @@ StatusCode DiTauAlg::execute() {
 
 
     if(vis_mass > 5){
-      
+      // calibration ??? :
+      // https://twiki.cern.ch/twiki/bin/view/AtlasComputing/SoftwareTutorialxAODAnalysisInAthena#9_An_example_of_skimming_events
+      // https://gitlab.cern.ch/atlas/athena/-/blob/master/PhysicsAnalysis/SUSYPhys/SUSYTools/SUSYTools/SUSYObjDef_xAOD.h
       
       // REBUILDING MET (NOT NEEDED IN DAOD??)
       const xAOD::MissingETAssociationMap* metMap = nullptr; 
@@ -515,6 +521,11 @@ StatusCode DiTauAlg::execute() {
       xAOD::MissingET& metEle = InsertMETTerm(metCont, "ElectronTerm", MissingETBase::Source::electron());
       const xAOD::ElectronContainer* electrons = nullptr;
       CHECK(evtStore()->retrieve(electrons, "Electrons"));
+      std::cout << "electrons size = " << electrons->size() << std::endl;
+      xAOD::ElectronContainer* els = nullptr;
+      xAOD::ShallowAuxContainer* elsaux = nullptr;
+      susy_tool->GetElectrons(els, elsaux, true, "Electrons", els);
+      std::cout << "els size = " << els->size() << std::endl;
       for(const auto& el : *electrons){
         bool isSelected = xAOD::MissingETComposition::selectIfNoOverlaps(metMap, el, MissingETBase::UsageHandler::TrackCluster); // TODO: why not obj_scale?
 	if(isSelected){
@@ -620,6 +631,7 @@ StatusCode DiTauAlg::execute() {
 		  << " GeV, phi: " << met->phi()
 		  << std::endl;
       }
+      std::cout << std::endl;
 
 
 

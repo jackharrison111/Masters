@@ -16,6 +16,7 @@
 #include "xAODMissingET/MissingETAuxContainer.h"
 #include "METUtilities/METMaker.h"
 #include "ReweightUtils/McEventWeight.h"
+#include "SUSYTools/ISUSYObjDef_xAODTool.h"
 
 //Example ROOT Includes
 //#include "TTree.h"
@@ -92,6 +93,7 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    McEventWeight* ew = new McEventWeight("test");
    asg::AnaToolHandle<TauAnalysisTools::TauSelectionTool> tau_selection_t;
    asg::AnaToolHandle<IJetCalibrationTool> jet_calib_tool;
+   asg::AnaToolHandle<ST::ISUSYObjDef_xAODTool> susy_tool;
    asg::AnaToolHandle<met::METMaker> met_tool;
   
    //asg::AnaToolHandle<ORUtils::IOverlapRemovalTool> masterHandle;
