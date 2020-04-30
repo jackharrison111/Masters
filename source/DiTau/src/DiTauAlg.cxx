@@ -521,11 +521,15 @@ StatusCode DiTauAlg::execute() {
       xAOD::MissingET& metEle = InsertMETTerm(metCont, "ElectronTerm", MissingETBase::Source::electron());
       const xAOD::ElectronContainer* electrons = nullptr;
       CHECK(evtStore()->retrieve(electrons, "Electrons"));
-      std::cout << "electrons size = " << electrons->size() << std::endl;
-      xAOD::ElectronContainer* els = nullptr;
-      xAOD::ShallowAuxContainer* elsaux = nullptr;
-      susy_tool->GetElectrons(els, elsaux, true, "Electrons", els);
-      std::cout << "els size = " << els->size() << std::endl;
+      	/* testing susy_tools for calibration on electron */
+	const xAOD::Electron* temp = electrons->at(0);
+      	std::cout << "electrons: " << temp->pt() << std::endl;
+      	xAOD::ElectronContainer* els = nullptr;
+      	xAOD::ShallowAuxContainer* elsaux = nullptr;
+      	susy_tool->GetElectrons(els, elsaux, true, "Electrons", els);
+      	const xAOD::Electron* temp2 = els->at(0);
+      	std::cout << "els: " << temp2->pt() << std::endl;
+	/*------------------------------------------------*/
       for(const auto& el : *electrons){
         bool isSelected = xAOD::MissingETComposition::selectIfNoOverlaps(metMap, el, MissingETBase::UsageHandler::TrackCluster); // TODO: why not obj_scale?
 	if(isSelected){
@@ -633,12 +637,10 @@ StatusCode DiTauAlg::execute() {
       }
       std::cout << std::endl;
 
-
-
-
-
       double met_pt = (*metCont)["TotalTermWithTST"]->met() / 1000;
       double m_phi = (*metCont)["TotalTermWithTST"]->phi();
+
+
       
       //std::cout << "MET TRACK : " << met7_pt << " , MET REF (TRKFINAL) : " << met_pt << std::endl;
       double invMass_leps = sqrt(2*(lep1_pt*lep2_pt)*(cosh(lep1_eta-lep2_eta)-cos(lep1_phi - lep2_phi)));
