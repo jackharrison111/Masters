@@ -44,6 +44,8 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
   double GetOpenAngle(double ang1, double ang2);
   void CLEAR();
   xAOD::MissingET& InsertMETTerm(xAOD::MissingETContainer* metCont, std::string name, MissingETBase::Types::bitmask_t source);
+  double no_25Jets;
+  xAOD::MissingET *finalMET;
 
   ///Other useful methods provided by base class are:
   ///evtStore()        : ServiceHandle to main event data storegate
