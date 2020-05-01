@@ -53,12 +53,6 @@ void DiTauAlg::CLEAR(){
   Electrons.clear();
   Muons.clear();
   TauJets.clear();
-  met_Electrons->clear();
-  met_Muons->clear();
-  met_Taus->clear();
-  met_container->clear();     // THINK THESE WERE CAUSING A CORE DUMP TOO
-  met_aux_container->clearDecorations();
-  //std::cout << "met_aux_container->size() = " << met_aux_container->size() << std::endl;
 }
 
 
@@ -87,225 +81,13 @@ xAOD::MissingET& DiTauAlg::InsertMETTerm(xAOD::MissingETContainer* metCont, std:
 
 
 bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau){
-  /*std::cout << "Getting Electrons" << std::endl; 
-  float ptc30 = -11.0f;
-  float topoetc20 = -11.0f;  //Using this because apparently etc20 is not used anymore?  - https://gitlab.cern.ch/ATauLeptonAnalysiS/xTauFramework/-/blob/master/source/xVariables/Root/xVarGroups.cxx#L1890
-
-  //ELECTRONS
-  xAOD::ElectronContainer* els = nullptr;
-  xAOD::ShallowAuxContainer* elsaux = nullptr;
-  susy_tool->GetElectrons(els, elsaux, true, "Electrons", els);
- 
-  const xAOD::ElectronContainer *electrons = nullptr;
-  CHECK(evtStore()->retrieve(electrons, "Electrons"));
-  //std::cout << "els = " << els->size() << " , electrons = " << electrons->size() <<std::endl;
-  
-  if((int)els->size() < no_el){
-    CLEAR();
-    return false; //Added to just speed up the events
-  }
-  
-  for(auto it = els->begin(); it != els->end(); it++){
-    const xAOD::Electron *e = *it;
-    if(e->pt()/1000 >= 25 && abs(e->eta()) <= 2.47){	//look at http://opendata.atlas.cern/release/2020/documentation/datasets/objects.html for examples of cuts
-    
-    e->isolation(ptc30, xAOD::Iso::ptcone30);  //TODO:: FIX THESE VARIABLES
-    e->isolation(topoetc20, xAOD::Iso::topoetcone20);
-    double pt_frac = ptc30/e->pt();
-    double et_frac = topoetc20/e->pt();
-    if((pt_frac < 0.15)&&(et_frac < 0.15)){ 
-      //isolation cuts - not sure if using the right ones https://gitlab.cern.ch/ATauLeptonAnalysiS/xTauFramework/-/blob/master/source/xVariables/Root/xVarGroups.cxx#L1890
-      Electrons.push_back(e);
-      met_Electrons->push_back(*it);
-      }
-    }
-    ptc30 = -11.0f;
-    topoetc20 = -11.0f;
-  }
-  if((int)Electrons.size() != no_el){
-    CLEAR();
-    return false;
-  }
- //std::cout << "USING CALIBRATED ELECTRONS" << std::endl; 
-
-  
-  //MUONS
-  xAOD::MuonContainer* mus = nullptr;
-  xAOD::ShallowAuxContainer* mu_aux = nullptr;
-  susy_tool->GetMuons(mus, mu_aux, true, "Muons", mus);
- 
-  //const xAOD::MuonContainer *mc = 0;
-  //CHECK(evtStore()->retrieve(mc, "Muons"));
-  if((int)mus->size() < no_mu){
-    CLEAR();
-    return false;
-  }
-  for(auto it = mus->begin(); it != mus->end(); it++){
-    const xAOD::Muon *mu = *it;
-    if(mu->pt()/1000 >= 25 && abs(mu->eta()) <= 2.5){
-      mu->isolation(ptc30, xAOD::Iso::ptcone30);  //TODO:: FIX THESE VARIABLES
-      mu->isolation(topoetc20, xAOD::Iso::topoetcone20);
-      //std::cout << ptc30/mu->pt() << " = ptc30 " << topoetc20/mu->pt() << " = topoetcone20" << std::endl;
-      double pt_frac_m = ptc30/mu->pt();
-      double et_frac_m = topoetc20/mu->pt();
-      if((pt_frac_m < 0.15)&&(et_frac_m < 0.15)){ 
-        //isolation cuts - not sure if using the right ones https://gitlab.cern.ch/ATauLeptonAnalysiS/xTauFramework/-/blob/master/source/xVariables/Root/xVarGroups.cxx#L1890
-        Muons.push_back(mu);
-        met_Muons->push_back(*it);
-      }
-    }
-    ptc30 = -11.0f;
-    topoetc20 = -11.0f;
-  }
-  if((int)Muons.size() != no_mu){
-    CLEAR();
-    return false;
-  }
-  
-  //TAUS
-  const xAOD::TauJetContainer *tjc = 0;
-  CHECK(evtStore()->retrieve(tjc, "TauJets"));
-  if((int)tjc->size() < no_tau){
-    CLEAR();
-    return false;
-  }
-  for(auto it = tjc->begin(); it != tjc->end(); it++){
-    const xAOD::TauJet *tj = *it;
-    if(tau_selection_t->accept(*tj)){	//pt>20 , eta0-1.37 1.52-2.5, EOR, |tauCharge|=1,( https://arxiv.org/pdf/1607.05979.pdf p7 )
-      TauJets.push_back(tj);
-      met_Taus->push_back(*it);
-    }
-  }
-  if((int)TauJets.size() != no_tau){
-    CLEAR();
-    return false;
-  }
- 
-
-
-  //BUILD MET AND THEN STORE IT
-
-  std::string jet_type = "AntiKt4EMTopo";
-
-  const xAOD::MissingETAssociationMap* metMap = nullptr; 
-  CHECK(evtStore()->retrieve(metMap, "METAssoc_" + jet_type));
-  const xAOD::MissingETContainer* metCore = nullptr;
-  CHECK(evtStore()->retrieve(metCore, "MET_Core_" + jet_type));
-      
-  metMap->resetObjSelectionFlags();
-
-  xAOD::MissingETContainer* metCont = new xAOD::MissingETContainer;
-  xAOD::MissingETAuxContainer* metContAux = new xAOD::MissingETAuxContainer;
-  CHECK(evtStore()->record(metCont, "MyRebuiltMETContainer"));
-  CHECK(evtStore()->record(metContAux, "MyRebuiltMETContainerAux."));
-  metCont->setStore(metContAux);
-
-  xAOD::MissingET& metEle = InsertMETTerm(metCont, "ElectronTerm", MissingETBase::Source::electron());
-  xAOD::MissingET& metMu = InsertMETTerm(metCont, "MuonTerm", MissingETBase::Source::muon());
-  xAOD::MissingET& metTau = InsertMETTerm(metCont, "TauTerm", MissingETBase::Source::tau());
-     
-  for(const auto& el : *els){
-    bool isSelected = xAOD::MissingETComposition::selectIfNoOverlaps(metMap, el, MissingETBase::UsageHandler::TrackCluster); // TODO: why not obj_scale?
-    if(isSelected){
-      metEle += el;
-    }
-  }
-
-  // taus
-  for(auto const& tau : *tjc){
-    bool isSelected = xAOD::MissingETComposition::selectIfNoOverlaps(metMap, tau, obj_scale);
-    if(isSelected){
-      metTau += tau;
-    }
-  }
- 
-  //std::cout << "Got Muons - " << mus->size() << std::endl;
-  for(const auto& mu : *mus){
-    bool isSelected = xAOD::MissingETComposition::selectIfNoOverlaps(metMap, mu, MissingETBase::UsageHandler::OnlyTrack);
-    if(isSelected){
-      metMu += mu;
-    }
-  }
-
-      // jets and soft term simultaneuosly
-      const xAOD::MissingET& metSoftClusCore = *(*metCore)["SoftClusCore"];
-      const xAOD::MissingET& metSoftTrkCore = *(*metCore)["PVSoftTrkCore"];
-      xAOD::MissingET& metJet = InsertMETTerm(metCont, "JetTerm", MissingETBase::Source::jet());
-      xAOD::MissingET& metSoftClus = InsertMETTerm(metCont, "ClusterSoftTerm", metSoftClusCore.source());
-      xAOD::MissingET& metSoftTrk = InsertMETTerm(metCont, "TrackSoftTerm", metSoftTrkCore.source());
-      metSoftClus += metSoftClusCore;
-      metSoftTrk += metSoftTrkCore;
-      const xAOD::JetContainer* jets = nullptr;
-      CHECK(evtStore()->retrieve(jets, jet_type + "Jets"));
-      no_25Jets = 0;
-      //ConstDataVector<xAOD::JetContainer> met_Jets(SG::VIEW_ELEMENTS);
-      for(const auto& jet : *jets){
-        const xAOD::MissingETAssociation* assoc = xAOD::MissingETComposition::getAssociation(metMap, jet);
-	xAOD::JetFourMom_t jetconstp4 = jet->jetP4(xAOD::JetConstitScaleMomentum);
-	MissingETBase::Types::constvec_t jettrkvec = assoc->jetTrkVec();
-	MissingETBase::Types::constvec_t overlapcalvec = assoc->overlapCalVec();
-	MissingETBase::Types::constvec_t overlaptrkvec = assoc->overlapTrkVec();
-
-	float uniqueEnergy = jetconstp4.E() - overlapcalvec.ce();
-	if(uniqueEnergy > 0.5){
-	  float calibfactor = jet->pt() / jetconstp4.Pt();
-	  float opx = (jetconstp4.Px() - overlapcalvec.cpx()) * calibfactor;
-	  float opy = (jetconstp4.Py() - overlapcalvec.cpy()) * calibfactor;
-	  float opt = sqrt(opx * opx + opy * opy);
-	  metJet.add(opx, opy, opt);
-	}else{
-	  float calopx = (jetconstp4.Px() - overlapcalvec.cpx());
-	  float calopy = (jetconstp4.Py() - overlapcalvec.cpy());
-	  float calopt = sqrt(calopx * calopx + calopy * calopy);
-	  metSoftClus.add(calopx, calopy, calopt);
-	  float trkopx = (jettrkvec.cpx() - overlaptrkvec.cpx());
-	  float trkopy = (jettrkvec.cpy() - overlaptrkvec.cpy());
-	  float trkopt = sqrt(trkopx * trkopx + trkopy * trkopy);
-	  metSoftTrk.add(trkopx, trkopy, trkopt);
-	}
-        //if(jet->pt() / 1000 > 20){ // TODO: have comented this since met tool needs all jets?
-	//met_Jets.push_back(jet);
-	if(jet->pt() / 1000 > 25 && abs(jet->eta()) < 2.5){
-	  no_25Jets++;
-	}
-	//}
-      }
-
-      // misc association
-      const xAOD::MissingETAssociation* miscAssoc = metMap->getMiscAssociation();
-      MissingETBase::Types::constvec_t overlapcalvec = miscAssoc->overlapCalVec();
-      MissingETBase::Types::constvec_t overlaptrkvec = miscAssoc->overlapTrkVec();
-      metSoftClus.add(overlapcalvec.cpx(), overlapcalvec.cpy(), overlapcalvec.sumpt());
-      metSoftTrk.add(overlaptrkvec.cpx(), overlaptrkvec.cpy(), overlaptrkvec.sumpt());
-
-      // total sum
-      xAOD::MissingET& metFinalClus = InsertMETTerm(metCont, "TotalTermWithCST", MissingETBase::Source::total());
-      xAOD::MissingET& metFinalTrk = InsertMETTerm(metCont, "TotalTermWithTST", MissingETBase::Source::total());
-      for(const auto& met : *metCont){
-        if(MissingETBase::Source::isTotalTerm(met->source())) continue;
-	if(!MissingETBase::Source::isSoftTerm(met->source())){
-	  metFinalClus += *met;
-	  metFinalTrk += *met;
-	}else{
-	  if(MissingETBase::Source::isTrackTerm(met->source())){
-	    metFinalTrk += *met;
-	  }else{
-	    metFinalClus += *met;
-	  }
-	}
-      }
-
-
-  finalMET = (*metCont)["TotalTermWithTST"]; 
-  */
-
-  if((Electrons.size() == no_el)&&(Muons.size() == no_mu) && (TauJets.size() == no_tau)){
-    std::cout << "Passed GetCandidates" << std::endl;
+  if(((int)Electrons.size() == no_el) && ((int)Muons.size() == no_mu) && ((int)TauJets.size() == no_tau)){
+    //std::cout << "Passed GetCandidates" << std::endl;
     return true;
   }
-    std::cout << "Failed GetCandidates" << std::endl;
-    CLEAR();
-    return false;
+  //std::cout << "Failed GetCandidates" << std::endl;
+  CLEAR();
+  return false;
 
 }
 
@@ -314,45 +96,36 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
 
 StatusCode DiTauAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
- 
-  start_time = clock();
   
   vis_hist = new TH1D("vis_hist","Visible Mass Distribution",160,0,160);
   leplep_hist = new TH1D("leplep_hist", "Direct Z#rightarrow ll Invariant Mass Distribution", 160,0,160);
   col_hist = new TH1D("col_hist","Collinear Mass Distribution",160,0,160);
-  col_hist_noEW = new TH1D("col_hist_noEW","Collinear Mass Distribution",160,0,160);
   mmc_hist = new TH1D("mmc_hist","MMC Mass Distribution",160,0,160);
-  mmc_hist_noEW = new TH1D("mmc_hist_noEW","MMC Mass Distribution",160,0,160);
-  mmc_hist_metref8 = new TH1D("mmc_hist_metref8","MMC Mass Distribution",160,0,160);
-  m_phi_rel_hist = new TH1D("m_phi_rel_hist","Missing Energy Distribution",100,-M_PI,M_PI);
   mmc_leps_2D = new TH2D("mmc_leps_2D", "", 160, 0, 160, 160, 0, 160);
   m_my2DHist = new TH2D("m_my2DHist","",160,0,160,160,0,160);
-  m_my2DHist_met7 = new TH2D("m_my2DHist_met7","",160,0,160,160,0,160);
-
+  met_hist = new TH1D("met_hist","",400,0,400);
 
   vis_hist->SetTitle("Visible Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
   leplep_hist->SetTitle("Direct Z#rightarrow ll Mass Distribution;M_{ll} [GeV]; N / [GeV]");
   col_hist->SetTitle("Collinear Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
-  col_hist_noEW->SetTitle("Collinear Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
   mmc_hist->SetTitle("MMC Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
-  mmc_hist_noEW->SetTitle("MMC Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
-  m_phi_rel_hist->SetTitle("Missing Energy Distribution;#phi_{rel} [rad];N / [#pi/50]");
   mmc_leps_2D->SetTitle("Missing Energy Distribution;M_{#tau#tau} [GeV];M_{ll} [GeV]");
   m_my2DHist->SetTitle("Missing Energy Distribution;M_{#tau#tau} [GeV];M_{ll} [GeV]");
+  met_hist->SetTitle("Missing Energy Distribution;MET [GeV];N / [GeV]");
 
   CHECK( histSvc()->regHist("/MYSTREAM/vis_hist", vis_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/leplep_hist", leplep_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/col_hist", col_hist) );
-  CHECK( histSvc()->regHist("/MYSTREAM/col_hist_noEW", col_hist_noEW) );
   CHECK( histSvc()->regHist("/MYSTREAM/mmc_hist", mmc_hist) );
-  CHECK( histSvc()->regHist("/MYSTREAM/mmc_hist_noEW", mmc_hist_noEW) );
-  CHECK( histSvc()->regHist("/MYSTREAM/mmc_hist_metref8", mmc_hist_metref8) );
-  CHECK( histSvc()->regHist("/MYSTREAM/m_phi_rel_hist", m_phi_rel_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/mmc_leps_2D", mmc_leps_2D) );
   CHECK( histSvc()->regHist("/MYSTREAM/m_my2DHist", m_my2DHist) );
-  CHECK( histSvc()->regHist("/MYSTREAM/m_my2DHist_met7", m_my2DHist_met7) );
+  CHECK( histSvc()->regHist("/MYSTREAM/met_hist", met_hist) );
+  
+  obj_scale = MissingETBase::UsageHandler::PhysicsObject;
 
-  //INITIALISE THE MISSING MASS TOOL
+  start_time = clock();
+
+  //INITIALISE MISSING MASS TOOL
   m_mmt.setTypeAndName("MissingMassTool/MissingMassTool");
   CHECK(m_mmt.initialize());
   CHECK(m_mmt->setProperty("UseTauProbability", 1));
@@ -366,32 +139,17 @@ StatusCode DiTauAlg::initialize() {
   CHECK(m_mmt->setProperty("UseTailCleanup", 1));
 
   //INITIALISE TAU SELECTION TOOL
-  const auto TauSelectionToolName = "TauAnalysisTools::TauSelectionTool/TauSelectionTool";
-  tau_selection_t.setTypeAndName(TauSelectionToolName);
+  tau_selection_t.setTypeAndName("TauAnalysisTools::TauSelectionTool/TauSelectionTool");
   CHECK(tau_selection_t.initialize());
+  
+  //INITIALISE TAU TRUTH MATCHING TOOL
+  tau_truthmatching_t.setTypeAndName("TauAnalysisTools::TauTruthMatchingTool/TauTruthMatchingTool");
+  CHECK(tau_truthmatching_t.setProperty("WriteTruthTaus", true)); // this line ensures that using the truthmatchtool actually rewrites the evtStore() taus so that they are truthmatched (i think)
+  CHECK(tau_truthmatching_t.initialize());
 
-  //INITIALISE MET RECONSTRUCTION TOOL
-  met_tool.setTypeAndName("met::METMaker/METMaker");
-  CHECK(met_tool.initialize());
-  obj_scale = MissingETBase::UsageHandler::PhysicsObject;
-  met_container = new xAOD::MissingETContainer();
-  met_aux_container = new xAOD::MissingETAuxContainer();
-  met_container->setStore(met_aux_container);
-  met_Electrons = new ConstDataVector<xAOD::ElectronContainer>(SG::VIEW_ELEMENTS);
-  met_Muons = new ConstDataVector<xAOD::MuonContainer>(SG::VIEW_ELEMENTS);
-  met_Taus = new ConstDataVector<xAOD::TauJetContainer>(SG::VIEW_ELEMENTS);
-
-  //INITIALISE JET CALIBRATION TOOL
-  CHECK(ASG_MAKE_ANA_TOOL(jet_calib_tool, JetCalibrationTool));
-  jet_calib_tool.setName("jetCalibTool");
-  CHECK(jet_calib_tool.setProperty("JetCollection", "AntiKt4EMTopo")); // jet_type
-  CHECK(jet_calib_tool.setProperty("ConfigFile", "JES_data2017_2016_2015_Recommendation_Feb2018_rel21.config"));
-  CHECK(jet_calib_tool.setProperty("CalibSequence", "JetArea_Residual_EtaJES_GSC"));
-  CHECK(jet_calib_tool.setProperty("IsData", false));
-  CHECK(jet_calib_tool.retrieve());
-
-  //SUSY TOOL
-  susy_tool.setTypeAndName("ST::SUSYObjDef_xAOD/SUSYTools");
+  //INITIALISE SUSY TOOL
+  CHECK(ASG_MAKE_ANA_TOOL(susy_tool, ST::SUSYObjDef_xAOD));
+  susy_tool.setName("SUSYTools");
   CHECK(susy_tool.retrieve());
   
   pass = 0;
@@ -426,7 +184,7 @@ StatusCode DiTauAlg::execute() {
 
   //EVENT INFO:
   const xAOD::EventInfo* ei = 0;
-  CHECK( evtStore()->retrieve( ei , "EventInfo" ) );
+  CHECK(evtStore()->retrieve( ei , "EventInfo" ));
   
 
   double eventWeight;
@@ -437,131 +195,86 @@ StatusCode DiTauAlg::execute() {
     eventWeight = 1;
   }
 
-  //Recalibrate the jets:  
-  const std::string jet_type = "AntiKt4EMTopo";  //removed 'Anti'
- 
    
-  const xAOD::JetContainer* uncalibJets = nullptr;
-  CHECK( evtStore()->retrieve(uncalibJets, jet_type+"Jets"));//this retrieves and applies the correction
-  std::pair< xAOD::JetContainer*, xAOD::ShallowAuxContainer* > calibJetsPair = xAOD::shallowCopyContainer( *uncalibJets );//make a shallow copy to calibrate
-  xAOD::JetContainer *& calibJets = calibJetsPair.first;//create a reference to the first element of the pair (i.e. the JetContainer)     
-  
-  //TODO::need to figure out this bit: can't find the necessary file to include to use the function
-  //met::addGhostMuonsToJets(*muons, *calibJets);     
-  
-  for ( const auto& jet : *calibJets ) { 	//Shallow copy is needed 	
-    if(!jet_calib_tool->applyCalibration(*jet)){ //apply the calibration   
-      //std::cout << "Calibration failed." << std::endl;  
-      CLEAR();
-      return StatusCode::SUCCESS;
-    }
-  }   
-  if(!xAOD::setOriginalObjectLink(*uncalibJets, *calibJets)){//tell calib container what old container it matches       
-    std::cout << "Failed to set the original object links" << std::endl;
-  }     
-  CHECK( evtStore()->record(calibJets, "CalibJets") );
-  
-
-
-
+  // calibration ??? :
+  // https://twiki.cern.ch/twiki/bin/view/AtlasComputing/SoftwareTutorialxAODAnalysisInAthena#9_An_example_of_skimming_events
+  // https://gitlab.cern.ch/atlas/athena/-/blob/master/PhysicsAnalysis/SUSYPhys/SUSYTools/SUSYTools/SUSYObjDef_xAOD.h
 
   float ptc30 = -11.0f;
   float topoetc20 = -11.0f;  //Using this because apparently etc20 is not used anymore?  - https://gitlab.cern.ch/ATauLeptonAnalysiS/xTauFramework/-/blob/master/source/xVariables/Root/xVarGroups.cxx#L1890
 
-  //ELECTRONS
-  xAOD::ElectronContainer* els = nullptr;
-  xAOD::ShallowAuxContainer* elsaux = nullptr;
-  susy_tool->GetElectrons(els, elsaux, true, "Electrons", els);
- 
-  const xAOD::ElectronContainer *electrons = nullptr;
-  CHECK(evtStore()->retrieve(electrons, "Electrons"));
-  //std::cout << "els = " << els->size() << " , electrons = " << electrons->size() <<std::endl;
-  
-  /*if((int)els->size() < no_el){
-    CLEAR();
-    return false; //Added to just speed up the events
-  }*/
-  
-  for(auto it = els->begin(); it != els->end(); it++){
-    const xAOD::Electron *e = *it;
+  // ELECTRONS
+  xAOD::ElectronContainer* ec = nullptr;
+  xAOD::ShallowAuxContainer* e_aux = nullptr;
+  susy_tool->GetElectrons(ec, e_aux, true, "Electrons", ec);
+  for(auto it = ec->begin(); it != ec->end(); it++){
+    xAOD::Electron *e = *it;
     if(e->pt()/1000 >= 25 && abs(e->eta()) <= 2.47){	//look at http://opendata.atlas.cern/release/2020/documentation/datasets/objects.html for examples of cuts
-    
-    e->isolation(ptc30, xAOD::Iso::ptcone30);  //TODO:: FIX THESE VARIABLES
-    e->isolation(topoetc20, xAOD::Iso::topoetcone20);
-    double pt_frac = ptc30/e->pt();
-    double et_frac = topoetc20/e->pt();
-    if((pt_frac < 0.15)&&(et_frac < 0.15)){ 
-      //isolation cuts - not sure if using the right ones https://gitlab.cern.ch/ATauLeptonAnalysiS/xTauFramework/-/blob/master/source/xVariables/Root/xVarGroups.cxx#L1890
-      Electrons.push_back(e);
-      met_Electrons->push_back(*it);
+      e->isolation(ptc30, xAOD::Iso::ptcone30);  //TODO:: FIX THESE VARIABLES
+      e->isolation(topoetc20, xAOD::Iso::topoetcone20);
+      double pt_frac = ptc30/e->pt();
+      double et_frac = topoetc20/e->pt();
+      if((pt_frac < 0.15)&&(et_frac < 0.15)){ 
+        //isolation cuts - not sure if using the right ones https://gitlab.cern.ch/ATauLeptonAnalysiS/xTauFramework/-/blob/master/source/xVariables/Root/xVarGroups.cxx#L1890
+        Electrons.push_back(e);
       }
     }
-    ptc30 = -11.0f;
-    topoetc20 = -11.0f;
   }
   if(((int)Electrons.size() != 0)&&((int)Electrons.size() != 1)&&((int)Electrons.size() != 3)){
     CLEAR();
     return StatusCode::SUCCESS;
   }
-// std::cout << "USING CALIBRATED ELECTRONS" << std::endl; 
 
-  
-  //MUONS
-  xAOD::MuonContainer* mus = nullptr;
-  xAOD::ShallowAuxContainer* mu_aux = nullptr;
-  susy_tool->GetMuons(mus, mu_aux, true, "Muons", mus);
- 
-  //const xAOD::MuonContainer *mc = 0;
-  //CHECK(evtStore()->retrieve(mc, "Muons"));
-  /*if((int)mus->size() < no_mu){
-    CLEAR();
-    return false;
-  }*/
-  for(auto it = mus->begin(); it != mus->end(); it++){
-    const xAOD::Muon *mu = *it;
-    if(mu->pt()/1000 >= 25 && abs(mu->eta()) <= 2.5){
-      mu->isolation(ptc30, xAOD::Iso::ptcone30);  //TODO:: FIX THESE VARIABLES
-      mu->isolation(topoetc20, xAOD::Iso::topoetcone20);
-      //std::cout << ptc30/mu->pt() << " = ptc30 " << topoetc20/mu->pt() << " = topoetcone20" << std::endl;
-      double pt_frac_m = ptc30/mu->pt();
-      double et_frac_m = topoetc20/mu->pt();
-      if((pt_frac_m < 0.15)&&(et_frac_m < 0.15)){ 
-        //isolation cuts - not sure if using the right ones https://gitlab.cern.ch/ATauLeptonAnalysiS/xTauFramework/-/blob/master/source/xVariables/Root/xVarGroups.cxx#L1890
-        Muons.push_back(mu);
-        met_Muons->push_back(*it);
-      }
-    }
-    ptc30 = -11.0f;
-    topoetc20 = -11.0f;
+  // TAUS
+  const xAOD::TauJetContainer *untruthmatched_tjc = nullptr;
+  CHECK(evtStore()->retrieve(untruthmatched_tjc, "TauJets"));
+  for(auto it = untruthmatched_tjc->begin(); it != untruthmatched_tjc->end(); it++){
+    const xAOD::TauJet* tj = *it;
+    tau_truthmatching_t->getTruth(*tj);
   }
-  if(((int)Muons.size() != 0)&&((int)Muons.size() != 1)&&((int)Muons.size() != 3)){
-    CLEAR();
-    return StatusCode::SUCCESS;
-  }
-  
-  //TAUS
-  xAOD::TauJetContainer *tjc = 0;
-  xAOD::ShallowAuxContainer* tau_aux = nullptr;
-  susy_tool->GetTaus(tjc, tau_aux, true, "TauJets", tjc);
-  //CHECK(evtStore()->retrieve(tjc, "TauJets"));
-  /*if((int)tjc->size() < no_tau){
-    CLEAR();
-    return false;
-  }*/
+
+  xAOD::TauJetContainer* tjc = nullptr;
+  xAOD::ShallowAuxContainer* t_aux = nullptr;
+  susy_tool->GetTaus(tjc, t_aux, true, "TauJets", tjc);
   for(auto it = tjc->begin(); it != tjc->end(); it++){
-    const xAOD::TauJet *tj = *it;
+    xAOD::TauJet *tj = *it;
     if(tau_selection_t->accept(*tj)){	//pt>20 , eta0-1.37 1.52-2.5, EOR, |tauCharge|=1,( https://arxiv.org/pdf/1607.05979.pdf p7 )
       TauJets.push_back(tj);
-      met_Taus->push_back(*it);
     }
   }
   if((int)TauJets.size() != 1){
     CLEAR();
     return StatusCode::SUCCESS;
   }
- 
-  //BUILD MET AND THEN STORE IT
 
+
+  // MUONS
+  xAOD::MuonContainer* mc = nullptr;
+  xAOD::ShallowAuxContainer* m_aux = nullptr;
+  susy_tool->GetMuons(mc, m_aux, true, "Muons", mc);
+  for(auto it = mc->begin(); it != mc->end(); it++){
+    xAOD::Muon *m = *it;
+    if(m->pt()/1000 >= 25 && abs(m->eta()) <= 2.5){
+      m->isolation(ptc30, xAOD::Iso::ptcone30);  //TODO:: FIX THESE VARIABLES
+      m->isolation(topoetc20, xAOD::Iso::topoetcone20);
+      //std::cout << ptc30/mu->pt() << " = ptc30 " << topoetc20/mu->pt() << " = topoetcone20" << std::endl;
+      double pt_frac_m = ptc30/m->pt();
+      double et_frac_m = topoetc20/m->pt();
+      if((pt_frac_m < 0.15)&&(et_frac_m < 0.15)){ 
+        //isolation cuts - not sure if using the right ones https://gitlab.cern.ch/ATauLeptonAnalysiS/xTauFramework/-/blob/master/source/xVariables/Root/xVarGroups.cxx#L1890
+        Muons.push_back(m);
+      }
+    }
+  }
+  if(((int)Muons.size() != 0)&&((int)Muons.size() != 1)&&((int)Muons.size() != 3)){
+    CLEAR();
+    return StatusCode::SUCCESS;
+  }
+  
+
+  const std::string jet_type = "AntiKt4EMTopo";  //removed 'Anti'
+
+  // BUILD MET AND THEN STORE IT
   const xAOD::MissingETAssociationMap* metMap = nullptr; 
   CHECK(evtStore()->retrieve(metMap, "METAssoc_" + jet_type));
   const xAOD::MissingETContainer* metCore = nullptr;
@@ -579,114 +292,129 @@ StatusCode DiTauAlg::execute() {
   xAOD::MissingET& metMu = InsertMETTerm(metCont, "MuonTerm", MissingETBase::Source::muon());
   xAOD::MissingET& metTau = InsertMETTerm(metCont, "TauTerm", MissingETBase::Source::tau());
      
-  for(const auto& el : *els){
+  for(const auto& el : *ec){
     bool isSelected = xAOD::MissingETComposition::selectIfNoOverlaps(metMap, el, MissingETBase::UsageHandler::TrackCluster); // TODO: why not obj_scale?
     if(isSelected){
-      metEle += el;
+      if(el->pt()/1000 >= 25 && abs(el->eta()) <= 2.47){	//look at http://opendata.atlas.cern/release/2020/documentation/datasets/objects.html for examples of cuts
+        el->isolation(ptc30, xAOD::Iso::ptcone30);  //TODO:: FIX THESE VARIABLES
+        el->isolation(topoetc20, xAOD::Iso::topoetcone20);
+        double pt_frac = ptc30/el->pt();
+        double et_frac = topoetc20/el->pt();
+        if((pt_frac < 0.15)&&(et_frac < 0.15)){ 
+          metEle += el;
+        }
+      }
     }
   }
 
-  // taus
   for(auto const& tau : *tjc){
     bool isSelected = xAOD::MissingETComposition::selectIfNoOverlaps(metMap, tau, obj_scale);
     if(isSelected){
-      metTau += tau;
+      if(tau_selection_t->accept(*tau)){
+        metTau += tau;
+      }
     }
   }
- 
-  //std::cout << "Got Muons - " << mus->size() << std::endl;
-  for(const auto& mu : *mus){
+
+  for(const auto& mu : *mc){
     bool isSelected = xAOD::MissingETComposition::selectIfNoOverlaps(metMap, mu, MissingETBase::UsageHandler::OnlyTrack);
     if(isSelected){
-      metMu += mu;
+      if(mu->pt()/1000 >= 25 && abs(mu->eta()) <= 2.5){
+        mu->isolation(ptc30, xAOD::Iso::ptcone30);  //TODO:: FIX THESE VARIABLES
+        mu->isolation(topoetc20, xAOD::Iso::topoetcone20);
+        double pt_frac_m = ptc30/mu->pt();
+        double et_frac_m = topoetc20/mu->pt();
+        if((pt_frac_m < 0.15)&&(et_frac_m < 0.15)){ 
+          metMu += mu;
+        }
+      }
     }
   }
 
-      // jets and soft term simultaneuosly
-      const xAOD::MissingET& metSoftClusCore = *(*metCore)["SoftClusCore"];
-      const xAOD::MissingET& metSoftTrkCore = *(*metCore)["PVSoftTrkCore"];
-      xAOD::MissingET& metJet = InsertMETTerm(metCont, "JetTerm", MissingETBase::Source::jet());
-      xAOD::MissingET& metSoftClus = InsertMETTerm(metCont, "ClusterSoftTerm", metSoftClusCore.source());
-      xAOD::MissingET& metSoftTrk = InsertMETTerm(metCont, "TrackSoftTerm", metSoftTrkCore.source());
-      metSoftClus += metSoftClusCore;
-      metSoftTrk += metSoftTrkCore;
-      const xAOD::JetContainer* jets = nullptr;
-      CHECK(evtStore()->retrieve(jets, jet_type + "Jets"));
-      no_25Jets = 0;
-      //ConstDataVector<xAOD::JetContainer> met_Jets(SG::VIEW_ELEMENTS);
-      for(const auto& jet : *jets){
-        const xAOD::MissingETAssociation* assoc = xAOD::MissingETComposition::getAssociation(metMap, jet);
-	xAOD::JetFourMom_t jetconstp4 = jet->jetP4(xAOD::JetConstitScaleMomentum);
-	MissingETBase::Types::constvec_t jettrkvec = assoc->jetTrkVec();
-	MissingETBase::Types::constvec_t overlapcalvec = assoc->overlapCalVec();
-	MissingETBase::Types::constvec_t overlaptrkvec = assoc->overlapTrkVec();
+  // jets and soft term simultaneuosly
+  const xAOD::MissingET& metSoftClusCore = *(*metCore)["SoftClusCore"];
+  const xAOD::MissingET& metSoftTrkCore = *(*metCore)["PVSoftTrkCore"];
+  xAOD::MissingET& metJet = InsertMETTerm(metCont, "JetTerm", MissingETBase::Source::jet());
+  xAOD::MissingET& metSoftClus = InsertMETTerm(metCont, "ClusterSoftTerm", metSoftClusCore.source());
+  xAOD::MissingET& metSoftTrk = InsertMETTerm(metCont, "TrackSoftTerm", metSoftTrkCore.source());
+  metSoftClus += metSoftClusCore;
+  metSoftTrk += metSoftTrkCore;
+  xAOD::JetContainer* jc = nullptr;
+  xAOD::ShallowAuxContainer* j_aux = nullptr;
+  susy_tool->GetJets(jc, j_aux, true, jet_type + "Jets", jc);
+  no_25Jets = 0;
+  //ConstDataVector<xAOD::JetContainer> met_Jets(SG::VIEW_ELEMENTS);
+  for(const auto& jet : *jc){
+    const xAOD::MissingETAssociation* assoc = xAOD::MissingETComposition::getAssociation(metMap, jet);
+    xAOD::JetFourMom_t jetconstp4 = jet->jetP4(xAOD::JetConstitScaleMomentum);
+    MissingETBase::Types::constvec_t jettrkvec = assoc->jetTrkVec();
+    MissingETBase::Types::constvec_t overlapcalvec = assoc->overlapCalVec();
+    MissingETBase::Types::constvec_t overlaptrkvec = assoc->overlapTrkVec();
 
-	float uniqueEnergy = jetconstp4.E() - overlapcalvec.ce();
-	if(uniqueEnergy > 0.5){
-	  float calibfactor = jet->pt() / jetconstp4.Pt();
-	  float opx = (jetconstp4.Px() - overlapcalvec.cpx()) * calibfactor;
-	  float opy = (jetconstp4.Py() - overlapcalvec.cpy()) * calibfactor;
-	  float opt = sqrt(opx * opx + opy * opy);
-	  metJet.add(opx, opy, opt);
-	}else{
-	  float calopx = (jetconstp4.Px() - overlapcalvec.cpx());
-	  float calopy = (jetconstp4.Py() - overlapcalvec.cpy());
-	  float calopt = sqrt(calopx * calopx + calopy * calopy);
-	  metSoftClus.add(calopx, calopy, calopt);
-	  float trkopx = (jettrkvec.cpx() - overlaptrkvec.cpx());
-	  float trkopy = (jettrkvec.cpy() - overlaptrkvec.cpy());
-	  float trkopt = sqrt(trkopx * trkopx + trkopy * trkopy);
-	  metSoftTrk.add(trkopx, trkopy, trkopt);
-	}
-        //if(jet->pt() / 1000 > 20){ // TODO: have comented this since met tool needs all jets?
-	//met_Jets.push_back(jet);
-	if(jet->pt() / 1000 > 25 && abs(jet->eta()) < 2.5){
-	  no_25Jets++;
-	}
+    float uniqueEnergy = jetconstp4.E() - overlapcalvec.ce();
+    if(uniqueEnergy > 0.5){
+      float calibfactor = jet->pt() / jetconstp4.Pt();
+      float opx = (jetconstp4.Px() - overlapcalvec.cpx()) * calibfactor;
+      float opy = (jetconstp4.Py() - overlapcalvec.cpy()) * calibfactor;
+      float opt = sqrt(opx * opx + opy * opy);
+      metJet.add(opx, opy, opt);
+    }else{
+      float calopx = (jetconstp4.Px() - overlapcalvec.cpx());
+      float calopy = (jetconstp4.Py() - overlapcalvec.cpy());
+      float calopt = sqrt(calopx * calopx + calopy * calopy);
+      metSoftClus.add(calopx, calopy, calopt);
+      float trkopx = (jettrkvec.cpx() - overlaptrkvec.cpx());
+      float trkopy = (jettrkvec.cpy() - overlaptrkvec.cpy());
+      float trkopt = sqrt(trkopx * trkopx + trkopy * trkopy);
+      metSoftTrk.add(trkopx, trkopy, trkopt);
+    }
+    //if(jet->pt() / 1000 > 20){ // TODO: have comented this since met tool needs all jets?
+    //met_Jets.push_back(jet);
+    if(jet->pt() / 1000 > 25 && abs(jet->eta()) < 2.5){
+      no_25Jets++;
+    }
 	//}
-      }
+  }
 
-      // misc association
-      const xAOD::MissingETAssociation* miscAssoc = metMap->getMiscAssociation();
-      MissingETBase::Types::constvec_t overlapcalvec = miscAssoc->overlapCalVec();
-      MissingETBase::Types::constvec_t overlaptrkvec = miscAssoc->overlapTrkVec();
-      metSoftClus.add(overlapcalvec.cpx(), overlapcalvec.cpy(), overlapcalvec.sumpt());
-      metSoftTrk.add(overlaptrkvec.cpx(), overlaptrkvec.cpy(), overlaptrkvec.sumpt());
-
-      // total sum
-      xAOD::MissingET& metFinalClus = InsertMETTerm(metCont, "TotalTermWithCST", MissingETBase::Source::total());
-      xAOD::MissingET& metFinalTrk = InsertMETTerm(metCont, "TotalTermWithTST", MissingETBase::Source::total());
-      for(const auto& met : *metCont){
-        if(MissingETBase::Source::isTotalTerm(met->source())) continue;
-	if(!MissingETBase::Source::isSoftTerm(met->source())){
-	  metFinalClus += *met;
+  // misc association
+  const xAOD::MissingETAssociation* miscAssoc = metMap->getMiscAssociation();
+  MissingETBase::Types::constvec_t overlapcalvec = miscAssoc->overlapCalVec();
+  MissingETBase::Types::constvec_t overlaptrkvec = miscAssoc->overlapTrkVec();
+  metSoftClus.add(overlapcalvec.cpx(), overlapcalvec.cpy(), overlapcalvec.sumpt());
+  metSoftTrk.add(overlaptrkvec.cpx(), overlaptrkvec.cpy(), overlaptrkvec.sumpt());
+  
+  // total sum
+  xAOD::MissingET& metFinalClus = InsertMETTerm(metCont, "TotalTermWithCST", MissingETBase::Source::total());
+  xAOD::MissingET& metFinalTrk = InsertMETTerm(metCont, "TotalTermWithTST", MissingETBase::Source::total());
+  for(const auto& met : *metCont){
+    if(MissingETBase::Source::isTotalTerm(met->source())) continue;
+      if(!MissingETBase::Source::isSoftTerm(met->source())){
+	metFinalClus += *met;
+	metFinalTrk += *met;
+      }else{
+	if(MissingETBase::Source::isTrackTerm(met->source())){
 	  metFinalTrk += *met;
 	}else{
-	  if(MissingETBase::Source::isTrackTerm(met->source())){
-	    metFinalTrk += *met;
-	  }else{
-	    metFinalClus += *met;
-	  }
+	  metFinalClus += *met;
 	}
       }
+  }
 
 
   finalMET = (*metCont)["TotalTermWithTST"]; 
-  std::cout << finalMET->met() << std::endl;
+  std::cout << "finalMET = " << finalMET->met() / 1000 << " GeV" << std::endl;
+  met_hist->Fill(finalMET->met() / 1000);
 
 
  
   double lep1_pt, lep1_eta, lep1_phi;
   double lep2_pt, lep2_eta, lep2_phi;
   double tau_partner_pt{}, tau_partner_eta, tau_partner_phi;//, tau_partner_int;
-  const xAOD::IParticle* tau_partner; 
-  
+  //const xAOD::IParticle* tau_partner;
+
   double Z_mass = 91.2; 
-  std::cout << Electrons.size() << std::endl;
   if(GetCandidates(3,0,1)){
-    std::cout << "HERE1" << std::endl;
     double totalQ = Electrons[0]->charge() + Electrons[1]->charge() + Electrons[2]->charge();
-    std::cout << "HERE2" << std::endl;
     
     if(totalQ + TauJets[0]->charge() != 0){
       CLEAR();
@@ -703,7 +431,6 @@ StatusCode DiTauAlg::execute() {
         same_leps.push_back(j);
       }
     }
-    std::cout << "HERE3" << std::endl;
 
     double invM1_leps, invM1_taus, invM2_leps, invM2_taus;
     invM1_leps = sqrt(2*(Electrons[odd_lep]->pt()*Electrons[same_leps[0]]->pt())*(cosh(Electrons[odd_lep]->eta()-Electrons[same_leps[0]]->eta())-cos(Electrons[odd_lep]->phi()-Electrons[same_leps[0]]->phi())))/1000;
@@ -724,7 +451,7 @@ StatusCode DiTauAlg::execute() {
       tau_partner_eta = Electrons[same_leps[1]]->eta();
       tau_partner_phi = Electrons[same_leps[1]]->phi();
       //tau_partner_int = same_leps[1];
-      tau_partner = Electrons[same_leps[1]];
+      //tau_partner = Electrons[same_leps[1]];
     }
     else{
       //set pairings 1 to be the right ones 
@@ -735,7 +462,7 @@ StatusCode DiTauAlg::execute() {
       tau_partner_eta = Electrons[same_leps[0]]->eta();
       tau_partner_phi = Electrons[same_leps[0]]->phi();
       //tau_partner_int = same_leps[0];
-      tau_partner = Electrons[same_leps[0]];
+      //tau_partner = Electrons[same_leps[0]];
     }
 
   }
@@ -754,7 +481,7 @@ StatusCode DiTauAlg::execute() {
     tau_partner_pt = Electrons[0]->pt();
     tau_partner_eta = Electrons[0]->eta();
     tau_partner_phi = Electrons[0]->phi();
-    tau_partner = Electrons[0];
+    //tau_partner = Electrons[0];
   }
 
   else if(GetCandidates(2,1,1)){
@@ -772,7 +499,7 @@ StatusCode DiTauAlg::execute() {
     tau_partner_pt = Muons[0]->pt();
     tau_partner_eta = Muons[0]->eta();
     tau_partner_phi = Muons[0]->phi();
-    tau_partner = Muons[0];
+    //tau_partner = Muons[0];
   }
 
   else if(GetCandidates(0,3,1)){	//repeat for muons
@@ -811,7 +538,7 @@ StatusCode DiTauAlg::execute() {
       tau_partner_eta = Muons[same_leps[1]]->eta();
       tau_partner_phi = Muons[same_leps[1]]->phi();
       //tau_partner_int = same_leps[1];
-      tau_partner = Muons[same_leps[1]];
+      //tau_partner = Muons[same_leps[1]];
     }
     else{
       //set pairings 1 to be the right ones 
@@ -822,7 +549,7 @@ StatusCode DiTauAlg::execute() {
       tau_partner_eta = Muons[same_leps[0]]->eta();
       tau_partner_phi = Muons[same_leps[0]]->phi();
       //tau_partner_int = same_leps[0];
-      tau_partner = Muons[same_leps[0]];
+      //tau_partner = Muons[same_leps[0]];
     } 
   }
   else{
@@ -845,95 +572,6 @@ StatusCode DiTauAlg::execute() {
 
 
     if(vis_mass > 5){
-      // calibration ??? :
-      // https://twiki.cern.ch/twiki/bin/view/AtlasComputing/SoftwareTutorialxAODAnalysisInAthena#9_An_example_of_skimming_events
-      // https://gitlab.cern.ch/atlas/athena/-/blob/master/PhysicsAnalysis/SUSYPhys/SUSYTools/SUSYTools/SUSYObjDef_xAOD.h
-      
-
-     // electrons
-      /*const xAOD::ElectronContainer* electrons = nullptr;
-      CHECK(evtStore()->retrieve(electrons, "Electrons"));
-      	// testing susy_tools for calibration on electron 
-	const xAOD::Electron* temp = electrons->at(0);
-      	std::cout << "electrons: " << temp->pt() << std::endl;
-      	xAOD::ElectronContainer* els = nullptr;
-      	xAOD::ShallowAuxContainer* elsaux = nullptr;
-      	susy_tool->GetElectrons(els, elsaux, true, "Electrons", els);
-      	const xAOD::Electron* temp2 = els->at(0);
-      	std::cout << "els: " << temp2->pt() << std::endl;
- 	std::cout << "els size - " << els->size() << " , electrons size - " << electrons->size() << std::endl;
-	std::cout << temp2->phi() << " , " << temp->phi() << std::endl;
-     */ 
-
-
-      /*// jets and soft term simultaneuosly
-      const xAOD::MissingET& metSoftClusCore = *(*metCore)["SoftClusCore"];
-      const xAOD::MissingET& metSoftTrkCore = *(*metCore)["PVSoftTrkCore"];
-      xAOD::MissingET& metJet = InsertMETTerm(metCont, "JetTerm", MissingETBase::Source::jet());
-      xAOD::MissingET& metSoftClus = InsertMETTerm(metCont, "ClusterSoftTerm", metSoftClusCore.source());
-      xAOD::MissingET& metSoftTrk = InsertMETTerm(metCont, "TrackSoftTerm", metSoftTrkCore.source());
-      metSoftClus += metSoftClusCore;
-      metSoftTrk += metSoftTrkCore;
-      const xAOD::JetContainer* jets = nullptr;
-      CHECK(evtStore()->retrieve(jets, jet_type + "Jets"));
-      double no_25Jets = 0;
-      //ConstDataVector<xAOD::JetContainer> met_Jets(SG::VIEW_ELEMENTS);
-      for(const auto& jet : *jets){
-        const xAOD::MissingETAssociation* assoc = xAOD::MissingETComposition::getAssociation(metMap, jet);
-	xAOD::JetFourMom_t jetconstp4 = jet->jetP4(xAOD::JetConstitScaleMomentum);
-	MissingETBase::Types::constvec_t jettrkvec = assoc->jetTrkVec();
-	MissingETBase::Types::constvec_t overlapcalvec = assoc->overlapCalVec();
-	MissingETBase::Types::constvec_t overlaptrkvec = assoc->overlapTrkVec();
-
-	float uniqueEnergy = jetconstp4.E() - overlapcalvec.ce();
-	if(uniqueEnergy > 0.5){
-	  float calibfactor = jet->pt() / jetconstp4.Pt();
-	  float opx = (jetconstp4.Px() - overlapcalvec.cpx()) * calibfactor;
-	  float opy = (jetconstp4.Py() - overlapcalvec.cpy()) * calibfactor;
-	  float opt = sqrt(opx * opx + opy * opy);
-	  metJet.add(opx, opy, opt);
-	}else{
-	  float calopx = (jetconstp4.Px() - overlapcalvec.cpx());
-	  float calopy = (jetconstp4.Py() - overlapcalvec.cpy());
-	  float calopt = sqrt(calopx * calopx + calopy * calopy);
-	  metSoftClus.add(calopx, calopy, calopt);
-	  float trkopx = (jettrkvec.cpx() - overlaptrkvec.cpx());
-	  float trkopy = (jettrkvec.cpy() - overlaptrkvec.cpy());
-	  float trkopt = sqrt(trkopx * trkopx + trkopy * trkopy);
-	  metSoftTrk.add(trkopx, trkopy, trkopt);
-	}
-        //if(jet->pt() / 1000 > 20){ // TODO: have comented this since met tool needs all jets?
-	//met_Jets.push_back(jet);
-	if(jet->pt() / 1000 > 25 && abs(jet->eta()) < 2.5){
-	  no_25Jets++;
-	}
-	//}
-      }
-
-      // misc association
-      const xAOD::MissingETAssociation* miscAssoc = metMap->getMiscAssociation();
-      MissingETBase::Types::constvec_t overlapcalvec = miscAssoc->overlapCalVec();
-      MissingETBase::Types::constvec_t overlaptrkvec = miscAssoc->overlapTrkVec();
-      metSoftClus.add(overlapcalvec.cpx(), overlapcalvec.cpy(), overlapcalvec.sumpt());
-      metSoftTrk.add(overlaptrkvec.cpx(), overlaptrkvec.cpy(), overlaptrkvec.sumpt());
-
-      // total sum
-      xAOD::MissingET& metFinalClus = InsertMETTerm(metCont, "TotalTermWithCST", MissingETBase::Source::total());
-      xAOD::MissingET& metFinalTrk = InsertMETTerm(metCont, "TotalTermWithTST", MissingETBase::Source::total());
-      for(const auto& met : *metCont){
-        if(MissingETBase::Source::isTotalTerm(met->source())) continue;
-	if(!MissingETBase::Source::isSoftTerm(met->source())){
-	  metFinalClus += *met;
-	  metFinalTrk += *met;
-	}else{
-	  if(MissingETBase::Source::isTrackTerm(met->source())){
-	    metFinalTrk += *met;
-	  }else{
-	    metFinalClus += *met;
-	  }
-	}
-      }
-*/
       // final check
       std::cout << "Final MET check." << std::endl;
       //for(const auto& met : *metCont){
@@ -947,10 +585,7 @@ StatusCode DiTauAlg::execute() {
       double met_pt = finalMET->met() / 1000;
       double m_phi = finalMET->phi();
 
-
-      
-      //std::cout << "MET TRACK : " << met7_pt << " , MET REF (TRKFINAL) : " << met_pt << std::endl;
-      double invMass_leps = sqrt(2*(lep1_pt*lep2_pt)*(cosh(lep1_eta-lep2_eta)-cos(lep1_phi - lep2_phi)));
+      double invMass_leps = sqrt(2 * (lep1_pt * lep2_pt) * (cosh(lep1_eta - lep2_eta) - cos(lep1_phi - lep2_phi)));
       
       // COLLINEAR
       double nu_lep_pt = met_pt * (sin(m_phi) - sin(tau_phi)) / (sin(tau_partner_phi) - sin(tau_phi));
@@ -986,9 +621,8 @@ StatusCode DiTauAlg::execute() {
       if(m_phi > M_PI) m_phi -= 2 * M_PI;
       else if(m_phi < -M_PI) m_phi += 2 * M_PI;
       double m_phi_rel = (m_phi * M_PI) / (2 * half_angle);
-      if(tau_phi > tau_partner_phi) m_phi_rel_hist->Fill(m_phi_rel);
-      else m_phi_rel_hist->Fill(-m_phi_rel);
-      
+      if(tau_phi > tau_partner_phi) phi_rel_hist->Fill(m_phi_rel);
+      else phi_rel_hist->Fill(-m_phi_rel);
 
 
       // SAME IF STATEMENT AS LAST SEMESTER (only there was a <80GeV cut last semester which isn't needed here)
@@ -1000,20 +634,15 @@ StatusCode DiTauAlg::execute() {
         
         //collinear
         col_hist->Fill(col_mass, eventWeight);
-        col_hist_noEW->Fill(col_mass,1);
         
         /*// MMC 
 	double maxw_m_met7 = APPLY(m_mmt, ei, TauJets[0], tau_partner, met7, no_25Jets);	
         //std::cout << "MMC MASS: " << maxw_m_met7 << std::endl;
         //maxw_m = APPLY(m_mmt, ei, TauJets[0], tau_partner, met, no_25Jets);
-	//maxw_m = APPLY(m_mmt, ei, TauJets[0], tau_partner, (*met_container)["FinalTrk"], no_25Jets);
 	double maxw_m_met8 = APPLY(m_mmt, ei, TauJets[0], tau_partner, met8, no_25Jets);
         
         mmc_hist->Fill(maxw_m_met7, eventWeight);
-        mmc_hist_noEW->Fill(maxw_m_met8, 1);
-	mmc_hist_metref8->Fill(maxw_m_met8, eventWeight);
-	m_my2DHist->Fill(maxw_m_met8, invMass_leps);
-	m_my2DHist_met7->Fill(maxw_m_met7, invMass_leps);*/
+	m_my2DHist->Fill(maxw_m_met8, invMass_leps);*/
       }
     } // vis_mass > 5
   } // tau_partner != 0
