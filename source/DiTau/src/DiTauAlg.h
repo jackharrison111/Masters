@@ -17,6 +17,8 @@
 #include "METUtilities/METMaker.h"
 #include "ReweightUtils/McEventWeight.h"
 #include "SUSYTools/ISUSYObjDef_xAODTool.h"
+#include "TauAnalysisTools/ITauTruthMatchingTool.h"
+#include "TauAnalysisTools/TauTruthMatchingTool.h"
 
 //Example ROOT Includes
 //#include "TTree.h"
@@ -57,31 +59,13 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
 
 
  private:
-   std::vector<const xAOD::Electron*> Electrons;
-   std::vector<const xAOD::Muon*> Muons;
-   std::vector<const xAOD::TauJet*> TauJets;
-
-   MissingETBase::UsageHandler::Policy obj_scale;
-   ConstDataVector<xAOD::ElectronContainer>* met_Electrons;//(SG::VIEW_ELEMENTS);
-   ConstDataVector<xAOD::MuonContainer>* met_Muons;//(SG::VIEW_ELEMENTS);
-   ConstDataVector<xAOD::TauJetContainer>* met_Taus;//(SG::VIEW_ELEMENTS);
-   xAOD::MissingETContainer* met_container;
-   xAOD::MissingETAuxContainer* met_aux_container;
-
-   clock_t start_time;
-   clock_t end_time;
-
    TH1D* vis_hist;
    TH1D* leplep_hist;
    TH1D* col_hist;
-   TH1D* col_hist_noEW;
    TH1D* mmc_hist;
-   TH1D* mmc_hist_noEW;
-   TH1D* mmc_hist_metref8;
-   TH1D* m_phi_rel_hist;
    TH2D* mmc_leps_2D;
    TH2D* m_my2DHist;
-   TH2D* m_my2DHist_met7;
+   TH1D* met_hist;
 
    TH1D* phi_rel_hist;
    TH1D* col_3piover4_hist;
@@ -90,16 +74,23 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    TH1D* col_piover8_hist;
    TH1D* col_piover16_hist;
    TH1D* col_piover32_hist;
+
+   std::vector<const xAOD::Electron*> Electrons;
+   std::vector<const xAOD::Muon*> Muons;
+   std::vector<const xAOD::TauJet*> TauJets;
+
+   MissingETBase::UsageHandler::Policy obj_scale;
+
+   clock_t start_time;
+   clock_t end_time;
+
    
    asg::AnaToolHandle<MissingMassTool> m_mmt;
    McEventWeight* ew = new McEventWeight("test");
    asg::AnaToolHandle<TauAnalysisTools::TauSelectionTool> tau_selection_t;
-   asg::AnaToolHandle<IJetCalibrationTool> jet_calib_tool;
-   asg::AnaToolHandle<ST::ISUSYObjDef_xAODTool> susy_tool;
+   asg::AnaToolHandle<TauAnalysisTools::TauTruthMatchingTool> tau_truthmatching_t;
    asg::AnaToolHandle<met::METMaker> met_tool;
-  
-   //asg::AnaToolHandle<ORUtils::IOverlapRemovalTool> masterHandle;
-   //asg::AnaToolHandle<ORUtils::IOverlapTool> overlapHandle;
+   asg::AnaToolHandle<ST::ISUSYObjDef_xAODTool> susy_tool;
 
    double pass,fail;
    bool warning_message;
