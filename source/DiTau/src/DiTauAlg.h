@@ -81,6 +81,10 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    TH1D* met_hist_susy;
    TH1D* met_hist_susy_4lep;
 
+   TH1D* met_hist_4l;
+   TH1D* met_hist_4l_our;
+   TH1D* met_hist_4l_susy;
+
    TH1D* _3po4; //3*pi/4
    TH1D* po2;
    TH1D* po4;
