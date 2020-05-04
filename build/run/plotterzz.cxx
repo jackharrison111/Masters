@@ -31,7 +31,7 @@ std::string bigJobID2 = "";
 void plot(){
 	//gROOT->SetStyle("ATLAS");
 	gROOT->pwd();
-	gStyle->SetOptStat(0);
+	gStyle->SetOptStat(1111111);
 	gROOT->ForceStyle();
 
 	TCanvas *c = new TCanvas("c", "c");
