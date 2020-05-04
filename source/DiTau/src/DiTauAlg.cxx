@@ -118,7 +118,6 @@ StatusCode DiTauAlg::initialize() {
 
   met_hist = new TH1D("met_hist","",400,0,400);
   met_hist_our = new TH1D("met_hist_our","",400,0,400);
-  met_hist_our_4lep = new TH1D("met_hist_our_4lep","",400,0,400);
   met_hist_susy = new TH1D("met_hist_susy","",400,0,400);
 
   met_hist_4l = new TH1D("met_hist_4l","",400,0,400);
