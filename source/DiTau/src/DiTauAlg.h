@@ -47,7 +47,7 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
   void CLEAR();
   xAOD::MissingET& InsertMETTerm(xAOD::MissingETContainer* metCont, std::string name, MissingETBase::Types::bitmask_t source);
   double no_25Jets;
-  xAOD::MissingET *finalMET;
+  const xAOD::MissingET *finalMET;
 
   ///Other useful methods provided by base class are:
   ///evtStore()        : ServiceHandle to main event data storegate
@@ -62,10 +62,14 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
    TH1D* vis_hist;
    TH1D* leplep_hist;
    TH1D* col_hist;
+   TH1D* col_hist_susy;
    TH1D* mmc_hist;
+   TH1D* mmc_hist_susy;
    TH2D* mmc_leps_2D;
-   TH2D* m_my2DHist;
+   TH2D* mmc_leps_2D_susy;
    TH1D* met_hist;
+   TH1D* met_hist_susy;
+  
 
    TH1D* phi_rel_hist;
    TH1D* col_3piover4_hist;
