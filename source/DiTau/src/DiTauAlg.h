@@ -61,23 +61,44 @@ class DiTauAlg: public ::AthAnalysisAlgorithm {
  private:
    TH1D* vis_hist;
    TH1D* leplep_hist;
-   TH1D* col_hist;
-   TH1D* col_hist_susy;
-   TH1D* mmc_hist;
-   TH1D* mmc_hist_susy;
-   TH2D* mmc_leps_2D;
-   TH2D* mmc_leps_2D_susy;
-   TH1D* met_hist;
-   TH1D* met_hist_susy;
-  
-
    TH1D* phi_rel_hist;
-   TH1D* col_3piover4_hist;
-   TH1D* col_piover2_hist;
-   TH1D* col_piover4_hist;
-   TH1D* col_piover8_hist;
-   TH1D* col_piover16_hist;
-   TH1D* col_piover32_hist;
+
+   TH1D* col; // met7
+   TH1D* col_our; // our rebuild of met
+   TH1D* col_susy; // susy_tool->GetMET
+   
+   TH1D* mmc;
+   TH1D* mmc_our;
+   TH1D* mmc_susy;
+
+   TH2D* mmc_leps_2D;
+   TH2D* mmc_leps_2D_our;
+   TH2D* mmc_leps_2D_susy;
+
+   TH1D* met_hist;
+   TH1D* met_hist_our;
+   TH1D* met_hist_susy;
+
+   TH1D* _3po4; //3*pi/4
+   TH1D* po2;
+   TH1D* po4;
+   TH1D* po8;
+   TH1D* po16;
+   TH1D* po32;
+
+   TH1D* _3po4_our;
+   TH1D* po2_our;
+   TH1D* po4_our;
+   TH1D* po8_our;
+   TH1D* po16_our;
+   TH1D* po32_our;
+
+   TH1D* _3po4_susy;
+   TH1D* po2_susy;
+   TH1D* po4_susy;
+   TH1D* po8_susy;
+   TH1D* po16_susy;
+   TH1D* po32_susy;
 
    std::vector<const xAOD::Electron*> Electrons;
    std::vector<const xAOD::Muon*> Muons;
