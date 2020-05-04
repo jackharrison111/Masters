@@ -481,7 +481,19 @@ StatusCode DiTauAlg::execute() {
   }
 
 
-  finalMET = (*metCont)["TotalTermWithTST"]; 
+
+
+  //finalMET = (*metCont)["TotalTermWithTST"];   //JUST CHANGE THIS IF WANT TO USE A DIFFERNET MET
+  const xAOD::MissingETContainer *met7 = nullptr;
+  CHECK(evtStore()->retrieve(met7, "MET_Track"));
+   /*   for(const auto& met : *met7){
+        std::cout << "  MET term \"" << met->name() << "\""
+	          << "-- magnitude: " << met->met() / 1000
+		  << " GeV, phi: " << met->phi()
+		  << std::endl;
+      }
+  */
+  finalMET = met7->at(0);//(*metCont)["TotalTermWithTST"];
   met_hist->Fill(finalMET->met() / 1000);
 
   xAOD::MissingETContainer *susyMET = new xAOD::MissingETContainer;
@@ -753,17 +765,17 @@ StatusCode DiTauAlg::execute() {
       }
      if(abs(m_phi) < abs(half_angle)){ // ie met contained within visible products
       if(2*half_angle < (3 * M_PI / 4)){
-        col_3piover4_hist->Fill(col_mass);
+        col_3piover4_hist->Fill(col_mass_susy);
         if(2*half_angle < (M_PI / 2)){
-          col_piover2_hist->Fill(col_mass);
+          col_piover2_hist->Fill(col_mass_susy);
           if(2*half_angle < (M_PI / 4)){
-            col_piover4_hist->Fill(col_mass);
+            col_piover4_hist->Fill(col_mass_susy);
             if(2*half_angle < (M_PI / 8)){
-              col_piover8_hist->Fill(col_mass);
+              col_piover8_hist->Fill(col_mass_susy);
               if(2*half_angle < (M_PI / 16)){
-                col_piover16_hist->Fill(col_mass);
+                col_piover16_hist->Fill(col_mass_susy);
                 if(2*half_angle < (M_PI / 32)){
-                  col_piover32_hist->Fill(col_mass);
+                  col_piover32_hist->Fill(col_mass_susy);
                 }
               }
             }
