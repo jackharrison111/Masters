@@ -100,46 +100,48 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
 StatusCode DiTauAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
   
-  vis_hist = new TH1D("vis_hist","",160,0,160);
-  leplep_hist = new TH1D("leplep_hist","",160,0,160);
-  phi_rel_hist = new TH1D("phi_rel_hist","",50,-M_PI,M_PI);
+  vis_hist = new TH1D("vis_hist","",300,0,300);
+  leplep_hist = new TH1D("leplep_hist","",300,0,300);
+  phi_rel_hist = new TH1D("phi_rel_hist","",100,-2*M_PI,2*M_PI);
 
-  col = new TH1D("col","",160,0,160);
-  col_our = new TH1D("col_our","",160,0,160);
-  col_susy = new TH1D("col_susy","",160,0,160);
+  col = new TH1D("col","",300,0,300);
+  col_our = new TH1D("col_our","",300,0,300);
+  col_susy = new TH1D("col_susy","",300,0,300);
 
-  mmc = new TH1D("mmc","",160,0,160);
-  mmc_our = new TH1D("mmc_our","",160,0,160);
-  mmc_susy = new TH1D("mmc_susy","",160,0,160);
+  mmc = new TH1D("mmc","",300,0,300);
+  mmc_our = new TH1D("mmc_our","",300,0,300);
+  mmc_susy = new TH1D("mmc_susy","",300,0,300);
 
-  mmc_leps_2D = new TH2D("mmc_leps_2D","",160,0,160,160,0,160);
-  mmc_leps_2D_our = new TH2D("mmc_leps_2D_our","",160,0,160,160,0,160);
-  mmc_leps_2D_susy = new TH2D("mmc_leps_2D_susy","",160,0,160,160,0,160);
+  mmc_leps_2D = new TH2D("mmc_leps_2D","",300,0,300,300,0,300);
+  mmc_leps_2D_our = new TH2D("mmc_leps_2D_our","",300,0,300,300,0,300);
+  mmc_leps_2D_susy = new TH2D("mmc_leps_2D_susy","",300,0,300,300,0,300);
 
   met_hist = new TH1D("met_hist","",400,0,400);
   met_hist_our = new TH1D("met_hist_our","",400,0,400);
+  met_hist_our_4lep = new TH1D("met_hist_our_4lep","",400,0,400);
   met_hist_susy = new TH1D("met_hist_susy","",400,0,400);
+  met_hist_susy_4lep = new TH1D("met_hist_susy_4lep","",400,0,400);
 
-  _3po4 = new TH1D("3po4","",160,0,160);
-  po2 = new TH1D("po2","",160,0,160);
-  po4 = new TH1D("po4","",160,0,160);
-  po8 = new TH1D("po8","",160,0,160);
-  po16 = new TH1D("po16","",160,0,160);
-  po32 = new TH1D("po32","",160,0,160);
+  _3po4 = new TH1D("3po4","",300,0,300);
+  po2 = new TH1D("po2","",300,0,300);
+  po4 = new TH1D("po4","",300,0,300);
+  po8 = new TH1D("po8","",300,0,300);
+  po16 = new TH1D("po16","",300,0,300);
+  po32 = new TH1D("po32","",300,0,300);
 
-  _3po4_our = new TH1D("3po4_our","",160,0,160);
-  po2_our = new TH1D("po2_our","",160,0,160);
-  po4_our = new TH1D("po4_our","",160,0,160);
-  po8_our = new TH1D("po8_our","",160,0,160);
-  po16_our = new TH1D("po16_our","",160,0,160);
-  po32_our = new TH1D("po32_our","",160,0,160);
+  _3po4_our = new TH1D("3po4_our","",300,0,300);
+  po2_our = new TH1D("po2_our","",300,0,300);
+  po4_our = new TH1D("po4_our","",300,0,300);
+  po8_our = new TH1D("po8_our","",300,0,300);
+  po16_our = new TH1D("po16_our","",300,0,300);
+  po32_our = new TH1D("po32_our","",300,0,300);
 
-  _3po4_susy = new TH1D("3po4_susy","",160,0,160);
-  po2_susy = new TH1D("po2_susy","",160,0,160);
-  po4_susy = new TH1D("po4_susy","",160,0,160);
-  po8_susy = new TH1D("po8_susy","",160,0,160);
-  po16_susy = new TH1D("po16_susy","",160,0,160);
-  po32_susy = new TH1D("po32_susy","",160,0,160);
+  _3po4_susy = new TH1D("3po4_susy","",300,0,300);
+  po2_susy = new TH1D("po2_susy","",300,0,300);
+  po4_susy = new TH1D("po4_susy","",300,0,300);
+  po8_susy = new TH1D("po8_susy","",300,0,300);
+  po16_susy = new TH1D("po16_susy","",300,0,300);
+  po32_susy = new TH1D("po32_susy","",300,0,300);
 
   CHECK( histSvc()->regHist("/MYSTREAM/vis_hist", vis_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/leplep_hist", leplep_hist) );
@@ -158,8 +160,10 @@ StatusCode DiTauAlg::initialize() {
   CHECK( histSvc()->regHist("/MYSTREAM/mmc_leps_2D_susy", mmc_leps_2D_susy) );
 
   CHECK( histSvc()->regHist("/MYSTREAM/met_hist", met_hist) );
+  CHECK( histSvc()->regHist("/MYSTREAM/met_hist_our_4lep", met_hist_our_4lep) );
   CHECK( histSvc()->regHist("/MYSTREAM/met_hist_our", met_hist_our) );
   CHECK( histSvc()->regHist("/MYSTREAM/met_hist_susy", met_hist_susy) );
+  CHECK( histSvc()->regHist("/MYSTREAM/met_hist_susy_4lep", met_hist_susy_4lep) );
   
   CHECK( histSvc()->regHist("/MYSTREAM/_3po4", _3po4) );
   CHECK( histSvc()->regHist("/MYSTREAM/po2", po2) );
@@ -296,7 +300,8 @@ StatusCode DiTauAlg::execute() {
   //delete electrons_met_aux;
   //std::cout << "deleted electrons" << std::endl;
 
-  if(((int)Electrons.size() != 0)&&((int)Electrons.size() != 1)&&((int)Electrons.size() != 3)){
+  //if(((int)Electrons.size() != 0)&&((int)Electrons.size() != 1)&&((int)Electrons.size() != 3)){
+  if((int)Electrons.size()>4){
     CLEAR();
     return StatusCode::SUCCESS;
   }
@@ -329,7 +334,7 @@ StatusCode DiTauAlg::execute() {
   //delete taus_met;
   //delete tmet_aux;
   //std::cout << "deleted taus" << std::endl;
-  if((int)TauJets.size() != 1){
+  if(((int)TauJets.size() != 1)&&((int)TauJets.size()!=0)){
     CLEAR();
     return StatusCode::SUCCESS;
   }
@@ -368,7 +373,8 @@ StatusCode DiTauAlg::execute() {
   //delete muons_met;
   //delete muons_met_aux;
 
-  if(((int)Muons.size() != 0)&&((int)Muons.size() != 1)&&((int)Muons.size() != 3)){
+  //if(((int)Muons.size() != 0)&&((int)Muons.size() != 1)&&((int)Muons.size() != 3)){
+  if((int)Muons.size()>4){
     CLEAR();
     return StatusCode::SUCCESS;
   }
@@ -508,9 +514,10 @@ StatusCode DiTauAlg::execute() {
   const xAOD::MissingETContainer *met7 = nullptr;
   CHECK(evtStore()->retrieve(met7, "MET_Track"));
   finalMET = met7->at(0);//(*metCont)["TotalTermWithTST"];
-  met_hist->Fill(finalMET->met() / 1000);
   
   xAOD::MissingET* our_met = (*metCont)["TotalTermWithTST"];   //JUST CHANGE THIS IF WANT TO USE A DIFFERNET MET
+  
+
    /*   for(const auto& met : *met7){
         std::cout << "  MET term \"" << met->name() << "\""
 	          << "-- magnitude: " << met->met() / 1000
@@ -518,7 +525,6 @@ StatusCode DiTauAlg::execute() {
 		  << std::endl;
       }
   */
-  met_hist_our->Fill(our_met->met() / 1000);
 
   xAOD::MissingETContainer *susyMET = new xAOD::MissingETContainer;
   xAOD::MissingETAuxContainer *susyMET_aux = new xAOD::MissingETAuxContainer;
@@ -533,9 +539,17 @@ StatusCode DiTauAlg::execute() {
   CHECK(evtStore()->retrieve(tj_met, "GoodTaus"));
   susy_tool->GetMET(*susyMET, jc, e_met, mu_met, gamma, tj_met, true, invis);/**susyMET, jc, e_met, mu_met, gamma, tj_met, true, invis); */
   xAOD::MissingET *susy_met = (*susyMET)["Final"];
-  met_hist_susy->Fill(susy_met->met() / 1000);
   //std::cout << "SUSY MET = " << susy_met->met()/1000 << " GeV , FinalMET = " << finalMET->met()/1000 << " GeV" <<  std::endl; 
  
+  if((GetCandidates(4,0,0))||(GetCandidates(0,4,0))||(GetCandidates(2,2,0))){
+    met_hist_our_4lep->Fill(our_met->met() / 1000);
+    met_hist_susy_4lep->Fill(susy_met->met() / 1000);
+  }else if((GetCandidates(3,0,1))||(GetCandidates(2,1,1))||(GetCandidates(1,2,1))||(GetCandidates(0,3,1))){
+    met_hist->Fill(finalMET->met() / 1000);
+    met_hist_our->Fill(our_met->met() / 1000);
+    met_hist_susy->Fill(susy_met->met() / 1000);
+  }
+
   double lep1_pt, lep1_eta, lep1_phi;
   double lep2_pt, lep2_eta, lep2_phi;
   double tau_partner_pt{}, tau_partner_eta, tau_partner_phi;//, tau_partner_int;
