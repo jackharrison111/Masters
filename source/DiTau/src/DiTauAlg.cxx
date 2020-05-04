@@ -118,6 +118,7 @@ StatusCode DiTauAlg::initialize() {
 
   met_hist = new TH1D("met_hist","",400,0,400);
   met_hist_our = new TH1D("met_hist_our","",400,0,400);
+  met_hist_our_4lep = new TH1D("met_hist_our_4lep","",400,0,400);
   met_hist_susy = new TH1D("met_hist_susy","",400,0,400);
 
   met_hist_4l = new TH1D("met_hist_4l","",400,0,400);
@@ -304,7 +305,8 @@ StatusCode DiTauAlg::execute() {
   //delete electrons_met_aux;
   //std::cout << "deleted electrons" << std::endl;
 
-  if(((int)Electrons.size() != 0)&&((int)Electrons.size() != 1)&&((int)Electrons.size() != 3)){
+  //if(((int)Electrons.size() != 0)&&((int)Electrons.size() != 1)&&((int)Electrons.size() != 3)){
+  if((int)Electrons.size()>4){
     CLEAR();
     return StatusCode::SUCCESS;
   }
@@ -337,7 +339,7 @@ StatusCode DiTauAlg::execute() {
   //delete taus_met;
   //delete tmet_aux;
   //std::cout << "deleted taus" << std::endl;
-  if((int)TauJets.size() != 1){
+  if(((int)TauJets.size() != 1)&&((int)TauJets.size()!=0)){
     CLEAR();
     return StatusCode::SUCCESS;
   }
@@ -376,7 +378,8 @@ StatusCode DiTauAlg::execute() {
   //delete muons_met;
   //delete muons_met_aux;
 
-  if(((int)Muons.size() != 0)&&((int)Muons.size() != 1)&&((int)Muons.size() != 3)){
+  //if(((int)Muons.size() != 0)&&((int)Muons.size() != 1)&&((int)Muons.size() != 3)){
+  if((int)Muons.size()>4){
     CLEAR();
     return StatusCode::SUCCESS;
   }
@@ -516,6 +519,7 @@ StatusCode DiTauAlg::execute() {
   const xAOD::MissingETContainer *met7 = nullptr;
   CHECK(evtStore()->retrieve(met7, "MET_Track"));
   finalMET = met7->at(0);//(*metCont)["TotalTermWithTST"];
+  
   xAOD::MissingET* our_met = (*metCont)["TotalTermWithTST"];   //JUST CHANGE THIS IF WANT TO USE A DIFFERNET MET
    /*   for(const auto& met : *met7){
         std::cout << "  MET term \"" << met->name() << "\""
