@@ -100,65 +100,87 @@ bool DiTauAlg::GetCandidates(const int no_el, const int no_mu, const int no_tau)
 StatusCode DiTauAlg::initialize() {
   ATH_MSG_INFO ("Initializing " << name() << "...");
   
-  vis_hist = new TH1D("vis_hist","Visible Mass Distribution",160,0,160);
-  leplep_hist = new TH1D("leplep_hist", "Direct Z#rightarrow ll Invariant Mass Distribution", 160,0,160);
-  col_hist = new TH1D("col_hist","Collinear Mass Distribution",160,0,160);
-  col_hist_susy = new TH1D("col_hist_susy","Collinear Mass Distribution",160,0,160);
-  mmc_hist = new TH1D("mmc_hist","MMC Mass Distribution",160,0,160);
-  mmc_hist_susy = new TH1D("mmc_hist_susy","MMC Mass Distribution",160,0,160);
-  mmc_leps_2D = new TH2D("mmc_leps_2D", "", 160, 0, 160, 160, 0, 160);
+  vis_hist = new TH1D("vis_hist","",160,0,160);
+  leplep_hist = new TH1D("leplep_hist","",160,0,160);
+  phi_rel_hist = new TH1D("phi_rel_hist","",50,-M_PI,M_PI);
+
+  col = new TH1D("col","",160,0,160);
+  col_our = new TH1D("col_our","",160,0,160);
+  col_susy = new TH1D("col_susy","",160,0,160);
+
+  mmc = new TH1D("mmc","",160,0,160);
+  mmc_our = new TH1D("mmc_our","",160,0,160);
+  mmc_susy = new TH1D("mmc_susy","",160,0,160);
+
+  mmc_leps_2D = new TH2D("mmc_leps_2D","",160,0,160,160,0,160);
+  mmc_leps_2D_our = new TH2D("mmc_leps_2D_our","",160,0,160,160,0,160);
   mmc_leps_2D_susy = new TH2D("mmc_leps_2D_susy","",160,0,160,160,0,160);
+
   met_hist = new TH1D("met_hist","",400,0,400);
+  met_hist_our = new TH1D("met_hist_our","",400,0,400);
   met_hist_susy = new TH1D("met_hist_susy","",400,0,400);
-  phi_rel_hist = new TH1D("phi_rel_hist", "",50,-M_PI,M_PI);
 
-  col_3piover4_hist = new TH1D("col_3piover4_hist", "",160,0,160);
-  col_piover2_hist = new TH1D("col_piover2_hist", "",160,0,160);
-  col_piover4_hist = new TH1D("col_piover4_hist", "",160,0,160);
-  col_piover8_hist = new TH1D("col_piover8_hist", "",160,0,160);
-  col_piover16_hist = new TH1D("col_piover16_hist", "",160,0,160);
-  col_piover32_hist = new TH1D("col_piover32_hist", "",160,0,160);
+  _3po4 = new TH1D("3po4","",160,0,160);
+  po2 = new TH1D("po2","",160,0,160);
+  po4 = new TH1D("po4","",160,0,160);
+  po8 = new TH1D("po8","",160,0,160);
+  po16 = new TH1D("po16","",160,0,160);
+  po32 = new TH1D("po32","",160,0,160);
 
+  _3po4_our = new TH1D("3po4_our","",160,0,160);
+  po2_our = new TH1D("po2_our","",160,0,160);
+  po4_our = new TH1D("po4_our","",160,0,160);
+  po8_our = new TH1D("po8_our","",160,0,160);
+  po16_our = new TH1D("po16_our","",160,0,160);
+  po32_our = new TH1D("po32_our","",160,0,160);
 
-
-  vis_hist->SetTitle("Visible Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
-  leplep_hist->SetTitle("Direct Z#rightarrow ll Mass Distribution;M_{ll} [GeV]; N / [GeV]");
-  col_hist->SetTitle("Collinear Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
-  col_hist_susy->SetTitle("Collinear Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
-  mmc_hist->SetTitle("MMC Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
-  mmc_hist_susy->SetTitle("MMC Mass Distribution;M_{l#tau} [GeV]; N / [GeV]");
-  mmc_leps_2D->SetTitle("Missing Energy Distribution;M_{#tau#tau} [GeV];M_{ll} [GeV]");
-  mmc_leps_2D_susy->SetTitle("Missing Energy Distribution;M_{#tau#tau} [GeV];M_{ll} [GeV]");
-  met_hist->SetTitle("Missing Energy Distribution;MET [GeV];N / [GeV]");
-  met_hist_susy->SetTitle("Missing Energy Distribution;MET [GeV];N / [GeV]");
-  phi_rel_hist->SetTitle("Phi rel Distribution;#phi_{rel} [rad]; N / [2#pi/100 rad]");
-
-  col_3piover4_hist->SetTitle("Collinear Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
-  col_piover2_hist->SetTitle("Collinear Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
-  col_piover4_hist->SetTitle("Collinear Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
-  col_piover8_hist->SetTitle("Collinear Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
-  col_piover16_hist->SetTitle("Collinear Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
-  col_piover32_hist->SetTitle("Collinear Mass Distribution;M_{#tau#tau} [GeV]; N / [GeV]");
- 
+  _3po4_susy = new TH1D("3po4_susy","",160,0,160);
+  po2_susy = new TH1D("po2_susy","",160,0,160);
+  po4_susy = new TH1D("po4_susy","",160,0,160);
+  po8_susy = new TH1D("po8_susy","",160,0,160);
+  po16_susy = new TH1D("po16_susy","",160,0,160);
+  po32_susy = new TH1D("po32_susy","",160,0,160);
 
   CHECK( histSvc()->regHist("/MYSTREAM/vis_hist", vis_hist) );
   CHECK( histSvc()->regHist("/MYSTREAM/leplep_hist", leplep_hist) );
-  CHECK( histSvc()->regHist("/MYSTREAM/col_hist", col_hist) );
-  CHECK( histSvc()->regHist("/MYSTREAM/col_hist_susy", col_hist_susy) );
-  CHECK( histSvc()->regHist("/MYSTREAM/mmc_hist", mmc_hist) );
-  CHECK( histSvc()->regHist("/MYSTREAM/mmc_hist_susy", mmc_hist_susy) );
-  CHECK( histSvc()->regHist("/MYSTREAM/mmc_leps_2D", mmc_leps_2D) );
-  CHECK( histSvc()->regHist("/MYSTREAM/mmc_leps_2D_susy", mmc_leps_2D_susy) );
-  CHECK( histSvc()->regHist("/MYSTREAM/met_hist", met_hist) );
-  CHECK( histSvc()->regHist("/MYSTREAM/met_hist_susy", met_hist_susy) );
   CHECK( histSvc()->regHist("/MYSTREAM/phi_rel_hist", phi_rel_hist) );
+
+  CHECK( histSvc()->regHist("/MYSTREAM/col", col) );
+  CHECK( histSvc()->regHist("/MYSTREAM/col_our", col_our) );
+  CHECK( histSvc()->regHist("/MYSTREAM/col_susy", col_susy) );
+
+  CHECK( histSvc()->regHist("/MYSTREAM/mmc", mmc) );
+  CHECK( histSvc()->regHist("/MYSTREAM/mmc_our", mmc_our) );
+  CHECK( histSvc()->regHist("/MYSTREAM/mmc_susy", mmc_susy) );
+
+  CHECK( histSvc()->regHist("/MYSTREAM/mmc_leps_2D", mmc_leps_2D) );
+  CHECK( histSvc()->regHist("/MYSTREAM/mmc_leps_2D_our", mmc_leps_2D_our) );
+  CHECK( histSvc()->regHist("/MYSTREAM/mmc_leps_2D_susy", mmc_leps_2D_susy) );
+
+  CHECK( histSvc()->regHist("/MYSTREAM/met_hist", met_hist) );
+  CHECK( histSvc()->regHist("/MYSTREAM/met_hist_our", met_hist_our) );
+  CHECK( histSvc()->regHist("/MYSTREAM/met_hist_susy", met_hist_susy) );
   
-  CHECK( histSvc()->regHist("/MYSTREAM/col_3piover4_hist", col_3piover4_hist) );
-  CHECK( histSvc()->regHist("/MYSTREAM/col_piover2_hist", col_piover2_hist) );
-  CHECK( histSvc()->regHist("/MYSTREAM/col_piover4_hist", col_piover4_hist) );
-  CHECK( histSvc()->regHist("/MYSTREAM/col_piover8_hist", col_piover8_hist) );
-  CHECK( histSvc()->regHist("/MYSTREAM/col_piover16_hist", col_piover16_hist) );
-  CHECK( histSvc()->regHist("/MYSTREAM/col_piover32_hist", col_piover32_hist) );
+  CHECK( histSvc()->regHist("/MYSTREAM/_3po4", _3po4) );
+  CHECK( histSvc()->regHist("/MYSTREAM/po2", po2) );
+  CHECK( histSvc()->regHist("/MYSTREAM/po4", po4) );
+  CHECK( histSvc()->regHist("/MYSTREAM/po8", po8) );
+  CHECK( histSvc()->regHist("/MYSTREAM/po16", po16) );
+  CHECK( histSvc()->regHist("/MYSTREAM/po32", po32) );
+  
+  CHECK( histSvc()->regHist("/MYSTREAM/_3po4_our", _3po4_our) );
+  CHECK( histSvc()->regHist("/MYSTREAM/po2_our", po2_our) );
+  CHECK( histSvc()->regHist("/MYSTREAM/po4_our", po4_our) );
+  CHECK( histSvc()->regHist("/MYSTREAM/po8_our", po8_our) );
+  CHECK( histSvc()->regHist("/MYSTREAM/po16_our", po16_our) );
+  CHECK( histSvc()->regHist("/MYSTREAM/po32_our", po32_our) );
+  
+  CHECK( histSvc()->regHist("/MYSTREAM/_3po4_susy", _3po4_susy) );
+  CHECK( histSvc()->regHist("/MYSTREAM/po2_susy", po2_susy) );
+  CHECK( histSvc()->regHist("/MYSTREAM/po4_susy", po4_susy) );
+  CHECK( histSvc()->regHist("/MYSTREAM/po8_susy", po8_susy) );
+  CHECK( histSvc()->regHist("/MYSTREAM/po16_susy", po16_susy) );
+  CHECK( histSvc()->regHist("/MYSTREAM/po32_susy", po32_susy) );
   
   obj_scale = MissingETBase::UsageHandler::PhysicsObject;
 
@@ -483,9 +505,12 @@ StatusCode DiTauAlg::execute() {
 
 
 
-  //finalMET = (*metCont)["TotalTermWithTST"];   //JUST CHANGE THIS IF WANT TO USE A DIFFERNET MET
   const xAOD::MissingETContainer *met7 = nullptr;
   CHECK(evtStore()->retrieve(met7, "MET_Track"));
+  finalMET = met7->at(0);//(*metCont)["TotalTermWithTST"];
+  met_hist->Fill(finalMET->met() / 1000);
+  
+  xAOD::MissingET* our_met = (*metCont)["TotalTermWithTST"];   //JUST CHANGE THIS IF WANT TO USE A DIFFERNET MET
    /*   for(const auto& met : *met7){
         std::cout << "  MET term \"" << met->name() << "\""
 	          << "-- magnitude: " << met->met() / 1000
@@ -493,8 +518,7 @@ StatusCode DiTauAlg::execute() {
 		  << std::endl;
       }
   */
-  finalMET = met7->at(0);//(*metCont)["TotalTermWithTST"];
-  met_hist->Fill(finalMET->met() / 1000);
+  met_hist_our->Fill(our_met->met() / 1000);
 
   xAOD::MissingETContainer *susyMET = new xAOD::MissingETContainer;
   xAOD::MissingETAuxContainer *susyMET_aux = new xAOD::MissingETAuxContainer;
@@ -508,7 +532,6 @@ StatusCode DiTauAlg::execute() {
   const xAOD::TauJetContainer* tj_met = nullptr;
   CHECK(evtStore()->retrieve(tj_met, "GoodTaus"));
   susy_tool->GetMET(*susyMET, jc, e_met, mu_met, gamma, tj_met, true, invis);/**susyMET, jc, e_met, mu_met, gamma, tj_met, true, invis); */
-
   xAOD::MissingET *susy_met = (*susyMET)["Final"];
   met_hist_susy->Fill(susy_met->met() / 1000);
   //std::cout << "SUSY MET = " << susy_met->met()/1000 << " GeV , FinalMET = " << finalMET->met()/1000 << " GeV" <<  std::endl; 
@@ -644,7 +667,7 @@ StatusCode DiTauAlg::execute() {
       tau_partner_eta = Muons[same_leps[1]]->eta();
       tau_partner_phi = Muons[same_leps[1]]->phi();
       //tau_partner_int = same_leps[1];
-      //tau_partner = Muons[same_leps[1]];
+      tau_partner = Muons[same_leps[1]];
     }
     else{
       //set pairings 1 to be the right ones 
@@ -655,7 +678,7 @@ StatusCode DiTauAlg::execute() {
       tau_partner_eta = Muons[same_leps[0]]->eta();
       tau_partner_phi = Muons[same_leps[0]]->phi();
       //tau_partner_int = same_leps[0];
-      //tau_partner = Muons[same_leps[0]];
+      tau_partner = Muons[same_leps[0]];
     } 
   }
   else{
@@ -687,28 +710,36 @@ StatusCode DiTauAlg::execute() {
 		  << std::endl;
       }
       std::cout << std::endl;*/
-      double met_pt = finalMET->met() / 1000;
-      double m_phi = finalMET->phi();
 
-      double met_pt_susy = susy_met->met() / 1000;
-      double met_phi_susy = susy_met->phi(); 
 
       double invMass_leps = sqrt(2 * (lep1_pt * lep2_pt) * (cosh(lep1_eta - lep2_eta) - cos(lep1_phi - lep2_phi)));
       
       // COLLINEAR
+      double met_pt = finalMET->met() / 1000;
+      double m_phi = finalMET->phi();
       double nu_lep_pt = met_pt * (sin(m_phi) - sin(tau_phi)) / (sin(tau_partner_phi) - sin(tau_phi));
       double nu_tau_pt = met_pt * (sin(m_phi) - sin(tau_partner_phi)) / (sin(tau_phi) - sin(tau_partner_phi));
       double x1 = tau_partner_pt / (tau_partner_pt + nu_lep_pt);
       double x2 = tau_pt / (tau_pt + nu_tau_pt);
       double col_mass = vis_mass / sqrt(x1 * x2);
 
+      // COLLINEAR - OUR
+      double met_pt_our = our_met->met() / 1000;
+      double met_phi_our = our_met->phi(); 
+      double nu_lep_pt_our = met_pt_our * (sin(met_phi_our) - sin(tau_phi)) / (sin(tau_partner_phi) - sin(tau_phi));
+      double nu_tau_pt_our = met_pt_our * (sin(met_phi_our) - sin(tau_partner_phi)) / (sin(tau_phi) - sin(tau_partner_phi));
+      double x3 = tau_partner_pt / (tau_partner_pt + nu_lep_pt_our);
+      double x4 = tau_pt / (tau_pt + nu_tau_pt_our);
+      double col_mass_our = vis_mass / sqrt(x3 * x4);
 
       // COLLINEAR - SUSY
+      double met_pt_susy = susy_met->met() / 1000;
+      double met_phi_susy = susy_met->phi(); 
       double nu_lep_pt_susy = met_pt_susy * (sin(met_phi_susy) - sin(tau_phi)) / (sin(tau_partner_phi) - sin(tau_phi));
       double nu_tau_pt_susy = met_pt_susy * (sin(met_phi_susy) - sin(tau_partner_phi)) / (sin(tau_phi) - sin(tau_partner_phi));
-      double x3 = tau_partner_pt / (tau_partner_pt + nu_lep_pt_susy);
-      double x4 = tau_pt / (tau_pt + nu_tau_pt_susy);
-      double col_mass_susy = vis_mass / sqrt(x3 * x4);
+      double x5 = tau_partner_pt / (tau_partner_pt + nu_lep_pt_susy);
+      double x6 = tau_pt / (tau_pt + nu_tau_pt_susy);
+      double col_mass_susy = vis_mass / sqrt(x5 * x6);
 
 
       // ANGULAR
@@ -750,39 +781,57 @@ StatusCode DiTauAlg::execute() {
         leplep_hist->Fill(invMass_leps, eventWeight);  
         
         //collinear
-        col_hist->Fill(col_mass, eventWeight);
-        col_hist_susy->Fill(col_mass_susy, eventWeight);
+        col->Fill(col_mass, eventWeight);
+        col_our->Fill(col_mass_our, eventWeight);
+        col_susy->Fill(col_mass_susy, eventWeight);
  
         // MMC 
 	double mmc_mass = APPLY(m_mmt, ei, TauJets[0], tau_partner, finalMET, no_25Jets);	
+	double mmc_mass_our = APPLY(m_mmt, ei, TauJets[0], tau_partner, our_met, no_25Jets);	
 	double mmc_mass_susy = APPLY(m_mmt, ei, TauJets[0], tau_partner, susy_met, no_25Jets);
-        mmc_hist->Fill(mmc_mass, eventWeight);
-        mmc_hist_susy->Fill(mmc_mass_susy, eventWeight);
+        mmc->Fill(mmc_mass, eventWeight);
+        mmc_our->Fill(mmc_mass_our, eventWeight);
+        mmc_susy->Fill(mmc_mass_susy, eventWeight);
 
         //2D hists
 	mmc_leps_2D->Fill(mmc_mass, invMass_leps);
+	mmc_leps_2D_our->Fill(mmc_mass_our, invMass_leps);
 	mmc_leps_2D_susy->Fill(mmc_mass_susy, invMass_leps);
       }
-     if(abs(m_phi) < abs(half_angle)){ // ie met contained within visible products
-      if(2*half_angle < (3 * M_PI / 4)){
-        col_3piover4_hist->Fill(col_mass_susy);
-        if(2*half_angle < (M_PI / 2)){
-          col_piover2_hist->Fill(col_mass_susy);
-          if(2*half_angle < (M_PI / 4)){
-            col_piover4_hist->Fill(col_mass_susy);
-            if(2*half_angle < (M_PI / 8)){
-              col_piover8_hist->Fill(col_mass_susy);
-              if(2*half_angle < (M_PI / 16)){
-                col_piover16_hist->Fill(col_mass_susy);
-                if(2*half_angle < (M_PI / 32)){
-                  col_piover32_hist->Fill(col_mass_susy);
+
+      if(abs(m_phi) < abs(half_angle)){ // ie met contained within visible products
+        if(2*half_angle < (3 * M_PI / 4)){
+          _3po4->Fill(col_mass);
+          _3po4_our->Fill(col_mass_our);
+          _3po4_susy->Fill(col_mass_susy);
+          if(2*half_angle < (M_PI / 2)){
+            po2->Fill(col_mass);
+            po2_our->Fill(col_mass_our);
+            po2_susy->Fill(col_mass_susy);
+            if(2*half_angle < (M_PI / 4)){
+              po4->Fill(col_mass);
+              po4_our->Fill(col_mass_our);
+              po4_susy->Fill(col_mass_susy);
+              if(2*half_angle < (M_PI / 8)){
+                po8->Fill(col_mass);
+                po8_our->Fill(col_mass_our);
+                po8_susy->Fill(col_mass_susy);
+                if(2*half_angle < (M_PI / 16)){
+                  po16->Fill(col_mass);
+                  po16_our->Fill(col_mass_our);
+                  po16_susy->Fill(col_mass_susy);
+                  if(2*half_angle < (M_PI / 32)){
+                    po32->Fill(col_mass);
+                    po32_our->Fill(col_mass_our);
+                    po32_susy->Fill(col_mass_susy);
+                  }
                 }
               }
             }
           }
         }
       }
-    }
+
     } // vis_mass > 5
   } // tau_partner != 0
 
