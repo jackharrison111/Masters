@@ -195,8 +195,8 @@ StatusCode DiTauAlg::initialize() {
   CHECK(m_mmt.initialize());
   CHECK(m_mmt->setProperty("UseTauProbability", 1));
   CHECK(m_mmt->setProperty("CalibSet", "2016MC15C"));
-  CHECK(m_mmt->setProperty("NiterFit2", 30));
-  CHECK(m_mmt->setProperty("NiterFit3", 10));
+  CHECK(m_mmt->setProperty("NiterFit2", 30));  //was 30
+  CHECK(m_mmt->setProperty("NiterFit3", 10));  //was 10
   CHECK(m_mmt->setProperty("NsigmaMET", 4));
   CHECK(m_mmt->setProperty("alg_version", 3));
   //CHECK(m_mmt->setProperty("UseMETDphiLL", 1)); only for leplep

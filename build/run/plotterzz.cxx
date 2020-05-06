@@ -5,7 +5,10 @@ std::string me = "user.jaharris.ZZdataset2_real_900f_18-04_13-18_MYSTREAM/user.j
 std::string file1 = "local_outputs/ZZ_MCSTDM3_12files_NSIGMET4_22-04_14:37.root";
 std::string file2 = "local_outputs/ZZ_MCSTDM3_12files_NSIGMET6_22-04_15:08.root";
 
+
 std::string real_ds = "user.jaharris.ZZ_MC_derivSTDM3_SUSY_02-05_22-27_MYSTREAM/user.jaharris.";
+//"user.jaharris.ZZ_RE_derivSTDM3_SUSY_04-05_18-38_MYSTREAM/user.jaharris.";
+//"user.jaharris.ZZ_MC_derivSTDM3_SUSY_02-05_22-27_MYSTREAM/user.jaharris.";
 //"user.jaharris.ZZ_REDAOD_realDatatxt.derivSTDM3_25-04_14-49_MYSTREAM/user.jaharris.";
 //"user.jaharris.ZZ_MCDAOD_All364250.derivSTDM3_24-04_21-03_MYSTREAM/user.jaharris.";
 //"user.jaharris.ZZ_MCDAOD_4datasets_23-04_18-36_MYSTREAM/user.jaharris.";
@@ -14,9 +17,11 @@ std::string real_ds = "user.jaharris.ZZ_MC_derivSTDM3_SUSY_02-05_22-27_MYSTREAM/
 //"user.jaharris.ZZdataset2_real_100files_17-04/user.jaharris.";
 
 
-const int size{12};
+const int size{13};
 //std::string JEDITaskID[size] = {"20718468" , "20718456"};//,"","","",...};
 std::string bigJobID1 = "21186352";
+//"21196822";  ZZ_RE_derivSTDM3_SUSY_04-05_18-38_MYSTREAM 27
+//"21186352";  ZZ_MC_derivSTDM3_SUSY_02-05_22-27_MYSTREAM 13
 //"21126935";  ZZ_REDAOD_realDatatxt.derivSTDM3_25-04_14-49_MYSTREAM
 //"21123455";  ZZ_MCDAOD_All364250.derivSTDM3_24-04_21-03_MYSTREAM
 //"21110495";  ZZ_MCDAOD_4datasets_23-04_18-36_MYSTREAM
@@ -66,8 +71,8 @@ TH1D *col_piover16_hist = new TH1D("col_piover16_hist", "",160,0,160);
 TH1D *col_piover32_hist = new TH1D("col_piover32_hist", "",160,0,160);
 
 
-TH1D *mmc_hist_susy_bigBin = new TH1D("mmc_hist_susy_bigBin","MMC Mass Distribution",80,0,160);
-TH1D *col_hist_susy_bigBin = new TH1D("col_hist_susy_bigBin","MMC Mass Distribution",80,0,160);
+TH1D *mmc_hist_susy_bigBin = new TH1D("mmc_hist_susy_bigBin","MMC Mass Distribution",40,0,160);
+TH1D *col_hist_susy_bigBin = new TH1D("col_hist_susy_bigBin","MMC Mass Distribution",40,0,160);
 
 
 
@@ -164,11 +169,15 @@ TH1D *col_hist_susy_bigBin = new TH1D("col_hist_susy_bigBin","MMC Mass Distribut
 	for(int i=0; i <160; i++){
 		double bin1 = mmc_hist_susy->GetBinContent(i);
 		double bin2 = mmc_hist_susy->GetBinContent(i+1);	
-		mmc_hist_susy_bigBin->SetBinContent(i/2,bin1 + bin2);
+		double bin3 = mmc_hist_susy->GetBinContent(i+2);	
+		double bin4 = mmc_hist_susy->GetBinContent(i+3);	
+		mmc_hist_susy_bigBin->SetBinContent(i/4,bin1 + bin2 + bin3 + bin4);
 		double col_bin1 = col_hist_susy->GetBinContent(i);
 		double col_bin2 = col_hist_susy->GetBinContent(i+1);	
-		col_hist_susy_bigBin->SetBinContent(i/2,col_bin1 + col_bin2);
-		i++;
+		double col_bin3 = col_hist_susy->GetBinContent(i+2);	
+		double col_bin4 = col_hist_susy->GetBinContent(i+3);	
+		col_hist_susy_bigBin->SetBinContent(i/4,col_bin1 + col_bin2 + col_bin3 + col_bin4);
+		i+=3;
 	}
 
 /*
@@ -252,10 +261,10 @@ TH1D *col_hist_susy_bigBin = new TH1D("col_hist_susy_bigBin","MMC Mass Distribut
   leplep_hist->SetTitle(";M_{ll} [GeV]; N / [GeV]");
   col_hist->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
   col_hist_susy->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
-  col_hist_susy_bigBin->SetTitle(";M_{#tau#tau} [GeV]; N / [2GeV]");
+  col_hist_susy_bigBin->SetTitle(";M_{#tau#tau} [GeV]; N / [4GeV]");
   mmc_hist->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
   mmc_hist_susy->SetTitle(";M_{#tau#tau} [GeV]; N / [GeV]");
-  mmc_hist_susy_bigBin->SetTitle(";M_{#tau#tau} [GeV]; N / [2GeV]");
+  mmc_hist_susy_bigBin->SetTitle(";M_{#tau#tau} [GeV]; N / [4GeV]");
   mmc_leps_2D->SetTitle(";M_{#tau#tau} [GeV];M_{ll} [GeV]");
   mmc_leps_2D_susy->SetTitle(";M_{#tau#tau} [GeV];M_{ll} [GeV]");
   met_hist->SetTitle(";MET [GeV];N / [GeV]");
