@@ -118,25 +118,27 @@ StatusCode DiTauAlg::initialize() {
 
   met_hist = new TH1D("met_hist","",400,0,400);
   met_hist_our = new TH1D("met_hist_our","",400,0,400);
-  met_hist_our_4lep = new TH1D("met_hist_our_4lep","",400,0,400);
   met_hist_susy = new TH1D("met_hist_susy","",400,0,400);
-  met_hist_susy_4lep = new TH1D("met_hist_susy_4lep","",400,0,400);
 
-  _3po4 = new TH1D("3po4","",300,0,300);
+  met_hist_4l = new TH1D("met_hist_4l","",400,0,400);
+  met_hist_4l_our = new TH1D("met_hist_4l_our","",400,0,400);
+  met_hist_4l_susy = new TH1D("met_hist_4l_susy","",400,0,400);
+
+  _3po4 = new TH1D("_3po4","",300,0,300);
   po2 = new TH1D("po2","",300,0,300);
   po4 = new TH1D("po4","",300,0,300);
   po8 = new TH1D("po8","",300,0,300);
   po16 = new TH1D("po16","",300,0,300);
   po32 = new TH1D("po32","",300,0,300);
 
-  _3po4_our = new TH1D("3po4_our","",300,0,300);
+  _3po4_our = new TH1D("_3po4_our","",300,0,300);
   po2_our = new TH1D("po2_our","",300,0,300);
   po4_our = new TH1D("po4_our","",300,0,300);
   po8_our = new TH1D("po8_our","",300,0,300);
   po16_our = new TH1D("po16_our","",300,0,300);
   po32_our = new TH1D("po32_our","",300,0,300);
 
-  _3po4_susy = new TH1D("3po4_susy","",300,0,300);
+  _3po4_susy = new TH1D("_3po4_susy","",300,0,300);
   po2_susy = new TH1D("po2_susy","",300,0,300);
   po4_susy = new TH1D("po4_susy","",300,0,300);
   po8_susy = new TH1D("po8_susy","",300,0,300);
@@ -160,10 +162,12 @@ StatusCode DiTauAlg::initialize() {
   CHECK( histSvc()->regHist("/MYSTREAM/mmc_leps_2D_susy", mmc_leps_2D_susy) );
 
   CHECK( histSvc()->regHist("/MYSTREAM/met_hist", met_hist) );
-  CHECK( histSvc()->regHist("/MYSTREAM/met_hist_our_4lep", met_hist_our_4lep) );
   CHECK( histSvc()->regHist("/MYSTREAM/met_hist_our", met_hist_our) );
   CHECK( histSvc()->regHist("/MYSTREAM/met_hist_susy", met_hist_susy) );
-  CHECK( histSvc()->regHist("/MYSTREAM/met_hist_susy_4lep", met_hist_susy_4lep) );
+  
+  CHECK( histSvc()->regHist("/MYSTREAM/met_hist_4l", met_hist_4l) );
+  CHECK( histSvc()->regHist("/MYSTREAM/met_hist_4l_our", met_hist_4l_our) );
+  CHECK( histSvc()->regHist("/MYSTREAM/met_hist_4l_susy", met_hist_4l_susy) );
   
   CHECK( histSvc()->regHist("/MYSTREAM/_3po4", _3po4) );
   CHECK( histSvc()->regHist("/MYSTREAM/po2", po2) );
@@ -516,8 +520,6 @@ StatusCode DiTauAlg::execute() {
   finalMET = met7->at(0);//(*metCont)["TotalTermWithTST"];
   
   xAOD::MissingET* our_met = (*metCont)["TotalTermWithTST"];   //JUST CHANGE THIS IF WANT TO USE A DIFFERNET MET
-  
-
    /*   for(const auto& met : *met7){
         std::cout << "  MET term \"" << met->name() << "\""
 	          << "-- magnitude: " << met->met() / 1000
@@ -541,15 +543,17 @@ StatusCode DiTauAlg::execute() {
   xAOD::MissingET *susy_met = (*susyMET)["Final"];
   //std::cout << "SUSY MET = " << susy_met->met()/1000 << " GeV , FinalMET = " << finalMET->met()/1000 << " GeV" <<  std::endl; 
  
-  if((GetCandidates(4,0,0))||(GetCandidates(0,4,0))||(GetCandidates(2,2,0))){
-    met_hist_our_4lep->Fill(our_met->met() / 1000);
-    met_hist_susy_4lep->Fill(susy_met->met() / 1000);
-  }else if((GetCandidates(3,0,1))||(GetCandidates(2,1,1))||(GetCandidates(1,2,1))||(GetCandidates(0,3,1))){
-    met_hist->Fill(finalMET->met() / 1000);
-    met_hist_our->Fill(our_met->met() / 1000);
-    met_hist_susy->Fill(susy_met->met() / 1000);
+  if(GetCandidates(3,0,1)||GetCandidates(0,3,1)||GetCandidates(2,1,1)||GetCandidates(1,2,1)){
+    met_hist->Fill(finalMET->met() / 1000, eventWeight);  
+    met_hist_our->Fill(our_met->met() / 1000, eventWeight);
+    met_hist_susy->Fill(susy_met->met() / 1000, eventWeight);
+  }else if(GetCandidates(4,0,0)||GetCandidates(0,4,0)||GetCandidates(2,2,0)){
+    met_hist_4l->Fill(finalMET->met() / 1000, eventWeight);  
+    met_hist_4l_our->Fill(our_met->met() / 1000, eventWeight);
+    met_hist_4l_susy->Fill(susy_met->met() / 1000, eventWeight); 
   }
 
+  
   double lep1_pt, lep1_eta, lep1_phi;
   double lep2_pt, lep2_eta, lep2_phi;
   double tau_partner_pt{}, tau_partner_eta, tau_partner_phi;//, tau_partner_int;
@@ -783,16 +787,16 @@ StatusCode DiTauAlg::execute() {
       if(m_phi > M_PI) m_phi -= 2 * M_PI;
       else if(m_phi < -M_PI) m_phi += 2 * M_PI;
       double m_phi_rel = (m_phi * M_PI) / (2 * half_angle);
-      if(tau_phi > tau_partner_phi) phi_rel_hist->Fill(m_phi_rel);
-      else phi_rel_hist->Fill(-m_phi_rel);
+      if(tau_phi > tau_partner_phi) phi_rel_hist->Fill(m_phi_rel, eventWeight);
+      else phi_rel_hist->Fill(-m_phi_rel, eventWeight);
 
 
       // SAME IF STATEMENT AS LAST SEMESTER (only there was a <80GeV cut last semester which isn't needed here)
       if(2*half_angle <= 2.5 && 2*half_angle >= 0.5 && m_phi_rel <= 3*M_PI/5 && m_phi_rel >= -7*M_PI/10){
 	
         no_1lep1tau_events++;
-        vis_hist->Fill(vis_mass);
-        leplep_hist->Fill(invMass_leps, eventWeight);  
+        vis_hist->Fill(vis_mass, eventWeight);
+        leplep_hist->Fill(invMass_leps, eventWeight);
         
         //collinear
         col->Fill(col_mass, eventWeight);
@@ -808,36 +812,36 @@ StatusCode DiTauAlg::execute() {
         mmc_susy->Fill(mmc_mass_susy, eventWeight);
 
         //2D hists
-	mmc_leps_2D->Fill(mmc_mass, invMass_leps);
-	mmc_leps_2D_our->Fill(mmc_mass_our, invMass_leps);
-	mmc_leps_2D_susy->Fill(mmc_mass_susy, invMass_leps);
+	mmc_leps_2D->Fill(mmc_mass, invMass_leps, eventWeight);
+	mmc_leps_2D_our->Fill(mmc_mass_our, invMass_leps, eventWeight);
+	mmc_leps_2D_susy->Fill(mmc_mass_susy, invMass_leps, eventWeight);
       }
 
       if(abs(m_phi) < abs(half_angle)){ // ie met contained within visible products
         if(2*half_angle < (3 * M_PI / 4)){
-          _3po4->Fill(col_mass);
-          _3po4_our->Fill(col_mass_our);
-          _3po4_susy->Fill(col_mass_susy);
+          _3po4->Fill(col_mass, eventWeight);
+          _3po4_our->Fill(col_mass_our, eventWeight);
+          _3po4_susy->Fill(col_mass_susy, eventWeight);
           if(2*half_angle < (M_PI / 2)){
-            po2->Fill(col_mass);
-            po2_our->Fill(col_mass_our);
-            po2_susy->Fill(col_mass_susy);
+            po2->Fill(col_mass, eventWeight);
+            po2_our->Fill(col_mass_our, eventWeight);
+            po2_susy->Fill(col_mass_susy, eventWeight);
             if(2*half_angle < (M_PI / 4)){
-              po4->Fill(col_mass);
-              po4_our->Fill(col_mass_our);
-              po4_susy->Fill(col_mass_susy);
+              po4->Fill(col_mass, eventWeight);
+              po4_our->Fill(col_mass_our, eventWeight);
+              po4_susy->Fill(col_mass_susy, eventWeight);
               if(2*half_angle < (M_PI / 8)){
-                po8->Fill(col_mass);
-                po8_our->Fill(col_mass_our);
-                po8_susy->Fill(col_mass_susy);
+                po8->Fill(col_mass, eventWeight);
+                po8_our->Fill(col_mass_our, eventWeight);
+                po8_susy->Fill(col_mass_susy, eventWeight);
                 if(2*half_angle < (M_PI / 16)){
-                  po16->Fill(col_mass);
-                  po16_our->Fill(col_mass_our);
-                  po16_susy->Fill(col_mass_susy);
+                  po16->Fill(col_mass, eventWeight);
+                  po16_our->Fill(col_mass_our, eventWeight);
+                  po16_susy->Fill(col_mass_susy, eventWeight);
                   if(2*half_angle < (M_PI / 32)){
-                    po32->Fill(col_mass);
-                    po32_our->Fill(col_mass_our);
-                    po32_susy->Fill(col_mass_susy);
+                    po32->Fill(col_mass, eventWeight);
+                    po32_our->Fill(col_mass_our, eventWeight);
+                    po32_susy->Fill(col_mass_susy, eventWeight);
                   }
                 }
               }
