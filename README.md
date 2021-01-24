@@ -4,5 +4,6 @@ Code used for the shared Masters project on finding new physics through tau lept
 
 This project was a collaboration between Jack Harrison and Aodhan Burke.
 
-![Example plot](saved_plots/%contained_MPHYS.png)
+
+![Example plot](saved_plots/%contained_MPHYS.png?raw=true "Title")
 
