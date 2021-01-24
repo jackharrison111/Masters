@@ -4,5 +4,5 @@ Code used for the shared Masters project on finding new physics through tau lept
 
 This project was a collaboration between Jack Harrison and Aodhan Burke.
 
-![Alt text](saved_plots/invMass_cutsOn%Contained_mod(phirel)LT7piOVR10_norm_Ztautau_28-01.pdf?raw=true "Title")
+![Example plot](saved_plots/invMass_cutsOn%Contained_mod(phirel)LT7piOVR10_norm_Ztautau_28-01.pdf)
 
